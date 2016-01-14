@@ -1,0 +1,91 @@
+<c tag='1' class='APPLICATION'>
+    <c tag='4' class='APPLICATION'>
+        <p tag='196' class='APPLICATION'>WERFD</p>
+        <p tag='182' class='APPLICATION'>XLKJE</p>
+        <p tag='109' class='APPLICATION'>31707</p>
+        <c tag='108' class='APPLICATION'>
+            <p tag='16' class='APPLICATION'>20050405090547</p>
+            <p tag='231' class='APPLICATION'>+0200</p>
+        </c>
+        <c tag='227' class='APPLICATION'>
+            <p tag='16' class='APPLICATION'>20050405090547</p>
+            <p tag='231' class='APPLICATION'>+0200</p>
+        </c>
+        <c tag='107' class='APPLICATION'>
+            <p tag='16' class='APPLICATION'>20050405090547</p>
+            <p tag='231' class='APPLICATION'>+0200</p>
+        </c>
+        <p tag='201' class='APPLICATION'>&#x03;</p>
+        <p tag='189' class='APPLICATION'>&#x0a;</p>
+    </c>
+    <c tag='5' class='APPLICATION'>
+        <p tag='135' class='APPLICATION'>EUR</p>
+        <c tag='80' class='APPLICATION'>
+            <c tag='106' class='APPLICATION'>
+                <p tag='105' class='APPLICATION'>&#x01;</p>
+                <p tag='159' class='APPLICATION'>&#x05;</p>
+                <p tag='104' class='APPLICATION'>&#x01;&#xc5;&#xeb;</p>
+            </c>
+        </c>
+        <p tag='244' class='APPLICATION'>&#x03;</p>
+    </c>
+    <c tag='6' class='APPLICATION'>
+        <c tag='234' class='APPLICATION'>
+            <c tag='233' class='APPLICATION'>
+                <p tag='232' class='APPLICATION'>&#x01;</p>
+                <p tag='231' class='APPLICATION'>+0200</p>
+            </c>
+        </c>
+        <c tag='188' class='APPLICATION'>
+            <c tag='183' class='APPLICATION'>
+                <p tag='184' class='APPLICATION'>&#x01;</p>
+                <p tag='186' class='APPLICATION'>&#x01;</p>
+            </c>
+            <c tag='183' class='APPLICATION'>
+                <p tag='184' class='APPLICATION'>&#x16;</p>
+                <p tag='186' class='APPLICATION'>&#x01;</p>
+            </c>
+            <c tag='183' class='APPLICATION'>
+                <p tag='184' class='APPLICATION'>&#x00;&#x8e;</p>
+                <p tag='186' class='APPLICATION'>&#x04;</p>
+            </c>
+        </c>
+    </c>
+    <c tag='3' class='APPLICATION'>
+        <c tag='10' class='APPLICATION'>
+            <c tag='153' class='APPLICATION'/>
+            <c tag='138' class='APPLICATION'>
+                <c tag='156' class='APPLICATION'>
+                    <p tag='184' class='APPLICATION'>&#x01;</p>
+                    <p tag='45' class='APPLICATION'>Jw&#x94;</p>
+                    <p tag='136' class='APPLICATION'>&#x0d;&#xb1;</p>
+                    <p tag='59' class='APPLICATION'>&#x1c;&#x0e;</p>
+                </c>
+            </c>
+        </c>
+        <c tag='10' class='APPLICATION'>
+            <c tag='153' class='APPLICATION'/>
+            <c tag='138' class='APPLICATION'>
+                <c tag='156' class='APPLICATION'>
+                    <p tag='184' class='APPLICATION'>&#x01;</p>
+                    <p tag='45' class='APPLICATION'>J&#xaf;&#xa0;</p>
+                    <p tag='136' class='APPLICATION'>&#x0d;&#xb6;</p>
+                    <p tag='59' class='APPLICATION'>$}</p>
+                </c>
+            </c>
+        </c>
+        <c tag='14' class='APPLICATION'/>
+        <c tag='14' class='APPLICATION'/>
+        <c tag='14' class='APPLICATION'/>
+    </c>
+    <c tag='15' class='APPLICATION'>
+        <c tag='101' class='APPLICATION'>
+            <p tag='16' class='APPLICATION'>20050404162453</p>
+            <p tag='231' class='APPLICATION'>+0200</p>
+        </c>
+        <c tag='133' class='APPLICATION'>
+            <p tag='16' class='APPLICATION'>20050405090059</p>
+            <p tag='231' class='APPLICATION'>+0200</p>
+        </c>
+    </c>
+</c>

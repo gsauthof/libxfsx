@@ -1,0 +1,14 @@
+<AuditControlInfo>
+    <EarliestCallTimeStamp>
+        <LocalTimeStamp>20050404162453</LocalTimeStamp>
+        <UtcTimeOffset>+0200</UtcTimeOffset>
+    </EarliestCallTimeStamp>
+    <LatestCallTimeStamp>
+        <LocalTimeStamp>20050405090059</LocalTimeStamp>
+        <UtcTimeOffset>+0200</UtcTimeOffset>
+    </LatestCallTimeStamp>
+    <TotalCharge>2300</TotalCharge>
+    <TotalTaxValue>0</TotalTaxValue>
+    <TotalDiscountValue>0</TotalDiscountValue>
+    <CallEventDetailsCount>4</CallEventDetailsCount>
+</AuditControlInfo>

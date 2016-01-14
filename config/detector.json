@@ -1,0 +1,136 @@
+{ 
+  "version": "1.0",
+  "definitions":
+    [
+    {
+      "name": "TAP",
+      "long_name": "Transferred Account Procedure",
+      "comment": "TD.57",
+      "count": 18,
+      "variables":
+        [
+        {
+          "name": "major",
+          "path": "string(/TransferBatch[1]/BatchControlInfo[1]/SpecificationVersionNumber)"
+        },
+        {
+          "name": "minor",
+          "path": "string(/TransferBatch[1]/BatchControlInfo[1]/ReleaseVersionNumber)"
+        }
+        ],
+      "initial_grammars": [ "tap_3_12.asn1" ],
+      "resulting_grammars": [ "tap_{major}_{minor}.asn1" ]
+    },
+    {
+      "name": "TAPN",
+      "long_name": "Transferred Account Procedure Notification",
+      "comment": "TD.57",
+      "count": 18,
+      "variables":
+        [
+        {
+          "name": "major",
+          "path": "string(/Notification[1]/SpecificationVersionNumber)"
+        },
+        {
+          "name": "minor",
+          "path": "string(/Notification[1]/ReleaseVersionNumber)"
+        }
+        ],
+      "initial_grammars": [ "tap_3_12.asn1" ],
+      "resulting_grammars": [ "tap_{major}_{minor}.asn1" ]
+    },
+    {
+      "name": "RAP",
+      "long_name": "Returned Accounts Procedure",
+      "comment": "TD.32",
+      "count": 18,
+      "variables":
+        [
+        {
+          "name": "major",
+          "path": "string(/ReturnBatch[1]/RapBatchControlInfo[1]/RapSpecificationVersionNumber)"
+        },
+        {
+          "name": "minor",
+          "path": "string(/ReturnBatch[1]/RapBatchControlInfo[1]/RapReleaseVersionNumber[. > 2])"
+        },
+        {
+          "name": "tap_major",
+          "path": "string(/ReturnBatch[1]/RapBatchControlInfo[1]/SpecificationVersionNumber)"
+        },
+        {
+          "name": "tap_minor",
+          "path": "string(/ReturnBatch[1]/RapBatchControlInfo[1]/ReleaseVersionNumber[. < 11])"
+        }
+        ],
+      "initial_grammars": [ "rap_1_5.asn1", "tap_3_12.asn1" ],
+      "resulting_grammars": [ "rap_{major}_{minor}.asn1", "rap_lt_tap_3_11_tail.asn1", "tap_{tap_major}_{tap_minor}.asn1" ]
+    },
+    {
+      "name": "RAP",
+      "long_name": "Returned Accounts Procedure",
+      "comment": "TD.32",
+      "count": 18,
+      "variables":
+        [
+        {
+          "name": "major",
+          "path": "string(/ReturnBatch[1]/RapBatchControlInfo[1]/RapSpecificationVersionNumber)"
+        },
+        {
+          "name": "minor",
+          "path": "string(/ReturnBatch[1]/RapBatchControlInfo[1]/RapReleaseVersionNumber)"
+        },
+        {
+          "name": "tap_major",
+          "path": "string(/ReturnBatch[1]/RapBatchControlInfo[1]/SpecificationVersionNumber)"
+        },
+        {
+          "name": "tap_minor",
+          "path": "string(/ReturnBatch[1]/RapBatchControlInfo[1]/ReleaseVersionNumber)"
+        }
+        ],
+      "initial_grammars": [ "rap_1_5.asn1", "tap_3_12.asn1" ],
+      "resulting_grammars": [ "rap_{major}_{minor}.asn1", "tap_{tap_major}_{tap_minor}.asn1" ]
+    },
+    {
+      "name": "RAPACK",
+      "long_name": "Returned Accounts Procedure Acknowledgement",
+      "comment": "TD.32",
+      "count": 18,
+      "variables":
+        [
+        {
+          "name": "sender",
+          "path": "string(/Acknowledgement[1]/Sender)"
+        },
+        {
+          "name": "minor",
+          "path": "string(/Acknowledgement[1]/Recipient)"
+        }
+        ],
+      "initial_grammars": [ "rap_1_5.asn1", "tap_3_12.asn1" ],
+      "resulting_grammars": [ "rap_1_5.asn1", "tap_3_12.asn1" ]
+    },
+    {
+      "name": "NRT",
+      "long_name": "Neartrade",
+      "comment": "TD.35",
+      "count": 18,
+      "variables":
+        [
+        {
+          "name": "major",
+          "path": "string(/Nrtrde[1]/SpecificationVersionNumber)"
+        },
+        {
+          "name": "minor",
+          "path": "string(/Nrtrde[1]/ReleaseVersionNumber)"
+        }
+        ],
+      "initial_grammars": [ "nrt_2_1.asn1" ],
+      "resulting_grammars": [ "nrt_{major}_{minor}.asn1" ]
+    }
+    ]
+}

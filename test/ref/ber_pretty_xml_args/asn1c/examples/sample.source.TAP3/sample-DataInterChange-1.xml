@@ -1,0 +1,91 @@
+<TransferBatch tl='4' t='1' length='368' off='0'>
+  <BatchControlInfo tl='2' t='1' length='121' off='4'>
+    <Sender tl='4' t='3' length='5' off='6' hex='5745524644'>WERFD</Sender>
+    <Recipient tl='4' t='3' length='5' off='15' hex='584c4b4a45'>XLKJE</Recipient>
+    <FileSequenceNumber tl='3' t='2' length='5' off='24' hex='3331373037'>31707</FileSequenceNumber>
+    <FileCreationTimeStamp tl='3' t='2' length='25' off='32'>
+      <LocalTimeStamp tl='2' t='1' length='14' off='35' hex='3230303530343035303930353437'>20050405090547</LocalTimeStamp>
+      <UtcTimeOffset tl='4' t='3' length='5' off='51' hex='2b30323030'>+0200</UtcTimeOffset>
+    </FileCreationTimeStamp>
+    <TransferCutOffTimeStamp tl='4' t='3' length='25' off='60'>
+      <LocalTimeStamp tl='2' t='1' length='14' off='64' hex='3230303530343035303930353437'>20050405090547</LocalTimeStamp>
+      <UtcTimeOffset tl='4' t='3' length='5' off='80' hex='2b30323030'>+0200</UtcTimeOffset>
+    </TransferCutOffTimeStamp>
+    <FileAvailableTimeStamp tl='3' t='2' length='25' off='89'>
+      <LocalTimeStamp tl='2' t='1' length='14' off='92' hex='3230303530343035303930353437'>20050405090547</LocalTimeStamp>
+      <UtcTimeOffset tl='4' t='3' length='5' off='108' hex='2b30323030'>+0200</UtcTimeOffset>
+    </FileAvailableTimeStamp>
+    <SpecificationVersionNumber tl='4' t='3' length='1' off='117' hex='03'>3</SpecificationVersionNumber>
+    <ReleaseVersionNumber tl='4' t='3' length='1' off='122' hex='0a'>10</ReleaseVersionNumber>
+  </BatchControlInfo>
+  <AccountingInfo tl='2' t='1' length='33' off='127'>
+    <LocalCurrency tl='4' t='3' length='3' off='129' hex='455552'>EUR</LocalCurrency>
+    <CurrencyConversionList tl='3' t='2' length='18' off='136'>
+      <CurrencyConversion tl='3' t='2' length='15' off='139'>
+        <ExchangeRateCode tl='3' t='2' length='1' off='142' hex='01'>1</ExchangeRateCode>
+        <NumberOfDecimalPlaces tl='4' t='3' length='1' off='146' hex='05'>5</NumberOfDecimalPlaces>
+        <ExchangeRate tl='3' t='2' length='3' off='151' hex='01c5eb'>116203</ExchangeRate>
+      </CurrencyConversion>
+    </CurrencyConversionList>
+    <TapDecimalPlaces tl='4' t='3' length='1' off='157' hex='03'>3</TapDecimalPlaces>
+  </AccountingInfo>
+  <NetworkInfo tl='2' t='1' length='69' off='162'>
+    <UtcTimeOffsetInfoList tl='4' t='3' length='18' off='164'>
+      <UtcTimeOffsetInfo tl='4' t='3' length='14' off='168'>
+        <UtcTimeOffsetCode tl='4' t='3' length='1' off='172' hex='01'>1</UtcTimeOffsetCode>
+        <UtcTimeOffset tl='4' t='3' length='5' off='177' hex='2b30323030'>+0200</UtcTimeOffset>
+      </UtcTimeOffsetInfo>
+    </UtcTimeOffsetInfoList>
+    <RecEntityInfoList tl='4' t='3' length='43' off='186'>
+      <RecEntityInformation tl='4' t='3' length='10' off='190'>
+        <RecEntityCode tl='4' t='3' length='1' off='194' hex='01'>1</RecEntityCode>
+        <RecEntityType tl='4' t='3' length='1' off='199' hex='01'>1</RecEntityType>
+      </RecEntityInformation>
+      <RecEntityInformation tl='4' t='3' length='10' off='204'>
+        <RecEntityCode tl='4' t='3' length='1' off='208' hex='16'>22</RecEntityCode>
+        <RecEntityType tl='4' t='3' length='1' off='213' hex='01'>1</RecEntityType>
+      </RecEntityInformation>
+      <RecEntityInformation tl='4' t='3' length='11' off='218'>
+        <RecEntityCode tl='4' t='3' length='2' off='222' hex='008e'>142</RecEntityCode>
+        <RecEntityType tl='4' t='3' length='1' off='228' hex='04'>4</RecEntityType>
+      </RecEntityInformation>
+    </RecEntityInfoList>
+  </NetworkInfo>
+  <CallEventDetailList tl='2' t='1' length='78' off='233'>
+    <MobileTerminatedCall tl='2' t='1' length='34' off='235'>
+      <MtBasicCallInformation tl='4' t='3' length='0' off='237'/>
+      <LocationInformation tl='4' t='3' length='26' off='241'>
+        <NetworkLocation tl='4' t='3' length='22' off='245'>
+          <RecEntityCode tl='4' t='3' length='1' off='249' hex='01'>1</RecEntityCode>
+          <CallReference tl='3' t='2' length='3' off='254' hex='4a7794'>Jw&#x94;</CallReference>
+          <LocationArea tl='4' t='3' length='2' off='260' hex='0db1'>3505</LocationArea>
+          <CellId tl='3' t='2' length='2' off='266' hex='1c0e'>7182</CellId>
+        </NetworkLocation>
+      </LocationInformation>
+    </MobileTerminatedCall>
+    <MobileTerminatedCall tl='2' t='1' length='34' off='271'>
+      <MtBasicCallInformation tl='4' t='3' length='0' off='273'/>
+      <LocationInformation tl='4' t='3' length='26' off='277'>
+        <NetworkLocation tl='4' t='3' length='22' off='281'>
+          <RecEntityCode tl='4' t='3' length='1' off='285' hex='01'>1</RecEntityCode>
+          <CallReference tl='3' t='2' length='3' off='290' hex='4aafa0'>J&#xaf;&#xa0;</CallReference>
+          <LocationArea tl='4' t='3' length='2' off='296' hex='0db6'>3510</LocationArea>
+          <CellId tl='3' t='2' length='2' off='302' hex='247d'>9341</CellId>
+        </NetworkLocation>
+      </LocationInformation>
+    </MobileTerminatedCall>
+    <GprsCall tl='2' t='1' length='0' off='307'/>
+    <GprsCall tl='2' t='1' length='0' off='309'/>
+    <GprsCall tl='2' t='1' length='0' off='311'/>
+  </CallEventDetailList>
+  <AuditControlInfo tl='2' t='1' length='57' off='313'>
+    <EarliestCallTimeStamp tl='3' t='2' length='25' off='315'>
+      <LocalTimeStamp tl='2' t='1' length='14' off='318' hex='3230303530343034313632343533'>20050404162453</LocalTimeStamp>
+      <UtcTimeOffset tl='4' t='3' length='5' off='334' hex='2b30323030'>+0200</UtcTimeOffset>
+    </EarliestCallTimeStamp>
+    <LatestCallTimeStamp tl='4' t='3' length='25' off='343'>
+      <LocalTimeStamp tl='2' t='1' length='14' off='347' hex='3230303530343035303930303539'>20050405090059</LocalTimeStamp>
+      <UtcTimeOffset tl='4' t='3' length='5' off='363' hex='2b30323030'>+0200</UtcTimeOffset>
+    </LatestCallTimeStamp>
+  </AuditControlInfo>
+</TransferBatch>

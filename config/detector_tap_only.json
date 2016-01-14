@@ -1,0 +1,44 @@
+{ 
+  "version": "1.0",
+  "definitions":
+    [
+    {
+      "name": "TAP",
+      "long_name": "Transferred Account Procedure",
+      "comment": "TD.57",
+      "count": 18,
+      "variables":
+        [
+        {
+          "name": "major",
+          "path": "string(/TransferBatch/BatchControlInfo/SpecificationVersionNumber)"
+        },
+        {
+          "name": "minor",
+          "path": "string(/TransferBatch/BatchControlInfo/ReleaseVersionNumber)"
+        }
+        ],
+      "initial_grammars": [ "tap_3_12.asn1" ],
+      "resulting_grammars": [ "tap_{major}_{minor}.asn1" ]
+    },
+    {
+      "name": "TAPN",
+      "long_name": "Transferred Account Procedure Notification",
+      "comment": "TD.57",
+      "count": 18,
+      "variables":
+        [
+        {
+          "name": "major",
+          "path": "string(/Notification/SpecificationVersionNumber)"
+        },
+        {
+          "name": "minor",
+          "path": "string(/Notification/ReleaseVersionNumber)"
+        }
+        ],
+      "initial_grammars": [ "tap_3_12.asn1" ],
+      "resulting_grammars": [ "tap_{major}_{minor}.asn1" ]
+    }
+    ]
+}

@@ -1,0 +1,24 @@
+<TransferBatch>
+    <BatchControlInfo>
+        <Sender>WERFD</Sender>
+        <Recipient>XLKJE</Recipient>
+        <FileSequenceNumber>31707</FileSequenceNumber>
+        <FileCreationTimeStamp>
+            <LocalTimeStamp>20050405090547</LocalTimeStamp>
+            <UtcTimeOffset>+0200</UtcTimeOffset>
+        </FileCreationTimeStamp>
+        <TransferCutOffTimeStamp>
+            <LocalTimeStamp>20050405090547</LocalTimeStamp>
+            <UtcTimeOffset>+0200</UtcTimeOffset>
+        </TransferCutOffTimeStamp>
+        <FileAvailableTimeStamp>
+            <LocalTimeStamp>20050405090547</LocalTimeStamp>
+            <UtcTimeOffset>+0200</UtcTimeOffset>
+        </FileAvailableTimeStamp>
+        <SpecificationVersionNumber>3</SpecificationVersionNumber>
+        <ReleaseVersionNumber>12</ReleaseVersionNumber>
+    </BatchControlInfo>
+    <AccountingInfo>
+        <LocalCurrency>EUR</LocalCurrency>
+    </AccountingInfo>
+</TransferBatch>

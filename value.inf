@@ -1,0 +1,25 @@
+union {
+  uint8_t
+  int8_t
+  uint16_t
+  int16_t
+  uint32_t
+  int32_t
+  uint64_t
+  int64_t
+  bool
+  std::string
+  "std::pair<const uint8_t*, const uint8_t*>"
+  "std::pair<const char*, const char*>"
+  XML_Content
+  BCD_Content
+  Int64_Content
+}
+option {
+  namespace {
+    xfsx
+  }
+  include {
+    xfsx/types.hh
+  }
+}

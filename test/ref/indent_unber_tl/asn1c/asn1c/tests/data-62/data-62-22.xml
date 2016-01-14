@@ -1,0 +1,7 @@
+<C O="0" T="[UNIVERSAL 16]" TL="2" V="13">
+    <C O="2" T="[CONTEXT_SPECIFIC 1]" TL="2" V="11">
+        <I O="4" T="[PRIVATE 1]" TL="2" V="Indefinite">
+            <C O="6" T="[CONTEXT_SPECIFIC 123]" TL="3" V="4">
+                <C O="9" T="[CONTEXT_SPECIFIC 23]" TL="2" V="2">
+                    <P O="11" T="[UNIVERSAL 5]" TL="2" V="0">
+        <P O="13" T="[UNIVERSAL 0]" TL="2" V="0">
