@@ -152,8 +152,8 @@ namespace xfsx {
         byte::writer::Base &w, const Writer_Arguments &args)
       :
         args_(args),
-        begin_(begin + args.skip),
-        r(begin_, end),
+        begin_(begin),
+        r(begin_ + args.skip, end),
         w(w)
     {
       if (!args.search_path.empty()) {

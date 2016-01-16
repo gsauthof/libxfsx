@@ -452,6 +452,42 @@ BOOST_AUTO_TEST_SUITE(bed_)
       }
     }
 
+    BOOST_AUTO_TEST_CASE(write_xml_skip_off)
+    {
+      bf::path in_path(test::path::in());
+      bf::path asn(in_path);
+      asn /= "../../libgrammar/test/in/asn1/tap_3_12_strip.asn1";
+      bf::path input(in_path);
+      input /= "tap_3_12_valid.ber";
+      bf::path out_path(test::path::out());
+      bf::path out(out_path);
+      out /= "bed/command";
+      out /= "skip_off.xml";
+      BOOST_TEST_CHECKPOINT("Removing: " << out);
+      bf::remove(out);
+      BOOST_TEST_CHECKPOINT("Create directories: " << out);
+      bf::create_directories(out.parent_path());
+
+      BOOST_TEST_CHECKPOINT("Reading: " << input);
+      vector<string> argvv = { "./bed", "write-xml", "--asn",
+        asn.generic_string(), input.generic_string(), out.generic_string(),
+        "--skip", "268", "--off" };
+      vector<char *> argv;
+      for (auto &s : argvv)
+        argv.push_back(&*s.begin());
+      argv.push_back(nullptr);
+      bed::Arguments args(argvv.size(), argv.data());
+      bed::command::execute(args);
+
+      BOOST_TEST_CHECKPOINT("Checking output: " << out);
+      ixxx::util::Mapped_File f(out.generic_string());
+      BOOST_REQUIRE(bf::file_size(out));
+      BOOST_CHECK_EQUAL(string(f.s_begin(), f.s_end()),
+          "<SimChargeableSubscriber off='268'>\n"
+          "    <Imsi off='272'>133713371337133</Imsi>\n"
+          "</SimChargeableSubscriber>\n");
+    }
+
     BOOST_AUTO_TEST_CASE(write_xml_skip_not_last)
     {
       bf::path in_path(test::path::in());
