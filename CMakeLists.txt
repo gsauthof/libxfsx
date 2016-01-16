@@ -57,6 +57,7 @@ set(LIB_SRC
   xfsx/xml_writer_arguments.cc
   xfsx/detector.cc
   xfsx/character.cc
+  xfsx/path.cc
   )
 add_library(xfsx SHARED
   ${LIB_SRC}
@@ -89,6 +90,8 @@ IF(${CMAKE_PROJECT_NAME} STREQUAL "xfsx")
     test/detector.cc
     test/character.cc
     test/xml2lxml.cc
+    test/tap.cc
+    test/path.cc
 
     bed/arguments.cc
     bed/command.cc

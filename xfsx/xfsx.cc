@@ -748,6 +748,35 @@ namespace xfsx {
     }
     return r;
   }
+  const uint8_t *Vertical_TLC::skip(const uint8_t *begin,
+      const uint8_t *end)
+  {
+    if (shape == Shape::CONSTRUCTED && length) {
+      stack_[depth_].length = length;
+      conditional_pop();
+      return begin + length;
+    } else {
+      return begin;
+    }
+  }
+
+  // We work on a Vertical_TLC and not on a Skip_EOC_Reader/Vertical_Reader
+  // since we want to efficiently jump over definite constructed tags
+  // (even if the first tag is indefinite)
+  //
+  // assumes that last operation on tlc was a read
+  const uint8_t *Vertical_TLC::skip_children(const uint8_t *begin,
+      const uint8_t *end)
+  {
+    auto r = begin;
+    auto start_height = height;
+    do {
+      r = skip(r, end);
+      if (r < end)
+        r = this->read(r, end);
+    } while (r < end && height > start_height);
+    return r;
+  }
 
   size_t minimally_encoded_tag_length(Tag_Int v)
   {
@@ -1311,7 +1340,41 @@ namespace xfsx {
   {
     return name_map_.empty();
   }
+  
+  // matches a tag path
+  // tag == 0 -> wildcard (think: '*')
+  // everywhere -> can match everywhere, doesn't have to start at the root
+  //               (think: no '/' in the front a path expression)
+  // Example:
+  // /foo/bar/baz -> path = {{ to_tag(foo), to_tag(bar), to_tag(baz) }},
+  //                 everywhere = false
+  // foo/bar/baz  -> path = {{ to_tag(foo), to_tag(bar), to_tag(baz) }},
+  //                 everywhere = true
+  const uint8_t *search(const uint8_t *begin, const uint8_t *end,
+      const std::vector<Tag_Int> &path, bool everywhere, Klasse klasse)
+  {
+    uint32_t k = 0;
+    uint32_t first_k = 0;
 
+    Vertical_TLC tlc;
+    for (auto r = tlc.read(begin, end); r < end; ) {
+      k = std::min(k, first_k > tlc.height ? 0 : (tlc.height - first_k));
+      if (   (everywhere || k == tlc.height)
+          && (!path[k] || (tlc.klasse == klasse && tlc.tag == path[k]))) {
+        first_k = k;
+        ++k;
+        if (k == path.size())
+          return tlc.begin;
+        r = tlc.read(r, end);
+      } else {
+        if (!(everywhere && !k))
+          r = tlc.skip_children(r, end);
+        else
+          r = tlc.read(r, end);
+      }
+    }
+    return end;
+  }
 
 
 }

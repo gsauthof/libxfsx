@@ -391,16 +391,20 @@ namespace xfsx {
   };
 
   struct Vertical_TLC : public TLC {
-    struct Frame {
-      size_t length;
-      size_t expected_length;
-      bool indefinite;
-    };
-    std::vector<Frame> stack_;
-    uint32_t height {0};
+    public:
+      struct Frame {
+        size_t length;
+        size_t expected_length;
+        bool indefinite;
+      };
+      std::vector<Frame> stack_;
+      uint32_t height {0};
 
-    Vertical_TLC();
-    const uint8_t *read(const uint8_t *begin, const uint8_t *end);
+      Vertical_TLC();
+      const uint8_t *read(const uint8_t *begin, const uint8_t *end);
+      const uint8_t *skip(const uint8_t *begin,
+          const uint8_t *end);
+      const uint8_t *skip_children(const uint8_t *begin, const uint8_t *end);
 
       uint32_t depth_ {0};
     private:
@@ -519,6 +523,10 @@ namespace xfsx {
       iterator begin();
       iterator end();
   };
+
+  const uint8_t *search(const uint8_t *begin, const uint8_t *end,
+      const std::vector<Tag_Int> &path, bool everywhere = false,
+      Klasse klasse = Klasse::APPLICATION);
 
 
 

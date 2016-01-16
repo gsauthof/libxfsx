@@ -27,7 +27,13 @@
 #include <iostream>
 #include <limits>
 
+#include <boost/filesystem.hpp>
+
 #include <xfsx/xfsx.hh>
+
+#include <ixxx/util.hh>
+
+#include "test.hh"
 
 using namespace std;
 
@@ -1996,6 +2002,44 @@ BOOST_AUTO_TEST_SUITE(xfsx_)
       BOOST_CHECK_EQUAL(t.height, 0u);
     }
 
+    BOOST_AUTO_TEST_CASE(skip_over_root)
+    {
+      using namespace xfsx;
+      boost::filesystem::path in(test::path::in());
+      in /= "tap_3_12_valid.ber";
+      ixxx::util::Mapped_File f(in.generic_string());
+      Vertical_TLC t;
+      auto r = t.read(f.begin(), f.end());
+      r = t.skip(r, f.end());
+      BOOST_CHECK(r == f.end());
+    }
+
+    BOOST_AUTO_TEST_CASE(skip_over_cdrs)
+    {
+      using namespace xfsx;
+      boost::filesystem::path in(test::path::in());
+      in /= "tap_3_12_valid.ber";
+      ixxx::util::Mapped_File f(in.generic_string());
+      Vertical_TLC t;
+      auto r = t.read(f.begin() + 254, f.end());
+      r = t.skip(r, f.end());
+      BOOST_CHECK(r == f.begin() + 740); // ACI
+    }
+
+    BOOST_AUTO_TEST_CASE(skip_over_indefinite_cdrs)
+    {
+      using namespace xfsx;
+      boost::filesystem::path in(test::path::in());
+      in /= "tap_3_12_valid_some_cdr_indefinite.ber";
+      ixxx::util::Mapped_File f(in.generic_string());
+      Vertical_TLC t;
+      // CallEventDetailList and some CDRs inside of indefinite
+      auto r = t.read(f.begin() + 254, f.end());
+      r = t.skip_children(r, f.end());
+      BOOST_CHECK(r == f.begin() + 743); // ACI
+    }
+
+
 
   // }}}
   BOOST_AUTO_TEST_SUITE_END() // vertical_tlc
@@ -2071,5 +2115,82 @@ BOOST_AUTO_TEST_SUITE(xfsx_)
     }
 
   BOOST_AUTO_TEST_SUITE_END()
+
+  BOOST_AUTO_TEST_SUITE(search)
+
+    BOOST_AUTO_TEST_CASE(find_absolute_aci)
+    {
+      using namespace xfsx;
+      boost::filesystem::path in(test::path::in());
+      in /= "tap_3_12_valid.ber";
+      ixxx::util::Mapped_File f(in.generic_string());
+      vector<Tag_Int> tags = { { 1, 15} };
+      auto r = xfsx::search(f.begin(), f.end(), tags, false);
+      ssize_t off = r - f.begin();
+      BOOST_CHECK_EQUAL(off, 740);
+    }
+
+    BOOST_AUTO_TEST_CASE(find_wildcard_aci)
+    {
+      using namespace xfsx;
+      boost::filesystem::path in(test::path::in());
+      in /= "tap_3_12_valid.ber";
+      ixxx::util::Mapped_File f(in.generic_string());
+      vector<Tag_Int> tags = { { 0, 15} };
+      auto r = xfsx::search(f.begin(), f.end(), tags, false);
+      ssize_t off = r - f.begin();
+      BOOST_CHECK_EQUAL(off, 740);
+    }
+
+    BOOST_AUTO_TEST_CASE(find_relative_aci)
+    {
+      using namespace xfsx;
+      boost::filesystem::path in(test::path::in());
+      in /= "tap_3_12_valid.ber";
+      ixxx::util::Mapped_File f(in.generic_string());
+      vector<Tag_Int> tags = { { 15} };
+      auto r = xfsx::search(f.begin(), f.end(), tags, true);
+      ssize_t off = r - f.begin();
+      BOOST_CHECK_EQUAL(off, 740);
+    }
+
+    BOOST_AUTO_TEST_CASE(find_relative_chargetype)
+    {
+      using namespace xfsx;
+      boost::filesystem::path in(test::path::in());
+      in /= "tap_3_12_valid.ber";
+      ixxx::util::Mapped_File f(in.generic_string());
+      // i.e. ChargeDetailList/ChargeDetail/Charge
+      vector<Tag_Int> tags = { { 64, 63, 62} };
+      auto r = xfsx::search(f.begin(), f.end(), tags, true);
+      ssize_t off = r - f.begin();
+      BOOST_CHECK_EQUAL(off, 378);
+    }
+
+    BOOST_AUTO_TEST_CASE(find_not)
+    {
+      using namespace xfsx;
+      boost::filesystem::path in(test::path::in());
+      in /= "tap_3_12_valid.ber";
+      ixxx::util::Mapped_File f(in.generic_string());
+      // i.e. ChargeDetailList/ChargeDetail/Charge
+      vector<Tag_Int> tags = { { 64, 63, 1} };
+      auto r = xfsx::search(f.begin(), f.end(), tags, true);
+      BOOST_CHECK(r == f.end());
+    }
+
+    BOOST_AUTO_TEST_CASE(find_not_with_absolute)
+    {
+      using namespace xfsx;
+      boost::filesystem::path in(test::path::in());
+      in /= "tap_3_12_valid.ber";
+      ixxx::util::Mapped_File f(in.generic_string());
+      vector<Tag_Int> tags = { { 15} };
+      auto r = xfsx::search(f.begin(), f.end(), tags, false);
+      BOOST_CHECK(r == f.end());
+    }
+
+
+  BOOST_AUTO_TEST_SUITE_END() // search
 
 BOOST_AUTO_TEST_SUITE_END()

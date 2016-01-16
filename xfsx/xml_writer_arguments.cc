@@ -47,6 +47,9 @@ namespace xfsx {
           grammar::tag_translations(g, 1));
       xfsx::tap::init_dereferencer(g, dereferencer);
       xfsx::tap::init_typifier(typifier);
+
+      name_translator = xfsx::Name_Translator(
+          grammar::map_name_to_shape_klasse_tag(g));
     }
 
   }

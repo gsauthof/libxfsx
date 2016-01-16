@@ -34,6 +34,7 @@
 #include <xfsx/lxml2ber.hh>
 #include <xfsx/xml2ber.hh>
 #include <xfsx/tap.hh>
+#include <xfsx/path.hh>
 #include <ixxx/util.hh>
 #include <ixxx/ixxx.h>
 #include <xxxml/util.hh>
@@ -83,6 +84,30 @@ namespace bed {
       b.skip             = a.skip;
       b.stop_after_first = a.stop_after_first;
       b.count            = a.count;
+
+      if (b.search_path.empty()) {
+        if (a.skip_to_aci) {
+          b.search_path = xfsx::tap::aci_path();
+        } else {
+          auto x = xfsx::path::parse(a.search_path);
+          b.search_path = std::move(x.first);
+          b.search_everywhere = x.second;
+        }
+      }
+    }
+
+    static void apply_arguments(const Arguments &a,
+        xfsx::xml::Pretty_Writer_Arguments &b)
+    {
+      if (a.skip_to_aci) {
+        b.search_path = xfsx::tap::aci_path(b.translator);
+      } else {
+        auto x = xfsx::path::parse(a.search_path, b.name_translator);
+        b.search_path = std::move(x.first);
+        b.search_everywhere = x.second;
+      }
+
+      apply_arguments(a, *static_cast<xfsx::xml::Writer_Arguments*>(&b));
     }
 
     void Write_XML::execute()

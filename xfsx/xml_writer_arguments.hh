@@ -23,6 +23,7 @@
 
 #include <deque>
 #include <string>
+#include <vector>
 
 #include <xfsx/xfsx.hh>
 
@@ -41,6 +42,8 @@ namespace xfsx {
       size_t   skip             {0};
       bool     stop_after_first {false};
       size_t   count            {0};
+      std::vector<Tag_Int> search_path;
+      bool     search_everywhere {false};
     };
 
     extern Writer_Arguments default_writer_arguments;
@@ -51,6 +54,8 @@ namespace xfsx {
       Tag_Translator translator;
       Tag_Dereferencer dereferencer;
       Tag_Typifier typifier;
+
+      Name_Translator name_translator;
     };
 
   }

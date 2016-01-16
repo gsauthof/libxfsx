@@ -97,6 +97,14 @@ Arguments:
     --length        Include length of the content
     --off           Include byte offset of the tag
     --skip BYTES    Skip BYTES of input file
+    --search PATH   Skip until tag identified by PATH,
+                    e.g. /TransferBatch/AuditControlInfo
+                    Omitting first / means: match everywhere
+                    A wildcard * matches any tag.
+                    Tag numbers are supported as well.
+                    implies --first
+    --aci           alias for --search /TransferBatch/AuditControlInfo
+                    or --search /ReturnBatch/RapAuditControlInfo
     --first         Stop reading at the end of the first element
                     (i.e. trailing garbage is ignored)
     --count N       Write only first N tags
@@ -310,6 +318,15 @@ namespace bed {
           if (i >= argc)
             throw Argument_Error("skip argument missing");
           skip = boost::lexical_cast<size_t>(argv[i]);
+        } else if (!strcmp(argv[i], "--search")) {
+          ++i;
+          if (i >= argc)
+            throw Argument_Error("search path argument missing");
+          search_path = argv[i];
+          stop_after_first = true;
+        } else if (!strcmp(argv[i], "--aci")) {
+          skip_to_aci = true;
+          stop_after_first = true;
         } else if (!strcmp(argv[i], "--first")) {
           stop_after_first = true;
         } else if (!strcmp(argv[i], "--count")) {

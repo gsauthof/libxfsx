@@ -18,37 +18,29 @@
     along with libxfsx.  If not, see <http://www.gnu.org/licenses/>.
 
 }}} */
-#ifndef XFSX_TAP_HH
-#define XFSX_TAP_HH
+#ifndef XFSX_PATH_HH
+#define XFSX_PATH_HH
 
-#include <deque>
-#include <string>
 #include <vector>
+#include <utility>
+#include <string>
 
-namespace grammar {
-  class Grammar;
-}
 namespace xfsx {
-  class Tag_Dereferencer;
-  class Tag_Typifier;
-  class Tag_Translator;
+
+  class Name_Translator;
   using Tag_Int = uint32_t;
-}
 
-namespace xfsx {
+  namespace path {
 
-  namespace tap {
+    std::pair<std::vector<xfsx::Tag_Int>, bool> parse(
+        const std::string &search_path_str);
+    std::pair<std::vector<xfsx::Tag_Int>, bool> parse(
+        const std::string &search_path_str,
+        const xfsx::Name_Translator &name_translator);
 
-    grammar::Grammar read_asn_grammar(
-        const std::deque<std::string> &asn_filenames);
-    void init_dereferencer(const grammar::Grammar &g,
-        xfsx::Tag_Dereferencer &dereferencer);
-    void init_typifier(xfsx::Tag_Typifier &typifier);
-
-    std::vector<xfsx::Tag_Int> aci_path();
-    std::vector<xfsx::Tag_Int> aci_path(const xfsx::Tag_Translator &translator);
   }
 
 }
+
 
 #endif

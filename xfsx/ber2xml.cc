@@ -156,6 +156,10 @@ namespace xfsx {
         r(begin_, end),
         w(w)
     {
+      if (!args.search_path.empty()) {
+        r = Skip_EOC_Reader(xfsx::search(
+              begin_, end, args.search_path, args.search_everywhere), end);
+      }
     }
 
     void Writer::write_element()

@@ -94,6 +94,9 @@ namespace bed {
       bool stop_after_first {false};
       size_t count {0};
 
+      std::string search_path;
+      bool skip_to_aci {false};
+
       std::deque<std::string> xpaths;
       std::deque<Edit_Op>     edit_ops;
 

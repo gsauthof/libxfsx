@@ -23,6 +23,7 @@
 #include "xfsx.hh"
 #include <grammar/asn1/grammar.hh>
 #include <grammar/asn1/mini_parser.hh>
+#include <grammar/tap/tap.hh>
 
 using namespace std;
 
@@ -64,6 +65,40 @@ namespace xfsx {
       typifier.push(xfsx::Klasse::UNIVERSAL, xfsx::universal::INTEGER,
           xfsx::Type::INT_64);
     }
+
+    std::vector<xfsx::Tag_Int> aci_path()
+    {
+      std::vector<xfsx::Tag_Int> search_path(2);
+      search_path[0] = grammar::tap::TRANSFER_BATCH;
+      search_path[1] = grammar::tap::AUDIT_CONTROL_INFO;
+      return search_path;
+    }
+    std::vector<xfsx::Tag_Int> aci_path(const xfsx::Tag_Translator &translator)
+    {
+      std::vector<xfsx::Tag_Int> search_path;
+      try {
+        if (translator.translate(xfsx::Klasse::APPLICATION,
+              grammar::tap::TRANSFER_BATCH).find(
+                "ransferBatch") != string::npos) {
+          search_path.push_back(grammar::tap::TRANSFER_BATCH);
+          search_path.push_back(grammar::tap::AUDIT_CONTROL_INFO);
+        }
+      } catch (const range_error &) {
+        try {
+          if (translator.translate(xfsx::Klasse::APPLICATION,
+                grammar::rap::RETURN_BATCH).find(
+                  "eturnBatch") != string::npos) {
+            search_path.push_back(grammar::rap::RETURN_BATCH);
+            search_path.push_back(grammar::rap::RAP_AUDIT_CONTROL_INFO);
+            return search_path;
+          }
+        } catch (const range_error &) {
+        // in case to RAP/TAP ASN.1 spec was used ...
+        }
+      }
+      return search_path;
+    }
+
 
   }
 }
