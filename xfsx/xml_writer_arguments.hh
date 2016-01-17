@@ -34,6 +34,8 @@ namespace xfsx {
     struct Writer_Arguments {
       unsigned indent_size      {4};
       bool     hex_dump         {false};
+      bool     dump_tag         {false};
+      bool     dump_class       {false};
       bool     dump_tl          {false};
       bool     dump_t           {false};
       bool     dump_length      {false};

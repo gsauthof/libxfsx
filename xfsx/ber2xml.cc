@@ -130,6 +130,7 @@ namespace xfsx {
         void write_hex_dump();
         void write_attributes();
         virtual void write_class();
+        virtual void write_tag();
         void write_tl();
         void write_t();
         void write_length();
@@ -173,6 +174,9 @@ namespace xfsx {
     void Writer::write_class()
     {
       w << " class='" << klasse_to_cstr(tlc->klasse) << '\'';
+    }
+    void Writer::write_tag()
+    {
     }
     void Writer::write_tl()
     {
@@ -219,6 +223,7 @@ namespace xfsx {
     void Writer::write_attributes()
     {
       write_class();
+      write_tag();
       if (args_.dump_tl)
         write_tl();
       if (args_.dump_t)
@@ -354,6 +359,7 @@ namespace xfsx {
         void write_primitive_tag_open() override;
         void write_primitive_tag_close() override;
         void write_class() override;
+        void write_tag() override;
         void write_content() override;
         void write_constructed_tag_open() override;
         void write_constructed_tag_close() override;
@@ -374,8 +380,13 @@ namespace xfsx {
     }
     void Pretty_Writer::write_class()
     {
-      if (!tag_str_)
+      if (!tag_str_ || args_.dump_class)
         Writer::write_class();
+    }
+    void Pretty_Writer::write_tag()
+    {
+      if (tag_str_ && args_.dump_tag)
+        w << " tag='" << tlc->tag << '\'';
     }
     void Pretty_Writer::write_primitive_tag_open()
     {

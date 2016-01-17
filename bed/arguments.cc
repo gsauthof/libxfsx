@@ -92,6 +92,8 @@ Arguments:
                     (default: first detector.json in the asn search path)
     --no-detect     Disable autodetect
     -x,--hex        Also hexadecimal dump the content of each primitive tag
+    --tag           Include tag number
+    --class         Include class number
     --tl            Include size of the encoded tag-length-length (TL)
     --t_size        Include size of the encoded tag
     --length        Include length of the content
@@ -305,6 +307,10 @@ namespace bed {
           autodetect = false;
         } else if (!strcmp(argv[i], "-x") || !strcmp(argv[i], "--hex")) {
           hex_dump = true;
+        } else if (!strcmp(argv[i], "--tag")) {
+          dump_tag = true;
+        } else if (!strcmp(argv[i], "--class")) {
+          dump_class = true;
         } else if (!strcmp(argv[i], "--tl")) {
           dump_tl = true;
         } else if (!strcmp(argv[i], "--t_size")) {

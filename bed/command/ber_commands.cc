@@ -77,6 +77,8 @@ namespace bed {
     {
       b.indent_size      = a.indent_size;
       b.hex_dump         = a.hex_dump;
+      b.dump_tag         = a.dump_tag;
+      b.dump_class       = a.dump_class;
       b.dump_tl          = a.dump_tl;
       b.dump_t           = a.dump_t;
       b.dump_length      = a.dump_length;

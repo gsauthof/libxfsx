@@ -902,6 +902,78 @@ BOOST_AUTO_TEST_SUITE(bed_)
           string("<LocalTimeStamp off='92'>20050405090547</LocalTimeStamp>\n"));
     }
 
+    BOOST_AUTO_TEST_CASE(write_xml_tag)
+    {
+      bf::path in_path(test::path::in());
+      bf::path asn(in_path);
+      asn /= "../../libgrammar/test/in/asn1/tap_3_12_strip.asn1";
+      bf::path input(in_path);
+      input /= "tap_3_12_valid.ber";
+      bf::path out_path(test::path::out());
+      bf::path out(out_path);
+      out /= "bed/command";
+      out /= "write_xml_tag.xml";
+      BOOST_TEST_CHECKPOINT("Removing: " << out);
+      bf::remove(out);
+      BOOST_TEST_CHECKPOINT("Create directories: " << out);
+      bf::create_directories(out.parent_path());
+
+      BOOST_TEST_CHECKPOINT("Reading: " << input);
+      vector<string> argvv = { "./bed", "write-xml",
+        "--skip", "92", "--off", "--tag",
+        "--asn",
+        asn.generic_string(), input.generic_string(), out.generic_string()
+        };
+      vector<char *> argv;
+      for (auto &s : argvv)
+        argv.push_back(&*s.begin());
+      argv.push_back(nullptr);
+      bed::Arguments args(argvv.size(), argv.data());
+      bed::command::execute(args);
+      ixxx::util::Mapped_File f(out.generic_string());
+      BOOST_TEST_CHECKPOINT("Checking output: " << out);
+      BOOST_REQUIRE(bf::file_size(out));
+
+      BOOST_CHECK_EQUAL(string(f.s_begin(), f.s_end()),
+          string("<LocalTimeStamp tag='16' off='92'>20050405090547</LocalTimeStamp>\n"));
+    }
+
+    BOOST_AUTO_TEST_CASE(write_xml_class)
+    {
+      bf::path in_path(test::path::in());
+      bf::path asn(in_path);
+      asn /= "../../libgrammar/test/in/asn1/tap_3_12_strip.asn1";
+      bf::path input(in_path);
+      input /= "tap_3_12_valid.ber";
+      bf::path out_path(test::path::out());
+      bf::path out(out_path);
+      out /= "bed/command";
+      out /= "write_xml_class.xml";
+      BOOST_TEST_CHECKPOINT("Removing: " << out);
+      bf::remove(out);
+      BOOST_TEST_CHECKPOINT("Create directories: " << out);
+      bf::create_directories(out.parent_path());
+
+      BOOST_TEST_CHECKPOINT("Reading: " << input);
+      vector<string> argvv = { "./bed", "write-xml",
+        "--skip", "92", "--off", "--tag", "--class",
+        "--asn",
+        asn.generic_string(), input.generic_string(), out.generic_string()
+        };
+      vector<char *> argv;
+      for (auto &s : argvv)
+        argv.push_back(&*s.begin());
+      argv.push_back(nullptr);
+      bed::Arguments args(argvv.size(), argv.data());
+      bed::command::execute(args);
+      ixxx::util::Mapped_File f(out.generic_string());
+      BOOST_TEST_CHECKPOINT("Checking output: " << out);
+      BOOST_REQUIRE(bf::file_size(out));
+
+      BOOST_CHECK_EQUAL(string(f.s_begin(), f.s_end()),
+          string("<LocalTimeStamp class='APPLICATION' tag='16' off='92'>20050405090547</LocalTimeStamp>\n"));
+    }
+
 
   BOOST_AUTO_TEST_SUITE_END() // command
 
