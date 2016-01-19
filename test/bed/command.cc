@@ -810,8 +810,8 @@ BOOST_AUTO_TEST_SUITE(bed_)
       argv.push_back(nullptr);
       bed::Arguments args(argvv.size(), argv.data());
       bed::command::execute(args);
-      ixxx::util::Mapped_File f(out.generic_string());
       BOOST_TEST_CHECKPOINT("Checking output: " << out);
+      ixxx::util::Mapped_File f(out.generic_string());
       BOOST_REQUIRE(bf::file_size(out));
 
       bf::path ref(test::path::ref());
@@ -852,8 +852,8 @@ BOOST_AUTO_TEST_SUITE(bed_)
       argv.push_back(nullptr);
       bed::Arguments args(argvv.size(), argv.data());
       bed::command::execute(args);
-      ixxx::util::Mapped_File f(out.generic_string());
       BOOST_TEST_CHECKPOINT("Checking output: " << out);
+      ixxx::util::Mapped_File f(out.generic_string());
       BOOST_REQUIRE(bf::file_size(out));
 
       bf::path ref(test::path::ref());
@@ -894,8 +894,8 @@ BOOST_AUTO_TEST_SUITE(bed_)
       argv.push_back(nullptr);
       bed::Arguments args(argvv.size(), argv.data());
       bed::command::execute(args);
-      ixxx::util::Mapped_File f(out.generic_string());
       BOOST_TEST_CHECKPOINT("Checking output: " << out);
+      ixxx::util::Mapped_File f(out.generic_string());
       BOOST_REQUIRE(bf::file_size(out));
 
       BOOST_CHECK_EQUAL(string(f.s_begin(), f.s_end()),
@@ -930,8 +930,8 @@ BOOST_AUTO_TEST_SUITE(bed_)
       argv.push_back(nullptr);
       bed::Arguments args(argvv.size(), argv.data());
       bed::command::execute(args);
-      ixxx::util::Mapped_File f(out.generic_string());
       BOOST_TEST_CHECKPOINT("Checking output: " << out);
+      ixxx::util::Mapped_File f(out.generic_string());
       BOOST_REQUIRE(bf::file_size(out));
 
       BOOST_CHECK_EQUAL(string(f.s_begin(), f.s_end()),
@@ -966,14 +966,96 @@ BOOST_AUTO_TEST_SUITE(bed_)
       argv.push_back(nullptr);
       bed::Arguments args(argvv.size(), argv.data());
       bed::command::execute(args);
-      ixxx::util::Mapped_File f(out.generic_string());
       BOOST_TEST_CHECKPOINT("Checking output: " << out);
+      ixxx::util::Mapped_File f(out.generic_string());
       BOOST_REQUIRE(bf::file_size(out));
 
       BOOST_CHECK_EQUAL(string(f.s_begin(), f.s_end()),
           string("<LocalTimeStamp class='APPLICATION' tag='16' off='92'>20050405090547</LocalTimeStamp>\n"));
     }
 
+    void compare_bed_output(
+        const string &asn1_filename,
+        const string &input_filename,
+        const string &output_filename,
+        const vector<string> &args,
+        const char *ref_begin,
+        const char *ref_end)
+    {
+      bf::path in_path(test::path::in());
+      bf::path asn(in_path);
+      asn /= "../../libgrammar/test/in/asn1/";
+      asn /= asn1_filename;
+      bf::path input(in_path);
+      input /= input_filename;
+      bf::path out_path(test::path::out());
+      bf::path out(out_path);
+      out /= "bed/command";
+      out /= output_filename;
+      BOOST_TEST_CHECKPOINT("Removing: " << out);
+      bf::remove(out);
+      BOOST_TEST_CHECKPOINT("Create directories: " << out);
+      bf::create_directories(out.parent_path());
+
+      BOOST_TEST_CHECKPOINT("Reading: " << input);
+      vector<string> argvv = { "./bed" };
+      argvv.insert(argvv.end(), args.begin(), args.end());
+      argvv.push_back( "--asn");
+      argvv.push_back(asn.generic_string());
+      argvv.push_back(input.generic_string());
+      argvv.push_back(out.generic_string());
+      vector<char *> argv;
+      for (auto &s : argvv)
+        argv.push_back(&*s.begin());
+      argv.push_back(nullptr);
+      bed::Arguments parsed_args(argvv.size(), argv.data());
+      bed::command::execute(parsed_args);
+      BOOST_TEST_CHECKPOINT("Checking output: " << out);
+      ixxx::util::Mapped_File f(out.generic_string());
+      BOOST_REQUIRE(bf::file_size(out));
+
+      BOOST_CHECK_EQUAL(string(f.s_begin(), f.s_end()),
+          string(ref_begin, ref_end));
+    }
+
+    void compare_bed_output(
+        const string &asn1_filename,
+        const string &input_filename,
+        const string &output_filename,
+        const vector<string> &args)
+    {
+      bf::path ref(test::path::ref());
+      ref /= "bed/command";
+      ref /= output_filename;
+      BOOST_TEST_CHECKPOINT("Opening reference: " << ref);
+      ixxx::util::Mapped_File g(ref.generic_string());
+      compare_bed_output(asn1_filename, input_filename, output_filename,
+          args, g.s_begin(), g.s_end());
+    }
+
+    BOOST_AUTO_TEST_CASE(write_xml_cdr)
+    {
+      compare_bed_output("tap_3_12_strip.asn1", "tap_3_12_valid.ber",
+          "write_xml_cdr.xml", { "write-xml", "--cdr", "3" });
+    }
+
+    BOOST_AUTO_TEST_CASE(write_xml_cdr_range)
+    {
+      compare_bed_output("tap_3_12_strip.asn1", "tap_3_12_valid.ber",
+          "write_xml_cdr_range.xml", { "write-xml", "--cdr", "3.." });
+    }
+
+    BOOST_AUTO_TEST_CASE(write_xml_search_range)
+    {
+      const char ref[] =
+        R"(<RecEntityId>foo</RecEntityId>
+<RecEntityId>baz</RecEntityId>
+)";
+      compare_bed_output("tap_3_12_strip.asn1", "tap_3_12_valid.ber",
+          "write_xml_cdr.xml", { "write-xml","--search",
+          "RecEntityInfoList/RecEntityInformation/RecEntityId[1,3]" },
+          ref, ref + sizeof(ref) - 1);
+    }
 
   BOOST_AUTO_TEST_SUITE_END() // command
 

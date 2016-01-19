@@ -115,8 +115,11 @@ namespace xfsx {
     class Writer {
       private:
         const Writer_Arguments &args_;
+
+        void write_all();
       protected:
         const uint8_t *begin_ {nullptr};
+        const uint8_t *end_   {nullptr};
         Skip_EOC_Reader r;
         byte::writer::Base &w;
         stack<bool> indefinite_stack;
@@ -154,13 +157,10 @@ namespace xfsx {
       :
         args_(args),
         begin_(begin),
+        end_(end),
         r(begin_ + args.skip, end),
         w(w)
     {
-      if (!args.search_path.empty()) {
-        r = Skip_EOC_Reader(xfsx::search(
-              begin_, end, args.search_path, args.search_everywhere), end);
-      }
     }
 
     void Writer::write_element()
@@ -302,7 +302,7 @@ namespace xfsx {
             w << "</c>\n";
     }
 
-    void Writer::write()
+    void Writer::write_all()
     {
       size_t i = 0;
       for (auto &tlc : r) {
@@ -317,6 +317,36 @@ namespace xfsx {
         ++i;
       }
       write_closing(0);
+    }
+
+    void Writer::write()
+    {
+      if (args_.search_path.empty()) {
+        write_all();
+      } else {
+        Path_Finder pf(begin_, end_,
+            args_.search_path, args_.search_everywhere);
+        auto b = pf.begin();
+        auto e = pf.end();
+
+        auto i = args_.search_ranges.begin();
+        auto j = args_.search_ranges.end();
+        if (i == j)
+          return;
+        size_t k = 0;
+        for (; b != e; ++b) {
+          if (k >= (*i).first) {
+            r = Skip_EOC_Reader(*b, end_);
+            write_all();
+          }
+          ++k;
+          if (k >= (*i).second) {
+            ++i;
+            if (i == j)
+              break;
+          }
+        }
+      }
     }
 
 

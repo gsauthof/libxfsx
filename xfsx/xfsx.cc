@@ -1340,6 +1340,77 @@ namespace xfsx {
   {
     return name_map_.empty();
   }
+
+
+  Path_Finder::Path_Finder(const uint8_t *begin, const uint8_t *end,
+              const std::vector<Tag_Int> &path,
+              bool everywhere, Klasse klasse)
+    : p_(begin, end), path_(path), everywhere_(everywhere), klasse_(klasse)
+  {
+  }
+  Path_Finder::iterator Path_Finder::begin()
+  {
+    return iterator(p_, path_, everywhere_, klasse_);
+  }
+  Path_Finder::iterator Path_Finder::end()
+  {
+    return iterator(make_pair(p_.second, p_.second),
+        path_, everywhere_, klasse_);
+  }
+
+  Path_Finder::iterator::iterator(
+      const pair<const uint8_t*, const uint8_t *> &p,
+      const std::vector<Tag_Int> &path, bool everywhere, Klasse klasse)
+    : p_(p), path_(path), everywhere_(everywhere), klasse_(klasse)
+  {
+    if (p_.first != p_.second) {
+      p_.first = tlc_.read(p_.first, p_.second);
+      fwd();
+    }
+  }
+  void Path_Finder::iterator::fwd()
+  {
+    while (p_.first < p_.second) {
+      k_ = std::min(k_, k_off_ > tlc_.height ? 0 : (tlc_.height - k_off_));
+      if (   (everywhere_ || k_ == tlc_.height)
+          && (    !path_[k_]
+               || (tlc_.klasse == klasse_ && tlc_.tag == path_[k_]))) {
+        if (!k_)
+          k_off_ = tlc_.height;
+        ++k_;
+        if (k_ == path_.size()) {
+          begin_ = tlc_.begin;
+          --k_;
+          return;
+        }
+        p_.first = tlc_.read(p_.first, p_.second);
+      } else {
+        if (!(everywhere_ && !k_))
+          p_.first = tlc_.skip_children(p_.first, p_.second);
+        else
+          p_.first = tlc_.read(p_.first, p_.second);
+      }
+    }
+    begin_ = p_.second;
+  }
+  const uint8_t *Path_Finder::iterator::operator*() const
+  {
+    return begin_;
+  }
+  Path_Finder::iterator &Path_Finder::iterator::operator++()
+  {
+    p_.first = tlc_.skip_children(p_.first, p_.second);
+    fwd();
+    return *this;
+  }
+  bool Path_Finder::iterator::operator==(const Path_Finder::iterator &o) const
+  {
+    return p_ == o.p_;
+  }
+  bool Path_Finder::iterator::operator!=(const Path_Finder::iterator &o) const
+  {
+    return !(*this == o);
+  }
   
   // matches a tag path
   // tag == 0 -> wildcard (think: '*')
@@ -1350,30 +1421,17 @@ namespace xfsx {
   //                 everywhere = false
   // foo/bar/baz  -> path = {{ to_tag(foo), to_tag(bar), to_tag(baz) }},
   //                 everywhere = true
+
   const uint8_t *search(const uint8_t *begin, const uint8_t *end,
       const std::vector<Tag_Int> &path, bool everywhere, Klasse klasse)
   {
-    uint32_t k = 0;
-    uint32_t first_k = 0;
-
-    Vertical_TLC tlc;
-    for (auto r = tlc.read(begin, end); r < end; ) {
-      k = std::min(k, first_k > tlc.height ? 0 : (tlc.height - first_k));
-      if (   (everywhere || k == tlc.height)
-          && (!path[k] || (tlc.klasse == klasse && tlc.tag == path[k]))) {
-        first_k = k;
-        ++k;
-        if (k == path.size())
-          return tlc.begin;
-        r = tlc.read(r, end);
-      } else {
-        if (!(everywhere && !k))
-          r = tlc.skip_children(r, end);
-        else
-          r = tlc.read(r, end);
-      }
-    }
-    return end;
+    Path_Finder pf(begin, end, path, everywhere, klasse);
+    auto b = pf.begin();
+    auto e = pf.end();
+    if (b == e)
+      return end;
+    else
+      return *b;
   }
 
 

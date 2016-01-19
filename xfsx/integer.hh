@@ -29,6 +29,7 @@ namespace xfsx {
   namespace integer {
 
     uint32_t range_to_uint32(const std::pair<const char*, const char*> &p);
+    uint64_t range_to_uint64(const std::pair<const char*, const char*> &p);
     int64_t range_to_int64(const std::pair<const char*, const char*> &p);
 
     // Interpret integer as 32 bit unsigned and convert it to

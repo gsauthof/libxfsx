@@ -524,6 +524,44 @@ namespace xfsx {
       iterator end();
   };
 
+  class Path_Finder {
+    private:
+      std::pair<const uint8_t *, const uint8_t *> p_;
+      const std::vector<Tag_Int> &path_;
+      bool everywhere_ {false};
+      Klasse klasse_ {Klasse::APPLICATION};
+    public:
+      Path_Finder(const uint8_t *b, const uint8_t *e);
+
+      class iterator {
+        private:
+          Vertical_TLC tlc_;
+          std::pair<const uint8_t *, const uint8_t *> p_{nullptr, nullptr};
+          const uint8_t *begin_ {nullptr};
+          uint32_t k_ {0};
+          uint32_t k_off_ {0};
+          std::vector<Tag_Int> path_;
+          bool everywhere_ {false};
+          Klasse klasse_ {Klasse::APPLICATION};
+
+          void fwd();
+        public:
+          iterator(const std::pair<const uint8_t*, const uint8_t*> &p,
+              const std::vector<Tag_Int> &path,
+              bool everywhere, Klasse klasse);
+          const uint8_t *operator*() const;
+          iterator &operator++();
+          bool operator==(const iterator &o) const;
+          bool operator!=(const iterator &o) const;
+      };
+      Path_Finder(const uint8_t *begin, const uint8_t *end,
+          const std::vector<Tag_Int> &path,
+          bool everywhere = false, Klasse klasse = Klasse::APPLICATION);
+
+      iterator begin();
+      iterator end();
+  };
+
   const uint8_t *search(const uint8_t *begin, const uint8_t *end,
       const std::vector<Tag_Int> &path, bool everywhere = false,
       Klasse klasse = Klasse::APPLICATION);

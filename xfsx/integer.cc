@@ -62,6 +62,13 @@ namespace xfsx {
       return t;
     }
 
+    uint64_t range_to_uint64(const std::pair<const char*, const char*> &p)
+    {
+      uint64_t t = 0;
+      boost::spirit::qi::parse(p.first, p.second, t);
+      return t;
+    }
+
     int64_t range_to_int64(const std::pair<const char*, const char*> &p)
     {
       int64_t t = 0;

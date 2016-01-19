@@ -45,8 +45,11 @@ namespace xfsx {
         xfsx::Tag_Dereferencer &dereferencer);
     void init_typifier(xfsx::Tag_Typifier &typifier);
 
-    std::vector<xfsx::Tag_Int> aci_path();
-    std::vector<xfsx::Tag_Int> aci_path(const xfsx::Tag_Translator &translator);
+    const std::vector<xfsx::Tag_Int> &aci_path();
+    const std::vector<xfsx::Tag_Int> &aci_path(const xfsx::Tag_Translator &translator);
+    const std::vector<xfsx::Tag_Int> &kth_cdr_path();
+    const std::vector<xfsx::Tag_Int> &kth_cdr_path(
+        const xfsx::Tag_Translator &translator);
   }
 
 }

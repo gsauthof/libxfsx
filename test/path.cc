@@ -21,13 +21,21 @@
 
 #include "test.hh"
 #include <boost/test/unit_test.hpp>
+#include <boost/icl/interval_set.hpp>
 
 #include <xfsx/path.hh>
 #include <xfsx/xfsx.hh>
 
 #include <string>
+#include <limits>
 
 using namespace std;
+
+template <typename T>
+  using Right_Open_Interval_Set = boost::icl::interval_set<T,
+            ICL_COMPARE_INSTANCE(ICL_COMPARE_DEFAULT, T),
+            boost::icl::right_open_interval<T>
+        >;
 
 BOOST_AUTO_TEST_SUITE(xfsx_)
 
@@ -162,6 +170,93 @@ BOOST_AUTO_TEST_SUITE(xfsx_)
       }
 
   BOOST_AUTO_TEST_SUITE_END() // named__
+
+  BOOST_AUTO_TEST_SUITE(predicate)
+
+    BOOST_AUTO_TEST_CASE(empty)
+    {
+      BOOST_CHECK_THROW(path::parse_range_predicate(string()),
+          std::range_error);
+    }
+
+    BOOST_AUTO_TEST_CASE(empty2)
+    {
+      BOOST_CHECK_THROW(path::parse_range_predicate(string("[]")),
+          std::range_error);
+    }
+    BOOST_AUTO_TEST_CASE(single)
+    {
+      auto v = path::parse_range_predicate(string("[1]"));
+      BOOST_REQUIRE_EQUAL(v.size(), 1);
+      BOOST_CHECK_EQUAL(v[0].first, 0);
+      BOOST_CHECK_EQUAL(v[0].second, 1);
+    }
+    BOOST_AUTO_TEST_CASE(three)
+    {
+      auto v = path::parse_range_predicate(string("[3]"));
+      BOOST_REQUIRE_EQUAL(v.size(), 1);
+      BOOST_CHECK_EQUAL(v[0].first, 2);
+      BOOST_CHECK_EQUAL(v[0].second, 3);
+    }
+    BOOST_AUTO_TEST_CASE(two)
+    {
+      auto v = path::parse_range_predicate(string("[1..3]"));
+      BOOST_REQUIRE_EQUAL(v.size(), 1);
+      BOOST_CHECK_EQUAL(v[0].first, 0);
+      BOOST_CHECK_EQUAL(v[0].second, 3);
+    }
+    BOOST_AUTO_TEST_CASE(range_all)
+    {
+      auto v = path::parse_range_predicate(string("[3..]"));
+      BOOST_REQUIRE_EQUAL(v.size(), 1);
+      BOOST_CHECK_EQUAL(v[0].first, 2);
+      BOOST_CHECK_EQUAL(v[0].second, std::numeric_limits<size_t>::max());
+    }
+    BOOST_AUTO_TEST_CASE(range_multiple)
+    {
+      auto v = path::parse_range_predicate(string("[1..3,5,10..]"));
+      BOOST_REQUIRE_EQUAL(v.size(), 3);
+      BOOST_CHECK_EQUAL(v[0].first, 0);
+      BOOST_CHECK_EQUAL(v[0].second,3);
+      BOOST_CHECK_EQUAL(v[1].first, 4);
+      BOOST_CHECK_EQUAL(v[1].second,5);
+      BOOST_CHECK_EQUAL(v[2].first, 9);
+      BOOST_CHECK_EQUAL(v[2].second, std::numeric_limits<size_t>::max());
+    }
+    BOOST_AUTO_TEST_CASE(merging)
+    {
+      auto v = path::parse_range_predicate(string("[1,2,3]"));
+      BOOST_REQUIRE_EQUAL(v.size(), 1);
+      BOOST_CHECK_EQUAL(v[0].first, 0);
+      BOOST_CHECK_EQUAL(v[0].second,3);
+    }
+    BOOST_AUTO_TEST_CASE(order)
+    {
+      auto v = path::parse_range_predicate(string("[11..14,1..4]"));
+      BOOST_REQUIRE_EQUAL(v.size(), 2);
+      BOOST_CHECK_EQUAL(v[0].first, 0);
+      BOOST_CHECK_EQUAL(v[0].second,4);
+      BOOST_CHECK_EQUAL(v[1].first, 10);
+      BOOST_CHECK_EQUAL(v[1].second,14);
+    }
+
+  BOOST_AUTO_TEST_SUITE_END() // predicate
+
+  BOOST_AUTO_TEST_SUITE(misc)
+
+    BOOST_AUTO_TEST_CASE(interval_set_empty_after_empty_insert)
+    {
+      Right_Open_Interval_Set<size_t> is;
+      BOOST_CHECK_EQUAL(is.iterative_size(), 0);
+      is.insert(boost::icl::right_open_interval<size_t>(3, 3));
+      BOOST_CHECK_EQUAL(is.iterative_size(), 0);
+      BOOST_CHECK(is.begin() == is.end());
+      is.insert(boost::icl::right_open_interval<size_t>(3, 2));
+      BOOST_CHECK_EQUAL(is.iterative_size(), 0);
+      BOOST_CHECK(is.begin() == is.end());
+    }
+
+  BOOST_AUTO_TEST_SUITE_END() // misc
 
   BOOST_AUTO_TEST_SUITE_END() // path_
 

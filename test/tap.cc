@@ -96,6 +96,70 @@ BOOST_AUTO_TEST_SUITE(xfsx_)
 
     BOOST_AUTO_TEST_SUITE_END() // aci_
 
+    BOOST_AUTO_TEST_SUITE(cdr)
+      using namespace xfsx;
+      using namespace xfsx::tap;
+
+      BOOST_AUTO_TEST_CASE(defaults)
+      {
+        auto v = kth_cdr_path();
+        BOOST_REQUIRE_EQUAL(v.size(), 3);
+        BOOST_CHECK_EQUAL(v[0], 1);
+        BOOST_CHECK_EQUAL(v[1], 3);
+        BOOST_CHECK_EQUAL(v[2], 0);
+      }
+
+      BOOST_AUTO_TEST_CASE(empty)
+      {
+        Tag_Translator t;
+        auto v = kth_cdr_path(t);
+        BOOST_CHECK(v.empty());
+      }
+
+      BOOST_AUTO_TEST_CASE(empty_no_match)
+      {
+        Tag_Translator t;
+        std::unordered_map<uint32_t, std::string> m = {
+          { 1, "TansferBatch"     },
+          { 3, "CallEventDetailList" }
+        };
+        t.push(Klasse::APPLICATION, std::move(m));
+        auto v = kth_cdr_path(t);
+        BOOST_CHECK(v.empty());
+      }
+
+      BOOST_AUTO_TEST_CASE(tap_cdr)
+      {
+        Tag_Translator t;
+        std::unordered_map<uint32_t, std::string> m = {
+          { 1, "TransferBatch"     },
+          { 3, "CallEventDetailList" }
+        };
+        t.push(Klasse::APPLICATION, std::move(m));
+        auto v = kth_cdr_path(t);
+        BOOST_REQUIRE_EQUAL(v.size(), 3);
+        BOOST_CHECK_EQUAL(v[0], 1);
+        BOOST_CHECK_EQUAL(v[1], 3);
+        BOOST_CHECK_EQUAL(v[2], 0);
+      }
+
+      BOOST_AUTO_TEST_CASE(rap_cdr)
+      {
+        Tag_Translator t;
+        std::unordered_map<uint32_t, std::string> m = {
+          { 534, "returnBatch"     },
+          { 536, "returnDetailList" }
+        };
+        t.push(Klasse::APPLICATION, std::move(m));
+        auto v = kth_cdr_path(t);
+        BOOST_REQUIRE_EQUAL(v.size(), 3);
+        BOOST_CHECK_EQUAL(v[0], 534);
+        BOOST_CHECK_EQUAL(v[1], 536);
+        BOOST_CHECK_EQUAL(v[2], 0);
+      }
+
+    BOOST_AUTO_TEST_SUITE_END() // cdr
+
 
   BOOST_AUTO_TEST_SUITE_END() // tap_
 

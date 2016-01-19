@@ -98,6 +98,7 @@ namespace bed {
 
       std::string search_path;
       bool skip_to_aci {false};
+      std::string kth_cdr;
 
       std::deque<std::string> xpaths;
       std::deque<Edit_Op>     edit_ops;

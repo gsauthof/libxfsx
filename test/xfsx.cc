@@ -2124,7 +2124,7 @@ BOOST_AUTO_TEST_SUITE(xfsx_)
       boost::filesystem::path in(test::path::in());
       in /= "tap_3_12_valid.ber";
       ixxx::util::Mapped_File f(in.generic_string());
-      vector<Tag_Int> tags = { { 1, 15} };
+      vector<Tag_Int> tags = { 1, 15};
       auto r = xfsx::search(f.begin(), f.end(), tags, false);
       ssize_t off = r - f.begin();
       BOOST_CHECK_EQUAL(off, 740);
@@ -2136,7 +2136,7 @@ BOOST_AUTO_TEST_SUITE(xfsx_)
       boost::filesystem::path in(test::path::in());
       in /= "tap_3_12_valid.ber";
       ixxx::util::Mapped_File f(in.generic_string());
-      vector<Tag_Int> tags = { { 0, 15} };
+      vector<Tag_Int> tags = { 0, 15};
       auto r = xfsx::search(f.begin(), f.end(), tags, false);
       ssize_t off = r - f.begin();
       BOOST_CHECK_EQUAL(off, 740);
@@ -2148,7 +2148,7 @@ BOOST_AUTO_TEST_SUITE(xfsx_)
       boost::filesystem::path in(test::path::in());
       in /= "tap_3_12_valid.ber";
       ixxx::util::Mapped_File f(in.generic_string());
-      vector<Tag_Int> tags = { { 15} };
+      vector<Tag_Int> tags = { 15};
       auto r = xfsx::search(f.begin(), f.end(), tags, true);
       ssize_t off = r - f.begin();
       BOOST_CHECK_EQUAL(off, 740);
@@ -2161,7 +2161,7 @@ BOOST_AUTO_TEST_SUITE(xfsx_)
       in /= "tap_3_12_valid.ber";
       ixxx::util::Mapped_File f(in.generic_string());
       // i.e. ChargeDetailList/ChargeDetail/Charge
-      vector<Tag_Int> tags = { { 64, 63, 62} };
+      vector<Tag_Int> tags = { 64, 63, 62};
       auto r = xfsx::search(f.begin(), f.end(), tags, true);
       ssize_t off = r - f.begin();
       BOOST_CHECK_EQUAL(off, 378);
@@ -2174,7 +2174,7 @@ BOOST_AUTO_TEST_SUITE(xfsx_)
       in /= "tap_3_12_valid.ber";
       ixxx::util::Mapped_File f(in.generic_string());
       // i.e. ChargeDetailList/ChargeDetail/Charge
-      vector<Tag_Int> tags = { { 64, 63, 1} };
+      vector<Tag_Int> tags = { 64, 63, 1};
       auto r = xfsx::search(f.begin(), f.end(), tags, true);
       BOOST_CHECK(r == f.end());
     }
@@ -2185,9 +2185,94 @@ BOOST_AUTO_TEST_SUITE(xfsx_)
       boost::filesystem::path in(test::path::in());
       in /= "tap_3_12_valid.ber";
       ixxx::util::Mapped_File f(in.generic_string());
-      vector<Tag_Int> tags = { { 15} };
+      vector<Tag_Int> tags = { 15};
       auto r = xfsx::search(f.begin(), f.end(), tags, false);
       BOOST_CHECK(r == f.end());
+    }
+
+    BOOST_AUTO_TEST_CASE(iterate_cdr)
+    {
+      // off:
+      // 258
+      // 383
+      // 508
+      // 655
+      using namespace xfsx;
+      boost::filesystem::path in(test::path::in());
+      in /= "tap_3_12_valid.ber";
+      ixxx::util::Mapped_File f(in.generic_string());
+      vector<Tag_Int> tags = { 1, 3, 0 };
+      Path_Finder pf(f.begin(), f.end(), tags, false);
+      auto b = pf.begin();
+      auto e = pf.end();
+      BOOST_REQUIRE(b != e);
+      BOOST_CHECK_EQUAL(*b - f.begin(), 258);
+      //b.update(f.begin()+383);
+      ++b;
+      BOOST_REQUIRE(b != e);
+      BOOST_CHECK_EQUAL(*b - f.begin(), 383);
+      //b.update(f.begin()+508);
+      ++b;
+      BOOST_REQUIRE(b != e);
+      BOOST_CHECK_EQUAL(*b - f.begin(), 508);
+      //b.update(f.begin()+655);
+      ++b;
+      BOOST_REQUIRE(b != e);
+      BOOST_CHECK_EQUAL(*b - f.begin(), 655);
+      //b.update(f.begin()+655);
+      ++b;
+      BOOST_CHECK(b == e);
+    }
+
+    BOOST_AUTO_TEST_CASE(iterate_chargeable_subscriber)
+    {
+      // off:
+      // 264
+      // 389
+      // 517
+      // 657
+      using namespace xfsx;
+      boost::filesystem::path in(test::path::in());
+      in /= "tap_3_12_valid.ber";
+      ixxx::util::Mapped_File f(in.generic_string());
+      vector<Tag_Int> tags = { 427 };
+      Path_Finder pf(f.begin(), f.end(), tags, true);
+      auto b = pf.begin();
+      auto e = pf.end();
+      BOOST_REQUIRE(b != e);
+      BOOST_CHECK_EQUAL(*b - f.begin(), 264);
+      ++b;
+      BOOST_REQUIRE(b != e);
+      BOOST_CHECK_EQUAL(*b - f.begin(), 389);
+      ++b;
+      BOOST_REQUIRE(b != e);
+      BOOST_CHECK_EQUAL(*b - f.begin(), 517);
+      ++b;
+      BOOST_REQUIRE(b != e);
+      BOOST_CHECK_EQUAL(*b - f.begin(), 657);
+      ++b;
+      BOOST_CHECK(b == e);
+    }
+    BOOST_AUTO_TEST_CASE(iterate_call_event_start_time_stamp)
+    {
+      using namespace xfsx;
+      boost::filesystem::path in(test::path::in());
+      in /= "tap_3_12_valid.ber";
+      ixxx::util::Mapped_File f(in.generic_string());
+      vector<Tag_Int> tags = { 44, 16};
+      Path_Finder pf(f.begin(), f.end(), tags, true);
+      auto b = pf.begin();
+      auto e = pf.end();
+      BOOST_REQUIRE(b != e);
+      BOOST_CHECK_EQUAL(*b - f.begin(), 287);
+      ++b;
+      BOOST_REQUIRE(b != e);
+      BOOST_CHECK_EQUAL(*b - f.begin(), 412);
+      ++b;
+      BOOST_REQUIRE(b != e);
+      BOOST_CHECK_EQUAL(*b - f.begin(), 562);
+      ++b;
+      BOOST_CHECK(b == e);
     }
 
 

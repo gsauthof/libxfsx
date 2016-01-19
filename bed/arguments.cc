@@ -103,10 +103,15 @@ Arguments:
                     e.g. /TransferBatch/AuditControlInfo
                     Omitting first / means: match everywhere
                     A wildcard * matches any tag.
-                    Tag numbers are supported as well.
-                    implies --first
+                    Tag numbers instead of names are supported as well.
+                    Path can end with a predicate, e.g. /foo/bar[3]
+                    returning the 3rd match. Other examples are
+                    /foo/bar[1,2,3] or /foo/bar/[1..3,10..]
+                    Implies --first
     --aci           alias for --search /TransferBatch/AuditControlInfo
                     or --search /ReturnBatch/RapAuditControlInfo
+    --cdr N         alias for --search /TransferBatch/CallEventDetailList/*[N]
+                    or --search /ReturnBatch/ReturnDetailList/*[N]
     --first         Stop reading at the end of the first element
                     (i.e. trailing garbage is ignored)
     --count N       Write only first N tags
@@ -332,6 +337,12 @@ namespace bed {
           stop_after_first = true;
         } else if (!strcmp(argv[i], "--aci")) {
           skip_to_aci = true;
+          stop_after_first = true;
+        } else if (!strcmp(argv[i], "--cdr")) {
+          ++i;
+          if (i >= argc)
+            throw Argument_Error("cdr argument missing");
+          kth_cdr = argv[i];
           stop_after_first = true;
         } else if (!strcmp(argv[i], "--first")) {
           stop_after_first = true;

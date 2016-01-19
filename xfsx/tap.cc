@@ -66,37 +66,83 @@ namespace xfsx {
           xfsx::Type::INT_64);
     }
 
-    std::vector<xfsx::Tag_Int> aci_path()
+      static const std::vector<xfsx::Tag_Int> aci_path_ = {
+        grammar::tap::TRANSFER_BATCH,
+        grammar::tap::AUDIT_CONTROL_INFO };
+      static const std::vector<xfsx::Tag_Int> raci_path_ = {
+        grammar::rap::RETURN_BATCH,
+        grammar::rap::RAP_AUDIT_CONTROL_INFO };
+      static const std::vector<xfsx::Tag_Int> kth_cdr_path_ = {
+        grammar::tap::TRANSFER_BATCH,
+        grammar::tap::CALL_EVENT_DETAIL_LIST,
+        0 };
+      static const std::vector<xfsx::Tag_Int> kth_rcdr_path_ = {
+        grammar::rap::RETURN_BATCH,
+        grammar::rap::RETURN_DETAIL_LIST,
+        0 };
+      static const std::vector<xfsx::Tag_Int> empty_path_;
+
+    const std::vector<xfsx::Tag_Int> &aci_path()
     {
-      std::vector<xfsx::Tag_Int> search_path(2);
-      search_path[0] = grammar::tap::TRANSFER_BATCH;
-      search_path[1] = grammar::tap::AUDIT_CONTROL_INFO;
-      return search_path;
+      return aci_path_;
     }
-    std::vector<xfsx::Tag_Int> aci_path(const xfsx::Tag_Translator &translator)
+    const std::vector<xfsx::Tag_Int> &raci_path()
     {
-      std::vector<xfsx::Tag_Int> search_path;
+      return raci_path_;
+    }
+    const std::vector<xfsx::Tag_Int> &kth_cdr_path()
+    {
+      return kth_cdr_path_;
+    }
+    const std::vector<xfsx::Tag_Int> &kth_rcdr_path()
+    {
+      return kth_rcdr_path_;
+    }
+    static bool is_tap(const xfsx::Tag_Translator &translator)
+    {
       try {
         if (translator.translate(xfsx::Klasse::APPLICATION,
               grammar::tap::TRANSFER_BATCH).find(
                 "ransferBatch") != string::npos) {
-          search_path.push_back(grammar::tap::TRANSFER_BATCH);
-          search_path.push_back(grammar::tap::AUDIT_CONTROL_INFO);
+          return true;
         }
       } catch (const range_error &) {
-        try {
-          if (translator.translate(xfsx::Klasse::APPLICATION,
-                grammar::rap::RETURN_BATCH).find(
-                  "eturnBatch") != string::npos) {
-            search_path.push_back(grammar::rap::RETURN_BATCH);
-            search_path.push_back(grammar::rap::RAP_AUDIT_CONTROL_INFO);
-            return search_path;
-          }
-        } catch (const range_error &) {
-        // in case to RAP/TAP ASN.1 spec was used ...
-        }
+        return false;
       }
-      return search_path;
+      return false;
+    }
+    static bool is_rap(const xfsx::Tag_Translator &translator)
+    {
+      try {
+        if (translator.translate(xfsx::Klasse::APPLICATION,
+              grammar::rap::RETURN_BATCH).find(
+                "eturnBatch") != string::npos) {
+          return true;
+        }
+      } catch (const range_error &) {
+        return false;
+      }
+      return false;
+    }
+    const std::vector<xfsx::Tag_Int> &aci_path(const xfsx::Tag_Translator &translator)
+    {
+      if (is_tap(translator))
+        return aci_path();
+      else if (is_rap(translator))
+        return raci_path();
+      else
+        return empty_path_;
+    }
+
+    const std::vector<xfsx::Tag_Int> &kth_cdr_path(
+        const xfsx::Tag_Translator &translator)
+    {
+      if (is_tap(translator))
+        return kth_cdr_path();
+      else if (is_rap(translator))
+        return kth_rcdr_path();
+      else
+        return empty_path_;
     }
 
 

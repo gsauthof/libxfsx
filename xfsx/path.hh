@@ -38,6 +38,9 @@ namespace xfsx {
         const std::string &search_path_str,
         const xfsx::Name_Translator &name_translator);
 
+    std::vector<std::pair<size_t, size_t> > parse_range_predicate(
+        const std::string &s);
+    std::vector<std::pair<size_t, size_t> > ranges(const std::string &s);
   }
 
 }
