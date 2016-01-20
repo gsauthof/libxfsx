@@ -1252,6 +1252,13 @@ namespace xfsx {
       k_trans_(4u)
   {
   }
+  Tag_Translator::Tag_Translator(Klasse klasse,
+      std::unordered_map<uint32_t, std::string> &&m)
+    :
+      Tag_Translator()
+  {
+    push(klasse, std::move(m));
+  }
   void Tag_Translator::push(Klasse klasse,
       std::unordered_map<uint32_t, std::string> &&m)
   {

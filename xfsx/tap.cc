@@ -145,6 +145,18 @@ namespace xfsx {
         return empty_path_;
     }
 
+    static const xfsx::Tag_Translator mini_tap_translator_ {
+        xfsx::Klasse::APPLICATION,
+        {
+          { 1 , "TansferBatch"        },
+          { 3 , "CallEventDetailList" },
+          { 15, "AuditControlInfo"    }
+        }
+    };
+    const xfsx::Tag_Translator &mini_tap_translator()
+    {
+      return mini_tap_translator_;
+    }
 
   }
 }

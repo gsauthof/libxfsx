@@ -179,6 +179,8 @@ namespace xfsx {
         const std::string &search_path_str,
         const xfsx::Name_Translator &name_translator)
     {
+      if (name_translator.empty())
+        return parse(search_path_str);
       return foreach_part(search_path_str,
           [&name_translator](auto &v, auto &part) {
             try {

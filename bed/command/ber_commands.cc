@@ -72,6 +72,27 @@ namespace bed {
       xfsx::ber::write_indefinite(in.begin(), in.end(), args_.out_filename);
     }
 
+    static void apply_search_args(const Arguments &a,
+        xfsx::xml::Writer_Arguments &b,
+        const xfsx::Tag_Translator &translator,
+        const xfsx::Name_Translator &name_translator)
+    {
+      if (!b.search_path.empty())
+        return;
+      if (!a.kth_cdr.empty()) {
+        b.search_path = xfsx::tap::kth_cdr_path(translator);
+        b.search_ranges = xfsx::path::parse_range_predicate(a.kth_cdr);
+      } else if (a.skip_to_aci) {
+        b.search_path = xfsx::tap::aci_path(translator);
+        b.search_ranges.emplace_back(0, 1);
+      } else {
+        auto x = xfsx::path::parse(a.search_path, name_translator);
+        b.search_path = std::move(x.first);
+        b.search_everywhere = x.second;
+        b.search_ranges = xfsx::path::ranges(a.search_path);
+      }
+    }
+
     static void apply_arguments(const Arguments &a,
         xfsx::xml::Writer_Arguments &b)
     {
@@ -87,37 +108,14 @@ namespace bed {
       b.stop_after_first = a.stop_after_first;
       b.count            = a.count;
 
-      if (b.search_path.empty()) {
-        if (!a.kth_cdr.empty()) {
-          b.search_path = xfsx::tap::kth_cdr_path();
-          b.search_ranges = xfsx::path::parse_range_predicate(a.kth_cdr);
-        } else if (a.skip_to_aci) {
-          b.search_path = xfsx::tap::aci_path();
-          b.search_ranges.emplace_back(0, 1);
-        } else {
-          auto x = xfsx::path::parse(a.search_path);
-          b.search_path = std::move(x.first);
-          b.search_everywhere = x.second;
-          b.search_ranges = xfsx::path::ranges(a.search_path);
-        }
-      }
+      apply_search_args(a, b, xfsx::tap::mini_tap_translator(),
+          xfsx::Name_Translator());
     }
 
     static void apply_arguments(const Arguments &a,
         xfsx::xml::Pretty_Writer_Arguments &b)
     {
-      if (!a.kth_cdr.empty()) {
-        b.search_path = xfsx::tap::kth_cdr_path();
-        b.search_ranges = xfsx::path::parse_range_predicate(a.kth_cdr);
-      } else if (a.skip_to_aci) {
-        b.search_path = xfsx::tap::aci_path(b.translator);
-        b.search_ranges.emplace_back(0, 1);
-      } else {
-        auto x = xfsx::path::parse(a.search_path, b.name_translator);
-        b.search_path = std::move(x.first);
-        b.search_everywhere = x.second;
-        b.search_ranges = xfsx::path::ranges(a.search_path);
-      }
+      apply_search_args(a, b, b.translator, b.name_translator);
 
       apply_arguments(a, *static_cast<xfsx::xml::Writer_Arguments*>(&b));
     }

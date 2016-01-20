@@ -50,6 +50,8 @@ namespace xfsx {
     const std::vector<xfsx::Tag_Int> &kth_cdr_path();
     const std::vector<xfsx::Tag_Int> &kth_cdr_path(
         const xfsx::Tag_Translator &translator);
+
+    const xfsx::Tag_Translator &mini_tap_translator();
   }
 
 }
