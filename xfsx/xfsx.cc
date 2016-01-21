@@ -751,6 +751,7 @@ namespace xfsx {
   const uint8_t *Vertical_TLC::skip(const uint8_t *begin,
       const uint8_t *end)
   {
+    assert(begin < end);
     if (shape == Shape::CONSTRUCTED && length) {
       stack_[depth_].length = length;
       conditional_pop();
@@ -768,6 +769,8 @@ namespace xfsx {
   const uint8_t *Vertical_TLC::skip_children(const uint8_t *begin,
       const uint8_t *end)
   {
+    if (!(begin<end))
+      throw overflow_error("Not enough space for skipping children");
     auto r = begin;
     auto start_height = height;
     do {
@@ -1368,7 +1371,9 @@ namespace xfsx {
   Path_Finder::iterator::iterator(
       const pair<const uint8_t*, const uint8_t *> &p,
       const std::vector<Tag_Int> &path, bool everywhere, Klasse klasse)
-    : p_(p), path_(path), everywhere_(everywhere), klasse_(klasse)
+    : p_(p),
+      begin_(p_.first),
+      path_(path), everywhere_(everywhere), klasse_(klasse)
   {
     if (p_.first != p_.second) {
       p_.first = tlc_.read(p_.first, p_.second);
@@ -1377,11 +1382,11 @@ namespace xfsx {
   }
   void Path_Finder::iterator::fwd()
   {
-    while (p_.first < p_.second) {
+    while (begin_ < p_.second) {
       k_ = std::min(k_, k_off_ > tlc_.height ? 0 : (tlc_.height - k_off_));
       if (   (everywhere_ || k_ == tlc_.height)
           && (    !path_[k_]
-               || (tlc_.klasse == klasse_ && tlc_.tag == path_[k_]))) {
+            || (tlc_.klasse == klasse_ && tlc_.tag == path_[k_]))) {
         if (!k_)
           k_off_ = tlc_.height;
         ++k_;
@@ -1390,12 +1395,18 @@ namespace xfsx {
           --k_;
           return;
         }
-        p_.first = tlc_.read(p_.first, p_.second);
-      } else {
-        if (!(everywhere_ && !k_))
-          p_.first = tlc_.skip_children(p_.first, p_.second);
-        else
+        if (p_.first < p_.second)
           p_.first = tlc_.read(p_.first, p_.second);
+        else
+          break;
+      } else {
+        if (p_.first < p_.second) {
+          if (!(everywhere_ && !k_))
+            p_.first = tlc_.skip_children(p_.first, p_.second);
+          else
+            p_.first = tlc_.read(p_.first, p_.second);
+        } else
+          break;
       }
     }
     begin_ = p_.second;
@@ -1406,13 +1417,14 @@ namespace xfsx {
   }
   Path_Finder::iterator &Path_Finder::iterator::operator++()
   {
-    p_.first = tlc_.skip_children(p_.first, p_.second);
+    if (p_.first < p_.second)
+      p_.first = tlc_.skip_children(p_.first, p_.second);
     fwd();
     return *this;
   }
   bool Path_Finder::iterator::operator==(const Path_Finder::iterator &o) const
   {
-    return p_ == o.p_;
+    return begin_ == o.begin_ && p_.second == o.p_.second;
   }
   bool Path_Finder::iterator::operator!=(const Path_Finder::iterator &o) const
   {

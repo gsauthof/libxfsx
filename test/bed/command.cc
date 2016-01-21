@@ -708,6 +708,26 @@ BOOST_AUTO_TEST_SUITE(bed_)
           ref, ref + sizeof(ref) - 1);
     }
 
+    BOOST_AUTO_TEST_CASE(write_xml_search_last)
+    {
+      const char ref[] =
+        R"(<CallEventDetailsCount>4</CallEventDetailsCount>
+)";
+      compare_bed_output("tap_3_12_strip.asn1", "tap_3_12_valid.ber",
+          "write_xml_search_last.xml", { "write-xml","--search",
+          "CallEventDetailsCount" },
+          ref, ref + sizeof(ref) - 1);
+    }
+
+    BOOST_AUTO_TEST_CASE(write_xml_search_first)
+    {
+      compare_bed_output("tap_3_12_strip.asn1", "tap_3_12_valid.ber",
+          "write_xml_search_first.xml",
+          "../../ber_pretty_xml/tap_3_12_valid.xml", { "write-xml","--search",
+          "/TransferBatch" }
+         );
+    }
+
   BOOST_AUTO_TEST_SUITE_END() // command
 
 
