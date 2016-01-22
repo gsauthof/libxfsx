@@ -1,6 +1,7 @@
 #include <boost/test/unit_test.hpp>
 
 #include <boost/mpl/list.hpp>
+#include <boost/predef.h>
 
 #include <vector>
 #include <array>
@@ -91,6 +92,7 @@ BOOST_AUTO_TEST_SUITE(xfsx_)
         char inp_s[] = "0123456789abcdef";
         uint64_t inp;
         memcpy(&inp, inp_s, sizeof(inp));
+        inp = boost::endian::little_to_native(inp);
         uint64_t r = encode::Convert::Base<uint64_t,
                  encode::Convert::Bit_Parallel>()(inp);
         for (uint8_t i = 0; i < sizeof(uint64_t); ++i) {
@@ -102,6 +104,7 @@ BOOST_AUTO_TEST_SUITE(xfsx_)
       {
         using namespace xfsx::bcd::impl;
         uint64_t i = 0x0e0f0a0c0d0a0e0dlu;
+        i = boost::endian::native_to_little(i);
         uint64_t o = 0x00000000deadcafelu;
         (void)o;
         array<uint8_t, 4> a;
@@ -148,8 +151,10 @@ BOOST_AUTO_TEST_SUITE(xfsx_)
           , Decode<char *, uint64_t>
           , Decode<char *, uint32_t>
           , Decode<char *, uint16_t>
+#ifdef BOOST_ENDIAN_LITTLE_BYTE
           , Decode<char *, uint64_t, Scatter::Reverse, Convert::Bit_Parallel,
                    Gather::Reverse >
+#endif
           , Decode<char *, uint64_t, Scatter::Shift, Convert::Bit_Parallel,
                    Gather::Memcpy >
           , Decode<char *, uint64_t, Scatter::Shift, Convert::Bit_Parallel,
