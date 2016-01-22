@@ -805,7 +805,7 @@ BOOST_AUTO_TEST_SUITE(xfsx_)
         const uint8_t *r = u.read(v.data(), v.data() + v.size());
         (void)r;
         int64_t x = 0;
-        BOOST_CHECKPOINT("Integer value: " << inp);
+        BOOST_TEST_CHECKPOINT("Integer value: " << inp);
         u.copy_content(x);
         BOOST_CHECK_EQUAL(x, inp);
       }
@@ -848,7 +848,7 @@ BOOST_AUTO_TEST_SUITE(xfsx_)
         const uint8_t *r = u.read(v.data(), v.data() + v.size());
         (void)r;
         uint64_t x = 0;
-        BOOST_CHECKPOINT("Integer value: " << inp);
+        BOOST_TEST_CHECKPOINT("Integer value: " << inp);
         u.copy_content(x);
         BOOST_CHECK_EQUAL(x, inp);
       }
@@ -890,7 +890,7 @@ BOOST_AUTO_TEST_SUITE(xfsx_)
         const uint8_t *r = u.read(v.data(), v.data() + v.size());
         (void)r;
         int32_t x = 0;
-        BOOST_CHECKPOINT("Integer value: " << inp);
+        BOOST_TEST_CHECKPOINT("Integer value: " << inp);
         u.copy_content(x);
         BOOST_CHECK_EQUAL(x, inp);
       }
@@ -932,7 +932,7 @@ BOOST_AUTO_TEST_SUITE(xfsx_)
         const uint8_t *r = u.read(v.data(), v.data() + v.size());
         (void)r;
         int16_t x = 0;
-        BOOST_CHECKPOINT("Integer value: " << inp);
+        BOOST_TEST_CHECKPOINT("Integer value: " << inp);
         u.copy_content(x);
         BOOST_CHECK_EQUAL(x, inp);
       }

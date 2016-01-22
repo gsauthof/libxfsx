@@ -44,7 +44,7 @@ BOOST_AUTO_TEST_SUITE(xfsx_)
 
     BOOST_AUTO_TEST_CASE(basic)
     {
-      BOOST_CHECKPOINT("detector basic");
+      BOOST_TEST_CHECKPOINT("detector basic");
       bf::path input(test::path::in());
       input /= "asn1c/examples/sample.source.TAP3/sample-DataInterChange-1.ber";
       bf::path config(test::path::in() + "/../../config");
@@ -82,7 +82,7 @@ BOOST_AUTO_TEST_SUITE(xfsx_)
 
     BOOST_AUTO_TEST_CASE(basic_3_12)
     {
-      BOOST_CHECKPOINT("detector basic 3_12");
+      BOOST_TEST_CHECKPOINT("detector basic 3_12");
       bf::path input(test::path::in());
       input /= "tap_3_12_valid.ber";
       bf::path config(test::path::in() + "/../../config");
@@ -111,7 +111,7 @@ BOOST_AUTO_TEST_SUITE(xfsx_)
 
     BOOST_AUTO_TEST_CASE(not_detected)
     {
-      BOOST_CHECKPOINT("detector not detected");
+      BOOST_TEST_CHECKPOINT("detector not detected");
       bf::path input(test::path::in());
       input /= "tap_3_12_valid.ber";
       bf::path config(test::path::in() + "/../../config");
