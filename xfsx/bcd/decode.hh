@@ -176,6 +176,8 @@ namespace xfsx {
               }
             };
 
+          // violates aliasing rules
+          // alignment issues
           template <typename O, typename T>
             struct Base<O, T, Direct> {
 
@@ -187,6 +189,9 @@ namespace xfsx {
               }
             };
 
+          // violates aliasing rules
+          // alignment issues
+          // does not work on little endian
           template <typename O, typename T>
             struct Base<O, T, Reverse> {
 
@@ -294,17 +299,22 @@ namespace xfsx {
              {
                O r = o;
                const uint8_t *aligned_begin = A()(begin);
-               if (A::alignment > 1) {
-                 r = Basic_Decode<O, uint16_t>()(begin, aligned_begin, r);
-               }
+               if (aligned_begin < end) {
+                 if (A::alignment > 1) {
+                   r = Basic_Decode<O, uint16_t>()(begin, aligned_begin, r);
+                 }
 
-               uint8_t increment = sizeof(T)/2u;
-               const uint8_t *first_end = begin + (end-begin) / increment * increment;
-               r = Basic_Decode<O, T, Scatter_Policy, Convert_Policy,
-                 Gather_Policy>()(aligned_begin, first_end, r);
+                 uint8_t increment = sizeof(T)/2u;
+                 const uint8_t *first_end = aligned_begin
+                   + (end - aligned_begin) / increment * increment;
+                 r = Basic_Decode<O, T, Scatter_Policy, Convert_Policy,
+                   Gather_Policy>()(aligned_begin, first_end, r);
 
-               if (increment > 1) {
-                 r = Basic_Decode<O, uint16_t>()(first_end, end, r);
+                 if (increment > 1) {
+                   r = Basic_Decode<O, uint16_t>()(first_end, end, r);
+                 }
+               } else {
+                 r = Basic_Decode<O, uint16_t>()(begin, end, r);
                }
                return r;
              }
