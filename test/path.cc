@@ -57,27 +57,27 @@ BOOST_AUTO_TEST_SUITE(xfsx_)
       {
         auto r = path::parse("/12/23/42");
         BOOST_REQUIRE(!r.first.empty());
-        BOOST_CHECK_EQUAL(r.first[0], 12);
-        BOOST_CHECK_EQUAL(r.first[1], 23);
-        BOOST_CHECK_EQUAL(r.first[2], 42);
+        BOOST_CHECK_EQUAL(r.first[0], 12u);
+        BOOST_CHECK_EQUAL(r.first[1], 23u);
+        BOOST_CHECK_EQUAL(r.first[2], 42u);
         BOOST_CHECK_EQUAL(r.second, false);
       }
       BOOST_AUTO_TEST_CASE(numbers_everywhere)
       {
         auto r = path::parse("12/23/42");
         BOOST_REQUIRE(!r.first.empty());
-        BOOST_CHECK_EQUAL(r.first[0], 12);
-        BOOST_CHECK_EQUAL(r.first[1], 23);
-        BOOST_CHECK_EQUAL(r.first[2], 42);
+        BOOST_CHECK_EQUAL(r.first[0], 12u);
+        BOOST_CHECK_EQUAL(r.first[1], 23u);
+        BOOST_CHECK_EQUAL(r.first[2], 42u);
         BOOST_CHECK_EQUAL(r.second, true);
       }
       BOOST_AUTO_TEST_CASE(numbers_gone_wild)
       {
         auto r = path::parse("12/*/42");
         BOOST_REQUIRE(!r.first.empty());
-        BOOST_CHECK_EQUAL(r.first[0], 12);
-        BOOST_CHECK_EQUAL(r.first[1], 0);
-        BOOST_CHECK_EQUAL(r.first[2], 42);
+        BOOST_CHECK_EQUAL(r.first[0], 12u);
+        BOOST_CHECK_EQUAL(r.first[1], 0u);
+        BOOST_CHECK_EQUAL(r.first[2], 42u);
         BOOST_CHECK_EQUAL(r.second, true);
       }
   BOOST_AUTO_TEST_SUITE_END() // plain 
@@ -103,9 +103,9 @@ BOOST_AUTO_TEST_SUITE(xfsx_)
         Name_Translator t(std::move(m));
         auto r = path::parse("/foo/bar/baz", t);
         BOOST_REQUIRE(!r.first.empty());
-        BOOST_CHECK_EQUAL(r.first[0], 12);
-        BOOST_CHECK_EQUAL(r.first[1], 23);
-        BOOST_CHECK_EQUAL(r.first[2], 42);
+        BOOST_CHECK_EQUAL(r.first[0], 12u);
+        BOOST_CHECK_EQUAL(r.first[1], 23u);
+        BOOST_CHECK_EQUAL(r.first[2], 42u);
         BOOST_CHECK_EQUAL(r.second, false);
       }
       BOOST_AUTO_TEST_CASE(numbers_everywhere)
@@ -119,9 +119,9 @@ BOOST_AUTO_TEST_SUITE(xfsx_)
         Name_Translator t(std::move(m));
         auto r = path::parse("foo/bar/baz", t);
         BOOST_REQUIRE(!r.first.empty());
-        BOOST_CHECK_EQUAL(r.first[0], 12);
-        BOOST_CHECK_EQUAL(r.first[1], 23);
-        BOOST_CHECK_EQUAL(r.first[2], 42);
+        BOOST_CHECK_EQUAL(r.first[0], 12u);
+        BOOST_CHECK_EQUAL(r.first[1], 23u);
+        BOOST_CHECK_EQUAL(r.first[2], 42u);
         BOOST_CHECK_EQUAL(r.second, true);
       }
       BOOST_AUTO_TEST_CASE(numbers_gone_wild)
@@ -135,9 +135,9 @@ BOOST_AUTO_TEST_SUITE(xfsx_)
         Name_Translator t(std::move(m));
         auto r = path::parse("foo/*/baz", t);
         BOOST_REQUIRE(!r.first.empty());
-        BOOST_CHECK_EQUAL(r.first[0], 12);
-        BOOST_CHECK_EQUAL(r.first[1], 0);
-        BOOST_CHECK_EQUAL(r.first[2], 42);
+        BOOST_CHECK_EQUAL(r.first[0], 12u);
+        BOOST_CHECK_EQUAL(r.first[1], 0u);
+        BOOST_CHECK_EQUAL(r.first[2], 42u);
         BOOST_CHECK_EQUAL(r.second, true);
       }
       BOOST_AUTO_TEST_CASE(numbers_mixed)
@@ -151,9 +151,9 @@ BOOST_AUTO_TEST_SUITE(xfsx_)
         Name_Translator t(std::move(m));
         auto r = path::parse("foo/*/42", t);
         BOOST_REQUIRE(!r.first.empty());
-        BOOST_CHECK_EQUAL(r.first[0], 12);
-        BOOST_CHECK_EQUAL(r.first[1], 0);
-        BOOST_CHECK_EQUAL(r.first[2], 42);
+        BOOST_CHECK_EQUAL(r.first[0], 12u);
+        BOOST_CHECK_EQUAL(r.first[1], 0u);
+        BOOST_CHECK_EQUAL(r.first[2], 42u);
         BOOST_CHECK_EQUAL(r.second, true);
       }
 
@@ -187,57 +187,57 @@ BOOST_AUTO_TEST_SUITE(xfsx_)
     BOOST_AUTO_TEST_CASE(single)
     {
       auto v = path::parse_range_predicate(string("[1]"));
-      BOOST_REQUIRE_EQUAL(v.size(), 1);
-      BOOST_CHECK_EQUAL(v[0].first, 0);
-      BOOST_CHECK_EQUAL(v[0].second, 1);
+      BOOST_REQUIRE_EQUAL(v.size(), 1u);
+      BOOST_CHECK_EQUAL(v[0].first, 0u);
+      BOOST_CHECK_EQUAL(v[0].second, 1u);
     }
     BOOST_AUTO_TEST_CASE(three)
     {
       auto v = path::parse_range_predicate(string("[3]"));
-      BOOST_REQUIRE_EQUAL(v.size(), 1);
-      BOOST_CHECK_EQUAL(v[0].first, 2);
-      BOOST_CHECK_EQUAL(v[0].second, 3);
+      BOOST_REQUIRE_EQUAL(v.size(), 1u);
+      BOOST_CHECK_EQUAL(v[0].first, 2u);
+      BOOST_CHECK_EQUAL(v[0].second, 3u);
     }
     BOOST_AUTO_TEST_CASE(two)
     {
       auto v = path::parse_range_predicate(string("[1..3]"));
-      BOOST_REQUIRE_EQUAL(v.size(), 1);
-      BOOST_CHECK_EQUAL(v[0].first, 0);
-      BOOST_CHECK_EQUAL(v[0].second, 3);
+      BOOST_REQUIRE_EQUAL(v.size(), 1u);
+      BOOST_CHECK_EQUAL(v[0].first, 0u);
+      BOOST_CHECK_EQUAL(v[0].second, 3u);
     }
     BOOST_AUTO_TEST_CASE(range_all)
     {
       auto v = path::parse_range_predicate(string("[3..]"));
-      BOOST_REQUIRE_EQUAL(v.size(), 1);
-      BOOST_CHECK_EQUAL(v[0].first, 2);
+      BOOST_REQUIRE_EQUAL(v.size(), 1u);
+      BOOST_CHECK_EQUAL(v[0].first, 2u);
       BOOST_CHECK_EQUAL(v[0].second, std::numeric_limits<size_t>::max());
     }
     BOOST_AUTO_TEST_CASE(range_multiple)
     {
       auto v = path::parse_range_predicate(string("[1..3,5,10..]"));
-      BOOST_REQUIRE_EQUAL(v.size(), 3);
-      BOOST_CHECK_EQUAL(v[0].first, 0);
-      BOOST_CHECK_EQUAL(v[0].second,3);
-      BOOST_CHECK_EQUAL(v[1].first, 4);
-      BOOST_CHECK_EQUAL(v[1].second,5);
-      BOOST_CHECK_EQUAL(v[2].first, 9);
+      BOOST_REQUIRE_EQUAL(v.size(), 3u);
+      BOOST_CHECK_EQUAL(v[0].first, 0u);
+      BOOST_CHECK_EQUAL(v[0].second,3u);
+      BOOST_CHECK_EQUAL(v[1].first, 4u);
+      BOOST_CHECK_EQUAL(v[1].second,5u);
+      BOOST_CHECK_EQUAL(v[2].first, 9u);
       BOOST_CHECK_EQUAL(v[2].second, std::numeric_limits<size_t>::max());
     }
     BOOST_AUTO_TEST_CASE(merging)
     {
       auto v = path::parse_range_predicate(string("[1,2,3]"));
-      BOOST_REQUIRE_EQUAL(v.size(), 1);
-      BOOST_CHECK_EQUAL(v[0].first, 0);
-      BOOST_CHECK_EQUAL(v[0].second,3);
+      BOOST_REQUIRE_EQUAL(v.size(), 1u);
+      BOOST_CHECK_EQUAL(v[0].first, 0u);
+      BOOST_CHECK_EQUAL(v[0].second,3u);
     }
     BOOST_AUTO_TEST_CASE(order)
     {
       auto v = path::parse_range_predicate(string("[11..14,1..4]"));
-      BOOST_REQUIRE_EQUAL(v.size(), 2);
-      BOOST_CHECK_EQUAL(v[0].first, 0);
-      BOOST_CHECK_EQUAL(v[0].second,4);
-      BOOST_CHECK_EQUAL(v[1].first, 10);
-      BOOST_CHECK_EQUAL(v[1].second,14);
+      BOOST_REQUIRE_EQUAL(v.size(), 2u);
+      BOOST_CHECK_EQUAL(v[0].first, 0u);
+      BOOST_CHECK_EQUAL(v[0].second,4u);
+      BOOST_CHECK_EQUAL(v[1].first, 10u);
+      BOOST_CHECK_EQUAL(v[1].second,14u);
     }
 
   BOOST_AUTO_TEST_SUITE_END() // predicate
@@ -247,12 +247,12 @@ BOOST_AUTO_TEST_SUITE(xfsx_)
     BOOST_AUTO_TEST_CASE(interval_set_empty_after_empty_insert)
     {
       Right_Open_Interval_Set<size_t> is;
-      BOOST_CHECK_EQUAL(is.iterative_size(), 0);
+      BOOST_CHECK_EQUAL(is.iterative_size(), 0u);
       is.insert(boost::icl::right_open_interval<size_t>(3, 3));
-      BOOST_CHECK_EQUAL(is.iterative_size(), 0);
+      BOOST_CHECK_EQUAL(is.iterative_size(), 0u);
       BOOST_CHECK(is.begin() == is.end());
       is.insert(boost::icl::right_open_interval<size_t>(3, 2));
-      BOOST_CHECK_EQUAL(is.iterative_size(), 0);
+      BOOST_CHECK_EQUAL(is.iterative_size(), 0u);
       BOOST_CHECK(is.begin() == is.end());
     }
 

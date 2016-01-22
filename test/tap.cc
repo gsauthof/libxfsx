@@ -41,9 +41,9 @@ BOOST_AUTO_TEST_SUITE(xfsx_)
       BOOST_AUTO_TEST_CASE(defaults)
       {
         auto v = aci_path();
-        BOOST_REQUIRE_EQUAL(v.size(), 2);
-        BOOST_CHECK_EQUAL(v[0], 1);
-        BOOST_CHECK_EQUAL(v[1], 15);
+        BOOST_REQUIRE_EQUAL(v.size(), 2u);
+        BOOST_CHECK_EQUAL(v[0], 1u);
+        BOOST_CHECK_EQUAL(v[1], 15u);
       }
 
       BOOST_AUTO_TEST_CASE(none)
@@ -62,9 +62,9 @@ BOOST_AUTO_TEST_SUITE(xfsx_)
         };
         t.push(Klasse::APPLICATION, std::move(m));
         auto v = aci_path(t);
-        BOOST_REQUIRE_EQUAL(v.size(), 2);
-        BOOST_CHECK_EQUAL(v[0], 1);
-        BOOST_CHECK_EQUAL(v[1], 15);
+        BOOST_REQUIRE_EQUAL(v.size(), 2u);
+        BOOST_CHECK_EQUAL(v[0], 1u);
+        BOOST_CHECK_EQUAL(v[1], 15u);
       }
 
       BOOST_AUTO_TEST_CASE(tap_not)
@@ -89,9 +89,9 @@ BOOST_AUTO_TEST_SUITE(xfsx_)
         };
         t.push(Klasse::APPLICATION, std::move(m));
         auto v = aci_path(t);
-        BOOST_REQUIRE_EQUAL(v.size(), 2);
-        BOOST_CHECK_EQUAL(v[0], 534);
-        BOOST_CHECK_EQUAL(v[1], 541);
+        BOOST_REQUIRE_EQUAL(v.size(), 2u);
+        BOOST_CHECK_EQUAL(v[0], 534u);
+        BOOST_CHECK_EQUAL(v[1], 541u);
       }
 
     BOOST_AUTO_TEST_SUITE_END() // aci_
@@ -103,10 +103,10 @@ BOOST_AUTO_TEST_SUITE(xfsx_)
       BOOST_AUTO_TEST_CASE(defaults)
       {
         auto v = kth_cdr_path();
-        BOOST_REQUIRE_EQUAL(v.size(), 3);
-        BOOST_CHECK_EQUAL(v[0], 1);
-        BOOST_CHECK_EQUAL(v[1], 3);
-        BOOST_CHECK_EQUAL(v[2], 0);
+        BOOST_REQUIRE_EQUAL(v.size(), 3u);
+        BOOST_CHECK_EQUAL(v[0], 1u);
+        BOOST_CHECK_EQUAL(v[1], 3u);
+        BOOST_CHECK_EQUAL(v[2], 0u);
       }
 
       BOOST_AUTO_TEST_CASE(empty)
@@ -137,10 +137,10 @@ BOOST_AUTO_TEST_SUITE(xfsx_)
         };
         t.push(Klasse::APPLICATION, std::move(m));
         auto v = kth_cdr_path(t);
-        BOOST_REQUIRE_EQUAL(v.size(), 3);
-        BOOST_CHECK_EQUAL(v[0], 1);
-        BOOST_CHECK_EQUAL(v[1], 3);
-        BOOST_CHECK_EQUAL(v[2], 0);
+        BOOST_REQUIRE_EQUAL(v.size(), 3u);
+        BOOST_CHECK_EQUAL(v[0], 1u);
+        BOOST_CHECK_EQUAL(v[1], 3u);
+        BOOST_CHECK_EQUAL(v[2], 0u);
       }
 
       BOOST_AUTO_TEST_CASE(rap_cdr)
@@ -152,10 +152,10 @@ BOOST_AUTO_TEST_SUITE(xfsx_)
         };
         t.push(Klasse::APPLICATION, std::move(m));
         auto v = kth_cdr_path(t);
-        BOOST_REQUIRE_EQUAL(v.size(), 3);
-        BOOST_CHECK_EQUAL(v[0], 534);
-        BOOST_CHECK_EQUAL(v[1], 536);
-        BOOST_CHECK_EQUAL(v[2], 0);
+        BOOST_REQUIRE_EQUAL(v.size(), 3u);
+        BOOST_CHECK_EQUAL(v[0], 534u);
+        BOOST_CHECK_EQUAL(v[1], 536u);
+        BOOST_CHECK_EQUAL(v[2], 0u);
       }
 
     BOOST_AUTO_TEST_SUITE_END() // cdr
