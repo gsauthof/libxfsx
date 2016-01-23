@@ -616,6 +616,13 @@ BOOST_AUTO_TEST_SUITE(bed_)
           { "write-xml", "--count", "18" });
     }
 
+    BOOST_AUTO_TEST_CASE(write_xml_bci)
+    {
+      compare_bed_output("tap_3_12_strip.asn1",
+          "tap_3_12_valid.ber", "bci.xml", "count.xml",
+          { "write-xml", "--bci" });
+    }
+
     BOOST_AUTO_TEST_CASE(search_count)
     {
       const char ref[] = "<Sender>WERFD</Sender>\n";

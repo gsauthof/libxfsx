@@ -99,6 +99,9 @@ Arguments:
     --length        Include length of the content
     --off           Include byte offset of the tag
     --skip BYTES    Skip BYTES of input file
+    --bci           Alias for --count 18, where 18 enough to
+                    display the BatchControlInfo, Nrtrde header, RapControlInfo,
+                    Notication header etc.
     --search PATH   Skip until tag identified by PATH,
                     e.g. /TransferBatch/AuditControlInfo
                     Omitting first / means: match everywhere
@@ -351,6 +354,8 @@ namespace bed {
           if (i >= argc)
             throw Argument_Error("count argument missing");
           count = boost::lexical_cast<size_t>(argv[i]);
+        } else if (!strcmp(argv[i], "--bci")) {
+          count = 18;
         } else if (!strcmp(argv[i], "--xsd")) {
           ++i;
           if (i >= argc)
