@@ -72,6 +72,10 @@ namespace xfsx {
       static const std::vector<xfsx::Tag_Int> raci_path_ = {
         grammar::rap::RETURN_BATCH,
         grammar::rap::RAP_AUDIT_CONTROL_INFO };
+      static const std::vector<xfsx::Tag_Int> naci_path_ = {
+        grammar::nrt::NRTRDE,
+        grammar::nrt::CALL_EVENTS_COUNT
+      };
       static const std::vector<xfsx::Tag_Int> kth_cdr_path_ = {
         grammar::tap::TRANSFER_BATCH,
         grammar::tap::CALL_EVENT_DETAIL_LIST,
@@ -79,6 +83,10 @@ namespace xfsx {
       static const std::vector<xfsx::Tag_Int> kth_rcdr_path_ = {
         grammar::rap::RETURN_BATCH,
         grammar::rap::RETURN_DETAIL_LIST,
+        0 };
+      static const std::vector<xfsx::Tag_Int> kth_ncdr_path_ = {
+        grammar::nrt::NRTRDE,
+        grammar::nrt::CALL_EVENT_LIST,
         0 };
       static const std::vector<xfsx::Tag_Int> empty_path_;
 
@@ -90,6 +98,10 @@ namespace xfsx {
     {
       return raci_path_;
     }
+    const std::vector<xfsx::Tag_Int> &naci_path()
+    {
+      return naci_path_;
+    }
     const std::vector<xfsx::Tag_Int> &kth_cdr_path()
     {
       return kth_cdr_path_;
@@ -97,6 +109,10 @@ namespace xfsx {
     const std::vector<xfsx::Tag_Int> &kth_rcdr_path()
     {
       return kth_rcdr_path_;
+    }
+    const std::vector<xfsx::Tag_Int> &kth_ncdr_path()
+    {
+      return kth_ncdr_path_;
     }
     static bool is_tap(const xfsx::Tag_Translator &translator)
     {
@@ -124,12 +140,27 @@ namespace xfsx {
       }
       return false;
     }
+    static bool is_nrt(const xfsx::Tag_Translator &translator)
+    {
+      try {
+        if (translator.translate(xfsx::Klasse::APPLICATION,
+              grammar::nrt::NRTRDE).find(
+                "Nrtrde") != string::npos) {
+          return true;
+        }
+      } catch (const range_error &) {
+        return false;
+      }
+      return false;
+    }
     const std::vector<xfsx::Tag_Int> &aci_path(const xfsx::Tag_Translator &translator)
     {
       if (is_tap(translator))
         return aci_path();
       else if (is_rap(translator))
         return raci_path();
+      else if (is_nrt(translator))
+        return naci_path();
       else
         return empty_path_;
     }
@@ -141,6 +172,8 @@ namespace xfsx {
         return kth_cdr_path();
       else if (is_rap(translator))
         return kth_rcdr_path();
+      else if (is_nrt(translator))
+        return kth_ncdr_path();
       else
         return empty_path_;
     }
