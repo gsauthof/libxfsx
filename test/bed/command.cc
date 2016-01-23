@@ -735,6 +735,19 @@ BOOST_AUTO_TEST_SUITE(bed_)
          );
     }
 
+    BOOST_AUTO_TEST_CASE(argument_error)
+    {
+      const char ref[] = "";
+      BOOST_CHECK_THROW(
+        compare_bed_output("tap_3_12_strip.asn1", "tap_3_12_valid.ber",
+            "argument_error.xml", { "write-xml","--foobar" }, ref, ref
+           ), bed::Argument_Error);
+      BOOST_CHECK_THROW(
+        compare_bed_output("tap_3_12_strip.asn1", "tap_3_12_valid.ber",
+            "argument_error.xml", { "wite-xml" }, ref, ref
+           ), bed::Argument_Error);
+    }
+
   BOOST_AUTO_TEST_SUITE_END() // command
 
 
