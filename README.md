@@ -99,7 +99,7 @@ For example:
     $ git clone remote-url
     $ cd project
     $ git submodule update
-    $ git submodule init 
+    $ git submodule init
 
 Out of source builds are recommended, e.g.:
 
@@ -170,6 +170,180 @@ would look like this:
 
 The XSD files are needed for the validation functionality.
 
+## XER
+
+The XML writer relies on libgrammar for translation BER tag
+numbers to XML element names. Libgrammar can also transform an
+ASN.1 specification into an XSD (or RelaxNG) schema that can be
+used to validate the XML writer output.
+
+The transformation done by libgrammar is not equivalent to the
+[ASN.1 XML encoding rules (XER)][xer].
+
+The reason for this is: the XER have severe disadvantages. When
+transforming a BER file to XML using the XER, following cases may
+occur:
+
+A new parent element must be introduced, e.g.:
+
+    -- ASN.1 snippet
+    DataInterChange ::= CHOICE
+    {
+        transferBatch TransferBatch,
+        notification  Notification,
+    }
+    -- BER stream: [Tag=1, ...]
+
+    <!-- XER result -->
+    <DataInterChange> <!-- not present in BER -->
+       <transferBatch>...</transferBatch>
+    </DataInterChange>
+
+    <!-- libXFSX/bed XML result -->
+    <TransferBatch>...</TransferBatch>
+
+
+
+An existing parent element must be removed, e.g.:
+
+    -- ASN.1 snippet
+    ... ::= ... SEQUENCE { ..., ... BasicServiceCodeList, ... }
+    BasicServiceCodeList ::= [APPLICATION 37] SEQUENCE OF BasicServiceCode
+    TeleServiceCode      ::= [APPLICATION 218] HexString (SIZE(2))
+    BasicServiceCode     ::= [APPLICATION 426] CHOICE
+    {
+        teleServiceCode      TeleServiceCode,
+        bearerServiceCode    BearerServiceCode,
+    }
+    -- BER stream: [..., Tag=37, Tag=426, Tag=426, ...]
+
+    <!-- XER result -->
+    <basicServiceCodeList><teleServiceCode>...</teleServiceCode></...>
+    <!-- => BasicServiceCode (tag=426) is gone -->
+
+    <!-- XFSX XML result -->
+    <BasicServiceCodeList>
+      <BasicServiceCode>
+        <TeleServiceCode>...</TeleServiceCode>
+      </BasicServiceCode>
+    </BasicServiceCodeList>
+
+A different element name for the same BER tag must be used
+because it's locally used differently (used in another type or
+named differently), e.g.:
+
+    -- ASN.1 snippet
+    ... ::= ... SEQUENCE { ..., ... RecEntityCodeList, ... }
+    ... ::= ... SEQUENCE { ..., ... SomeRec, ...}
+    RecEntityCode     ::= [APPLICATION 184] Code
+    RecEntityCodeList ::= [APPLICATION 185] SEQUENCE OF RecEntityCode
+    SomeRec           ::= [APPLICATION 1234] SEQUENCE {
+       recEntityCode        RecEntityCode,
+       ...
+    }
+    -- BER stream: [ ..., Tag=185, Tag=184, ..., Tag=1234, Tag=184, ...]
+
+    <!-- XER result -->
+    <recEntityCodeList><RecEntityCode>...</RecEntityCode>recEntityCodeList>
+    ... <someRec><recEntityCode>...</recEntityCode></someRec>
+    <!-- => although it's the same tag in the BER file -->
+
+    <!-- XFSX XML result -->
+    <RecEntityCodeList><RecEntityCode>...</RecEntityCode></RecEntityCodeList>
+    ... <SomeRec><RecEntityCode>...</RecEntityCodeList></SomeRec>
+
+The same element name does not mean that the BER tags are the
+same:
+
+    -- ASN.1 snippet
+    ... ::= ... SEQUENCE { ..., ... A, ... }
+    Bar ::= [Application 4] OCTET STRING
+    Blub::= [Application 5] INTEGER
+    A   ::= [Application 1] SEQUENCE { foo Foo, fuu Fuu }
+    Foo ::= [Application 2] SEQUENCE { blah Bar }
+    Fuu ::= [Application 3] SEQUENCE { blah Blub }
+    -- BER stream: [ ..., Tag=1, Tag=2, Tag=4, Tag=3, Tag=5, ...]
+
+    <!-- XER result -->
+    <a><foo><blah>...</blah></foo><fuu><blah>...</blah></fuu></a>
+    <!-- => in the BER file the blah elements have different tags
+
+    <!-- XFSX XML result -->
+    <A><Foo><Bar>...</Bar></Foo><Fuu><Blub>...</Blub></Fuu></A>
+
+
+In general this means: you have to use a stack for BER to XER
+transformation.
+
+In contrast the libgrammar ASN.1 to XSD/RelaxNG transformation is
+very straight forward: each BER tag is directly mapped to the
+ASN.1 type name (using its tag number and class number), i.e. the
+mapping is bijective. Thus, no stack is necessary for
+transforming BER to XML. A state machine is sufficient. Meaning,
+the transformation is more efficient.  Analogously, the
+transformation from XML to BER also only needs a state machine.
+
+In addition to that - the resulting XML is also more
+comprehensible because one knows that every XML element has a
+representation in the BER file, two XML elements with the same
+name also have the same BER tag representation and there is no
+BER tag that is hidden in the XML file.
+
+## TAP 3.12 Test Scenarios
+
+The GSMA has published some TAP 3.12 test scenarios - they
+are described in TD.60 and the specified test call data records are also
+available as BER file (TD.62) and XML file (TD.61).
+
+The BER test file can also be converted to XML with `bed write-xml`.
+For comparing the result with the TD.61 XML file, the TD.61 XML
+file can be converted to the XFSX/bed XML format. For
+example via following shell 'one'-liner:
+
+    xmlstarlet sel -t -c '//transferBatch' TD.61\ v30.7.xml \
+      | sed 's@\(</\?[a-z]\)@\U\1@g' \
+      | sed -e 's@\(</\?\)EquipmentIdentifier>@\1ImeiOrEsn>@' \
+            -e 's@\(</\?\)ServiceCode>@\1BasicServiceCode>@' \
+            -e 's@\(</\?\)CurrencyConversionInfo>@\1CurrencyConversionList>@'
+            -e 's@\(</\?\)RecEntityInfo>@\1RecEntityInfoList>@'
+            -e 's@\(</\?\)MessageDescriptionInfo>@\1MessageDescriptionInfoList>@' \
+            -e 's@\(</\?\)CallEventDetails>@\1CallEventDetailList>@' \
+      | xmlstarlet ed -r '/*/*/Taxation' -v TaxationList
+      | xmlstarlet ed -r '/*/*/Discounting' -v DiscountingList \
+      | xmlstarlet ed -r '/*/*/UtcTimeOffsetInfo' -v UtcTimeOffsetInfoList \
+      | xmlstarlet ed -r '//OperatorSpecInformation/OperatorSpecInformation/parent::*' -v OperatorSpecInfoList \
+      | xmlstarlet ed -r '//TaxInformation/TaxInformation/parent::*' -v TaxInformationList \
+      | xmlstarlet ed -r '//MobileTerminatedCall/BasicCallInformation' -v MtBasicCallInformation \
+      | xmlstarlet ed -r '//MobileOriginatedCall/BasicCallInformation' -v MoBasicCallInformation \
+      | xmlstarlet ed -r '//SupplServiceUsed/BasicServiceCodeList/TeleServiceCode' -v 'TeleServiceCodeXXX' \
+      | sed 's@<TeleServiceCodeXXX>\([^<]\+\)</TeleServiceCodeXXX>@<BasicServiceCode><TeleServiceCode>\1</TeleServiceCode></BasicServiceCode>@' \
+      | XMLLINT_INDENT='    ' xmllint --format --recover - \
+      | tail -n +2  > td61_sane.xml
+
+After that transformation there are 2 differences in the values:
+
+- the GSMA prints the trailing fill digit (F) of decoded BCD
+  numbers, where XFSX/bed does not
+- the GSMA prints CallRereference values as hexadecimal digit
+  string, where XFSX/bed prints it as string and escapes characters
+  to XML rules
+
+Those differences are also due to the TD.61 XML file being XER
+encoded.
+
+Of course, transforming the TD.62 BER file with `bed` to XML and
+then back to BER yields the original file:
+
+    bed write-xml TD.61\ v30.7.asn1 td61_bed.xml
+    bed write-ber td61_bed.xml t61_bed.ber
+    cmp TD.61\ v30.7.asn1 t61_bed.ber
+    echo $?    # <- prints 0, i.e. no difference
+
+(note that the TD.62 BER file is also included with the TD.61 zip
+archive and has 'asn1' as extension even though it is a BER file;
+and not an abstract syntax notation schema)
+
+
 ## Install
 
 When installing `bed` and the library, don't forget to install
@@ -193,3 +367,5 @@ examples.
 [variant-gen]: https://github.com/gsauthof/variant-generator
 [json]: https://en.wikipedia.org/wiki/JSON
 [cppformat]: https://github.com/cppformat/cppformat
+[td60]: http://www.gsma.com/newsroom/wp-content/uploads/TD.60-v30.5.pdf
+[xer]: https://en.wikipedia.org/wiki/XML_Encoding_Rules
