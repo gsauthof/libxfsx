@@ -151,7 +151,7 @@ BOOST_AUTO_TEST_SUITE(xfsx_)
           , Decode<char *, uint64_t>
           , Decode<char *, uint32_t>
           , Decode<char *, uint16_t>
-#ifdef BOOST_ENDIAN_LITTLE_BYTE
+#if BOOST_ENDIAN_LITTLE_BYTE
           , Decode<char *, uint64_t, Scatter::Reverse, Convert::Bit_Parallel,
                    Gather::Reverse >
 #endif
