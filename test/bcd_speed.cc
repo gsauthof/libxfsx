@@ -211,7 +211,7 @@ int main(int argc, char **argv)
 
 /* Example output on a 2nd gen iCore7 (i7-2640M).
 
-Compiler with -O3, gcc (GCC) 5.3.1 20151207 (Red Hat 5.3.1-2), Fedora 23.
+Compiled with -O3, gcc (GCC) 5.3.1 20151207 (Red Hat 5.3.1-2), Fedora 23.
 
 $ for i in 16 32 64; do ./bcd_speed -s 10 -d $i; done
 Default decode: decoded 7608.54 MiB in 10 s at 760.854 MiB/s using 1000 times 16 digits per iteration
@@ -234,6 +234,29 @@ Two half decode: decoded 20775.5 MiB in 10 s at 2077.55 MiB/s using 1000 times 6
 Two half decode cmp: decoded 16448.2 MiB in 10 s at 1644.82 MiB/s using 1000 times 64 digits per iteration
 Default encode: encoded 21872.3 MiB in 10 s at 2187.23 MiB/s using 1000 times 64 digits per iteration
 Two char encode: encoded 42555.7 MiB in 10 s at 4255.57 MiB/s using 1000 times 64 digits per iteration
+
+## PPC970FX, 1.8 GHz, -O3, gcc (Debian 4.9.2-10) 4.9.2, Debian 8
+
+Default decode: decoded 1936.44 MiB in 10 s at 193.644 MiB/s using 1000 times 16 digits per iteration
+Default functor: decoded 2363.55 MiB in 10 s at 236.355 MiB/s using 1000 times 16 digits per iteration
+Two half decode: decoded 1087.17 MiB in 10 s at 108.717 MiB/s using 1000 times 16 digits per iteration
+Two half decode cmp: decoded 762.871 MiB in 10 s at 76.2871 MiB/s using 1000 times 16 digits per iteration
+Default encode: encoded 4676.61 MiB in 10 s at 467.661 MiB/s using 1000 times 16 digits per iteration
+Two char encode: encoded 1965.74 MiB in 10 s at 196.574 MiB/s using 1000 times 16 digits per iteration
+
+Default decode: decoded 2614.2 MiB in 10 s at 261.42 MiB/s using 1000 times 32 digits per iteration
+Default functor: decoded 2957.86 MiB in 10 s at 295.786 MiB/s using 1000 times 32 digits per iteration
+Two half decode: decoded 1188.35 MiB in 10 s at 118.835 MiB/s using 1000 times 32 digits per iteration
+Two half decode cmp: decoded 810.059 MiB in 10 s at 81.0059 MiB/s using 1000 times 32 digits per iteration
+Default encode: encoded 6669.1 MiB in 10 s at 666.91 MiB/s using 1000 times 32 digits per iteration
+Two char encode: encoded 2169.07 MiB in 10 s at 216.907 MiB/s using 1000 times 32 digits per iteration
+
+Default decode: decoded 2998.14 MiB in 10 s at 299.814 MiB/s using 1000 times 64 digits per iteration
+Default functor: decoded 3373.78 MiB in 10 s at 337.378 MiB/s using 1000 times 64 digits per iteration
+Two half decode: decoded 1251.25 MiB in 10 s at 125.125 MiB/s using 1000 times 64 digits per iteration
+Two half decode cmp: decoded 837.433 MiB in 10 s at 83.7433 MiB/s using 1000 times 64 digits per iteration
+Default encode: encoded 7940.43 MiB in 10 s at 794.043 MiB/s using 1000 times 64 digits per iteration
+Two char encode: encoded 2288.39 MiB in 10 s at 228.839 MiB/s using 1000 times 64 digits per iteration
 
    */
 
