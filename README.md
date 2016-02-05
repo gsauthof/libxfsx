@@ -355,13 +355,14 @@ examples.
 Tested on:
 
 - Fedora Linux 23, x86-64
-- Solaris 10, SPARC (GCC 4.9)
+- Debian 8, PowerPC64
+- Solaris 10, SPARC (64 Bit, GCC 4.9)
 
 The low-level components are written in a portable fashion, i.e.
 the C++ code is portable between little- and big-endian architectures,
 it runs on architecture with strict alignment requirements, etc.
 
-Thus, in general, it should run on platforms where a C++14 compiler is
+Thus, in general, it should run on every platform where a C++14 compiler is
 available.
 
 
