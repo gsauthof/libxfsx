@@ -25,6 +25,7 @@ before_install:
 
 #install:
 
+# XXX what BOOST_ROOT with Mac OSX Brew?
 before_script:
   - mkdir build
   - cd build
