@@ -27,6 +27,8 @@ before_install:
   # ( -> we need at least 1.58)
   - if [ "$TRAVIS_OS_NAME" = osx   ]; then brew unlink boost ; fi
   - if [ "$TRAVIS_OS_NAME" = osx   ]; then brew install boost ; fi
+  - if [ "$TRAVIS_OS_NAME" = osx -a "$CXX" = g++  ]; then brew install gcc ; fi
+  - if [ "$TRAVIS_OS_NAME" = osx -a "$CXX" = clang++  ]; then brew install llvm ; fi
 
 #install:
 
@@ -35,7 +37,8 @@ before_script:
   - mkdir build
   - cd build
   # PWD -> build
-  - cmake -G Ninja -DCMAKE_BUILD_TYPE=$CMAKE_BUILD_TYPE ..
+  - if [ "$TRAVIS_OS_NAME" = osx -a "$CXX" = g++  ]; then CXX=/usr/local/bin/g++ CC=/usr/local/bin/gcc cmake -G Ninja -DCMAKE_BUILD_TYPE=$CMAKE_BUILD_TYPE .. ; fi
+  - if [ "$TRAVIS_OS_NAME" = osx -a "$CXX" = clang++  ]; then CXX=(brew --prefix llvm)/bin/clang++ CC=(brew --prefix llvm)/bin/clang cmake -G Ninja -DCMAKE_BUILD_TYPE=$CMAKE_BUILD_TYPE .. ; fi
 
 # PWD -> build
 script: ninja -j1 bed ut && ./ut
