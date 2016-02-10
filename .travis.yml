@@ -21,6 +21,11 @@ before_install:
   - if [ "$TRAVIS_OS_NAME" = osx   ]; then brew install ragel ; fi
   - if [ "$TRAVIS_OS_NAME" = osx   ]; then brew install ninja ; fi
   - if [ "$TRAVIS_OS_NAME" = osx   ]; then brew install libxml2 ; fi
+  # brew complains:
+  # Error: boost-1.55.0_2 already installed
+  # To install this version, first `brew unlink boost`
+  # ( -> we need at least 1.58)
+  - if [ "$TRAVIS_OS_NAME" = osx   ]; then brew unlink boost ; fi
   - if [ "$TRAVIS_OS_NAME" = osx   ]; then brew install boost ; fi
 
 #install:
