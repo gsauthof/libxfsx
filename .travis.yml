@@ -4,7 +4,12 @@ env:
   - CMAKE_BUILD_TYPE=Debug
 
 compiler:
-  - gcc
+  #- gcc
+  # disabling for now because the default clang is to old (3.5)
+  # and Homebrew doesn't provide a pre-built package. Also,
+  # Homebrew only has 3.6 - and not 3.7.
+  # cf. http://apple.stackexchange.com/questions/227026/how-to-install-recent-clang-with-homebrew
+  # TODO: Homebrew-Versions seems to have 3.7, though
   - clang
 
 os:
@@ -16,8 +21,11 @@ sudo: required
 dist: trusty
 
 before_install:
+  # apparently there are sudo-wrappers for apt-get/brew
+  # thus, sudo can be omitted
   - if [ "$TRAVIS_OS_NAME" = linux ]; then apt-get install -qq ragel ; fi
   - if [ "$TRAVIS_OS_NAME" = osx   ]; then brew update ; fi
+  - if [ "$TRAVIS_OS_NAME" = osx   ]; then brew tap homebrew/versions ; fi
   - if [ "$TRAVIS_OS_NAME" = osx   ]; then brew install ragel ; fi
   - if [ "$TRAVIS_OS_NAME" = osx   ]; then brew install ninja ; fi
   - if [ "$TRAVIS_OS_NAME" = osx   ]; then brew install libxml2 ; fi
@@ -27,20 +35,32 @@ before_install:
   # ( -> we need at least 1.58)
   - if [ "$TRAVIS_OS_NAME" = osx   ]; then brew unlink boost ; fi
   - if [ "$TRAVIS_OS_NAME" = osx   ]; then brew install boost ; fi
-  # they come with 4.9.1 by default but since we are already upgrading boost
-  - if [ "$TRAVIS_OS_NAME" = osx -a "$CXX" = g++  ]; then brew unlink gcc ; fi
-  - if [ "$TRAVIS_OS_NAME" = osx -a "$CXX" = g++  ]; then brew install gcc ; fi
-  - if [ "$TRAVIS_OS_NAME" = osx -a "$CXX" = clang++  ]; then brew install llvm ; fi
+  # as-is, travis has /usr/local/bin/g++-{4.2,4.6,4.8,4.9}
+  # this would give us 5.3 (or higher)
+  #- if [ "$TRAVIS_OS_NAME" = osx -a "$CXX" = g++  ]; then brew unlink gcc ; fi
+  #- if [ "$TRAVIS_OS_NAME" = osx -a "$CXX" = g++  ]; then brew install gcc ; fi
+  #- if [ "$TRAVIS_OS_NAME" = osx -a "$CXX" = clang++  ]; then brew install llvm ; fi
+  - if [ "$TRAVIS_OS_NAME" = osx -a "$CXX" = clang++ ]; then brew install llvm37 ; fi
 
-#install:
+install:
+  - uname -a
+  - find /usr/local/ '(' -type f -or -type l ')'  '(' -name 'g++*' -or -name 'clang++*' ')'
+  - find /usr/local/ -name 'libboost*' -ls
+  - brew --prefix boost
+  - brew cat boost
+  - ls -l /usr/local/opt/boost/lib/libboost_regex-mt.dylib
+  - nm -gU /usr/local/opt/boost/lib/libboost_regex-mt.dylib
 
-# XXX what BOOST_ROOT with Mac OSX Brew?
+# BOOST_ROOT doesn't have to be explicitly set on OS X since
+# Homebrew installs it directly under /usr/local
 before_script:
   - mkdir build
   - cd build
   # PWD -> build
-  - if [ "$TRAVIS_OS_NAME" = osx -a "$CXX" = g++  ]; then CXX=/usr/local/bin/g++ CC=/usr/local/bin/gcc cmake -G Ninja -DCMAKE_BUILD_TYPE=$CMAKE_BUILD_TYPE .. ; fi
-  - if [ "$TRAVIS_OS_NAME" = osx -a "$CXX" = clang++  ]; then CXX=$(brew --prefix llvm)/bin/clang++ CC=$(brew --prefix llvm)/bin/clang cmake -G Ninja -DCMAKE_BUILD_TYPE=$CMAKE_BUILD_TYPE .. ; fi
+  #- if [ "$TRAVIS_OS_NAME" = osx -a "$CXX" = g++  ]; then CXX=$(brew --prefix gcc)/bin/g++-5 CC=$(brew --prefix gcc)/bin/gcc cmake -G Ninja -DCMAKE_BUILD_TYPE=$CMAKE_BUILD_TYPE .. ; fi
+  - if [ "$TRAVIS_OS_NAME" = osx -a "$CXX" = g++  ]; then BOOST_ROOT=$(brew --prefix boost) CXX=g++-4.9 CC=gcc-4.9 cmake -G Ninja -DCMAKE_BUILD_TYPE=$CMAKE_BUILD_TYPE .. ; fi
+    #- if [ "$TRAVIS_OS_NAME" = osx -a "$CXX" = clang++  ]; then CXX=$(brew --prefix llvm)/bin/clang++ CC=$(brew --prefix llvm)/bin/clang cmake -G Ninja -DCMAKE_BUILD_TYPE=$CMAKE_BUILD_TYPE .. ; fi
+  - if [ "$TRAVIS_OS_NAME" = osx -a "$CXX" = clang++  ]; then CXX=clang++-3.7 CC=clang-3.7 cmake -G Ninja -DCMAKE_BUILD_TYPE=$CMAKE_BUILD_TYPE .. ; fi
 
 # PWD -> build
-script: ninja -j1 bed ut && ./ut
+script: ninja -j1 bed check

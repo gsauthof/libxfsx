@@ -110,17 +110,17 @@ IF(${CMAKE_PROJECT_NAME} STREQUAL "xfsx")
   )
 
   target_link_libraries(ut
-    xfsx_static
-    grammar_static
-    ixxxutil_static
-    ixxx_static
     # using own main, thus, we don't need:
     # ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY}
     ${Boost_FILESYSTEM_LIBRARY}
     ${Boost_SYSTEM_LIBRARY}
     ${Boost_REGEX_LIBRARY}
-    xxxml_static
     ${XML2_LIB}
+    xfsx_static
+    grammar_static
+    ixxxutil_static
+    ixxx_static
+    xxxml_static
   )
 
 endif() # CMAKE_PROJECT_NAME
@@ -145,15 +145,15 @@ set_property(TARGET xfsx xfsx_static bed PROPERTY INCLUDE_DIRECTORIES
 )
 
 target_link_libraries(bed
+  ${XML2_LIB}
+  ${Boost_FILESYSTEM_LIBRARY}
+  ${Boost_SYSTEM_LIBRARY}
+  ${Boost_REGEX_LIBRARY}
   xfsx_static
   grammar_static
   ixxxutil_static
   ixxx_static
   xxxml_static
-  ${XML2_LIB}
-  ${Boost_FILESYSTEM_LIBRARY}
-  ${Boost_SYSTEM_LIBRARY}
-  ${Boost_REGEX_LIBRARY}
 )
 
 add_executable(bcd_speed

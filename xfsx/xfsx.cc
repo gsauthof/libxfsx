@@ -821,14 +821,14 @@ namespace xfsx {
   template<> size_t minimally_encoded_length(int32_t v)
   {
     static_assert(sizeof(int) == sizeof(int32_t),
-        "expecting unsigned to be 4 byte because CLRSB uses that type");
+        "expecting int to be 4 byte because CLRSB uses that type");
     int redundant_bytes = __builtin_clrsb(v) / 8;
     return sizeof(int32_t) - redundant_bytes;
   }
   template<> size_t minimally_encoded_length(uint64_t v)
   {
     static_assert(sizeof(unsigned long) == sizeof(uint64_t),
-        "expecting unsigned to be 8 byte because CLZ uses that type");
+        "expecting unsigned long to be 8 byte because CLZ uses that type");
     // clz is undefined for 0 values
     int redundant_bytes = v ? __builtin_clzl(v) / 8 : sizeof(uint64_t) - 1;
     return sizeof(uint64_t) - redundant_bytes;
@@ -836,10 +836,24 @@ namespace xfsx {
   template<> size_t minimally_encoded_length(int64_t v)
   {
     static_assert(sizeof(long) == sizeof(int64_t),
-        "expecting unsigned to be 8 byte because CLRSB uses that type");
+        "expecting long to be 8 byte because CLRSB uses that type");
     int redundant_bytes = __builtin_clrsbl(v) / 8;
     return sizeof(int64_t) - redundant_bytes;
   }
+  // work around size_t being different to uint32_t and uint64_t
+  // on Mac OS X,
+  // cf. http://stackoverflow.com/questions/11603818/why-is-there-ambiguity-between-uint32-t-and-uint64-t-when-using-size-t-on-mac-os
+#if (defined(__APPLE__) && defined(__MACH__))
+  template<> size_t minimally_encoded_length(size_t v)
+  {
+    static_assert(sizeof(size_t) == 4 || sizeof(size_t) == 8,
+        "expecting size_t being 4 or 8 bytes big");
+    if (sizeof(size_t) == 4)
+      return minimally_encoded_length(uint32_t(v));
+    else
+      return minimally_encoded_length(uint64_t(v));
+  }
+#endif
   template<> size_t minimally_encoded_length(
       const std::pair<const uint8_t*, const uint8_t *> &v)
   {

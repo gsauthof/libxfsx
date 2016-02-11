@@ -67,6 +67,19 @@ namespace xfsx {
       {
         return encoded_length_int(v);
       }
+  // work around size_t being different to uint32_t and uint64_t
+  // on Mac OS X,
+  // cf. http://stackoverflow.com/questions/11603818/why-is-there-ambiguity-between-uint32-t-and-uint64-t-when-using-size-t-on-mac-os
+#if (defined(__APPLE__) && defined(__MACH__))
+      template <> size_t encoded_length(size_t v)
+      {
+        return encoded_length_int(v);
+      }
+      template <> size_t encoded_length(long v)
+      {
+        return encoded_length_int(v);
+      }
+#endif
       template <> size_t encoded_length(char v)
       {
         return 1;
@@ -128,6 +141,19 @@ namespace xfsx {
       {
         return encode_int(v, o, n);
       }
+  // work around size_t being different to uint32_t and uint64_t
+  // on Mac OS X,
+  // cf. http://stackoverflow.com/questions/11603818/why-is-there-ambiguity-between-uint32-t-and-uint64-t-when-using-size-t-on-mac-os
+#if (defined(__APPLE__) && defined(__MACH__))
+      template <> char *encode(size_t v, char *o, size_t n)
+      {
+        return encode_int(v, o, n);
+      }
+      template <> char *encode(long v, char *o, size_t n)
+      {
+        return encode_int(v, o, n);
+      }
+#endif
       template <> char *encode(char v, char *o, size_t n)
       {
         *o++ = v;

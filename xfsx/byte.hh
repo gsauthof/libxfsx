@@ -41,6 +41,11 @@ namespace xfsx {
       template <> size_t encoded_length(uint64_t v);
       template <> size_t encoded_length(int32_t v);
       template <> size_t encoded_length(int64_t v);
+#if (defined(__APPLE__) && defined(__MACH__))
+      template <> size_t encoded_length(size_t v);
+      template <> size_t encoded_length(long v);
+      template <> size_t encoded_length(unsigned long v);
+#endif
       template <> size_t encoded_length(char v);
       template <> size_t encoded_length(unsigned char v);
       template <typename T,
@@ -65,6 +70,11 @@ namespace xfsx {
       template <> char *encode(uint64_t v, char *o, size_t n);
       template <> char *encode(int32_t v, char *o, size_t n);
       template <> char *encode(int64_t v, char *o, size_t n);
+#if (defined(__APPLE__) && defined(__MACH__))
+      template <> char *encode(size_t v, char *o, size_t n);
+      template <> char *encode(long v, char *o, size_t n);
+      template <> char *encode(unsigned long v, char *o, size_t n);
+#endif
       template <> char *encode(char v, char *o, size_t n);
       template <> char *encode(unsigned char v, char *o, size_t n);
       template <typename T,

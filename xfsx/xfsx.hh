@@ -208,6 +208,9 @@ namespace xfsx {
   template<> size_t minimally_encoded_length(int32_t v);
   template<> size_t minimally_encoded_length(uint64_t v);
   template<> size_t minimally_encoded_length(int64_t v);
+#if (defined(__APPLE__) && defined(__MACH__))
+  template<> size_t minimally_encoded_length(size_t v);
+#endif
   template<typename T,
            typename = std::enable_if_t<!std::is_fundamental<T>::value> >
       size_t minimally_encoded_length(const T &);
