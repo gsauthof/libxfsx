@@ -1616,6 +1616,20 @@ BOOST_AUTO_TEST_SUITE(xfsx_)
             numeric_limits<int16_t>::max()), 2u);
     }
 
+    BOOST_AUTO_TEST_CASE(corner_clz_clrsb)
+    {
+      using namespace xfsx;
+      BOOST_CHECK_EQUAL(minimally_encoded_length(uint64_t(int64_t(-1))>>32), 4);
+      BOOST_CHECK_EQUAL(minimally_encoded_length(uint64_t(int64_t(-1))>>48), 2);
+      BOOST_CHECK_EQUAL(minimally_encoded_length(uint32_t(int32_t(-1))>>16), 2);
+      BOOST_CHECK_EQUAL(minimally_encoded_length(uint32_t(int32_t(-1))>>24), 1);
+
+      BOOST_CHECK_EQUAL(minimally_encoded_length(int64_t(uint64_t(int64_t(-1))>>32)), 5);
+      BOOST_CHECK_EQUAL(minimally_encoded_length(int64_t(uint64_t(int64_t(-1))>>48)), 3);
+      BOOST_CHECK_EQUAL(minimally_encoded_length(int32_t(uint32_t(int32_t(-1))>>16)), 3);
+      BOOST_CHECK_EQUAL(minimally_encoded_length(int32_t(uint32_t(int32_t(-1))>>24)), 2);
+    }
+
     BOOST_AUTO_TEST_CASE(str)
     {
       using namespace xfsx;
