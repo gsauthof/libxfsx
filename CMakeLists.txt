@@ -15,6 +15,8 @@ endif()
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++1y")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wno-unused-local-typedefs")
+# Without that clang issues some questionable warnings
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-missing-braces")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fstrict-aliasing -Wstrict-aliasing")
 
 find_package(Boost 1.58
@@ -29,6 +31,10 @@ add_subdirectory(libixxx)
 add_subdirectory(libixxxutil)
 add_subdirectory(libxxxml)
 add_subdirectory(libgrammar)
+set(OLD_BUILD_SHARED_LIBS ${BUILD_SHARED_LIBS})
+set(BUILD_SHARED_LIBS true)
+add_subdirectory(cppformat)
+set(BUILD_SHARED_LIBS ${OLD_BUILD_SHARED_LIBS})
 
 
 configure_file(config.cc.in ${CMAKE_BINARY_DIR}/config.cc)
@@ -61,6 +67,17 @@ set(LIB_SRC
   )
 add_library(xfsx SHARED
   ${LIB_SRC}
+  )
+target_link_libraries(xfsx
+  #${Boost_FILESYSTEM_LIBRARY}
+  #${Boost_SYSTEM_LIBRARY}
+  ${Boost_REGEX_LIBRARY}
+  ${XML2_LIB}
+  cppformat
+  grammar
+  ixxxutil
+  ixxx
+  xxxml
   )
 add_library(xfsx_static STATIC
   ${LIB_SRC}
@@ -110,17 +127,17 @@ IF(${CMAKE_PROJECT_NAME} STREQUAL "xfsx")
   )
 
   target_link_libraries(ut
+    xfsx_static
+    grammar_static
+    ixxxutil_static
+    ixxx_static
+    xxxml_static
     # using own main, thus, we don't need:
     # ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY}
     ${Boost_FILESYSTEM_LIBRARY}
     ${Boost_SYSTEM_LIBRARY}
     ${Boost_REGEX_LIBRARY}
     ${XML2_LIB}
-    xfsx_static
-    grammar_static
-    ixxxutil_static
-    ixxx_static
-    xxxml_static
   )
 
 endif() # CMAKE_PROJECT_NAME
@@ -145,15 +162,15 @@ set_property(TARGET xfsx xfsx_static bed PROPERTY INCLUDE_DIRECTORIES
 )
 
 target_link_libraries(bed
-  ${XML2_LIB}
-  ${Boost_FILESYSTEM_LIBRARY}
-  ${Boost_SYSTEM_LIBRARY}
-  ${Boost_REGEX_LIBRARY}
   xfsx_static
   grammar_static
   ixxxutil_static
   ixxx_static
   xxxml_static
+  ${XML2_LIB}
+  ${Boost_FILESYSTEM_LIBRARY}
+  ${Boost_SYSTEM_LIBRARY}
+  ${Boost_REGEX_LIBRARY}
 )
 
 add_executable(bcd_speed

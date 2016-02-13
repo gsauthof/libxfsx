@@ -38,6 +38,8 @@ Syntactically validate a TAP file (plus some constraints checking):
 
 2015, Georg Sauthoff <mail@georg.so>
 
+[![Build Status](https://travis-ci.org/gsauthof/libxfsx.svg?branch=master)](https://travis-ci.org/gsauthof/libxfsx)
+
 
 ## Examples
 

@@ -395,7 +395,7 @@ namespace xfsx {
    *                   1 <- constructed
    *                   Shape
    *                   +
-   *               8 7 6 5 4 3 2 1  
+   *               8 7 6 5 4 3 2 1
    *               +-+   +-------+
    *               Class |  Tag  |
    *  universal -> 0 0   1 1 1 1 1 <- long tag (> 30)
@@ -1054,7 +1054,7 @@ namespace xfsx {
       #endif
     }
     return p;
-  } 
+  }
 
   template<> uint8_t *encode(uint8_t t, uint8_t *begin, size_t size)
   {
@@ -1436,7 +1436,7 @@ namespace xfsx {
   {
     return !(*this == o);
   }
-  
+
   // matches a tag path
   // tag == 0 -> wildcard (think: '*')
   // everywhere -> can match everywhere, doesn't have to start at the root
