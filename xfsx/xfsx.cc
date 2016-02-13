@@ -788,7 +788,7 @@ namespace xfsx {
     static_assert(sizeof(uint32_t) == sizeof(Tag_Int),
         "expecting Tag_Int to be 4 byte");
     // clz is undefined for 0 values
-    uint32_t redundant_bits = v ? __builtin_clz(v) : sizeof(uint32_t)*8 - 1;
+    uint32_t redundant_bits = v ? clz_uint32(v) : sizeof(uint32_t)*8 - 1;
     uint32_t bits           = sizeof(uint32_t)*8 - redundant_bits;
     uint32_t parts          = (bits + 7 - 1) / 7;
     return parts;
@@ -812,32 +812,24 @@ namespace xfsx {
   }
   template<> size_t minimally_encoded_length(uint32_t v)
   {
-    static_assert(sizeof(unsigned int) == sizeof(uint32_t),
-        "expecting unsigned to be 4 byte because CLZ uses that type");
     // clz is undefined for 0 values
-    int redundant_bytes = v ? __builtin_clz(v) / 8 : sizeof(uint32_t) - 1;
+    int redundant_bytes = v ? clz_uint32(v) / 8 : sizeof(uint32_t) - 1;
     return sizeof(uint32_t) - redundant_bytes;
   }
   template<> size_t minimally_encoded_length(int32_t v)
   {
-    static_assert(sizeof(int) == sizeof(int32_t),
-        "expecting int to be 4 byte because CLRSB uses that type");
-    int redundant_bytes = __builtin_clrsb(v) / 8;
+    int redundant_bytes = clrsb_int32(v) / 8;
     return sizeof(int32_t) - redundant_bytes;
   }
   template<> size_t minimally_encoded_length(uint64_t v)
   {
-    static_assert(sizeof(unsigned long) == sizeof(uint64_t),
-        "expecting unsigned long to be 8 byte because CLZ uses that type");
     // clz is undefined for 0 values
-    int redundant_bytes = v ? __builtin_clzl(v) / 8 : sizeof(uint64_t) - 1;
+    int redundant_bytes = v ? clz_uint64(v) / 8 : sizeof(uint64_t) - 1;
     return sizeof(uint64_t) - redundant_bytes;
   }
   template<> size_t minimally_encoded_length(int64_t v)
   {
-    static_assert(sizeof(long) == sizeof(int64_t),
-        "expecting long to be 8 byte because CLRSB uses that type");
-    int redundant_bytes = __builtin_clrsbl(v) / 8;
+    int redundant_bytes = clrsb_int64(v) / 8;
     return sizeof(int64_t) - redundant_bytes;
   }
   // work around size_t being different to uint32_t and uint64_t
