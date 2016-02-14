@@ -220,9 +220,13 @@ namespace xfsx {
             {
               uint8_t increment = sizeof(T)/2u;
               T b = *i;
-              for (uint8_t k = 1; k < increment; ++k) {
-                b <<= 16;
-                b |= *(i+k);
+              // make it more obvious dead code for uint16_t,
+              // -> silence clang warnings
+              if (sizeof(T) > 2) {
+                for (uint8_t k = 1; k < increment; ++k) {
+                  b <<= 16;
+                  b |= *(i+k);
+                }
               }
               // std::numeric_limits<T>::max()/0x11u
               // creates pattern: 0x..0f0f0f

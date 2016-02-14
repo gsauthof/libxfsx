@@ -827,18 +827,11 @@ BOOST_AUTO_TEST_SUITE(xfsx_)
         vector<uint8_t> v;
         v.push_back(0b01'0'00001u);
         uint8_t i = sizeof(uint64_t);
-        if (inp<0)
-          for (; i>0; --i) {
-            uint8_t b = uint64_t(0xffu) & uint64_t(inp>>(8*(i-1)));
-            if (b != 0xffu)
-              break;
-          }
-        else
-          for (; i>0; --i) {
-            uint8_t b = uint64_t(0xffu) & uint64_t(inp>>(8*(i-1)));
-            if (b)
-              break;
-          }
+        for (; i>0; --i) {
+          uint8_t b = uint64_t(0xffu) & uint64_t(inp>>(8*(i-1)));
+          if (b)
+            break;
+        }
         i = std::min(size_t(i+1), sizeof(uint64_t));
         v.push_back(i);
         for (; i>0; --i) {

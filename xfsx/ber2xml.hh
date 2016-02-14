@@ -30,8 +30,14 @@ namespace xfsx {
 
   namespace xml {
 
-    class Writer_Arguments;
-    class Pretty_Writer_Arguments;
+    // A struct can be forward declared either as struct or class,
+    // the standard allows it - but there seem to be compilers
+    // that mangle classes different from structs.
+    // Thus, clang even enables -Wmismatched-tags with -Wall.
+    // See also:
+    // http://stackoverflow.com/questions/4866425/mixing-class-and-struct
+    struct Writer_Arguments;
+    struct Pretty_Writer_Arguments;
 
     void write_unber_tl(
         const uint8_t *begin, const uint8_t *end,
