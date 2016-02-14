@@ -359,6 +359,7 @@ Tested on:
 - Fedora Linux 23, x86-64
 - Debian 8, PowerPC64
 - Solaris 10, SPARC (64 Bit, GCC 4.9)
+- Mac OS X 10.9.5, x86-64 (Apple LLVM clang 3.5)
 
 The low-level components are written in a portable fashion, i.e.
 the C++ code is portable between little- and big-endian architectures,
