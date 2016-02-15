@@ -41,6 +41,7 @@ namespace xfsx {
       bool     dump_length      {false};
       bool     dump_offset      {false};
       bool     dump_rank        {false};
+      bool     dump_indefinite  {true};
       size_t   skip             {0};
       bool     stop_after_first {false};
       size_t   count            {0};

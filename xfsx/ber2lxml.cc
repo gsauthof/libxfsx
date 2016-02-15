@@ -56,6 +56,7 @@ namespace xfsx {
           void gen_node();
           void gen_rank(xmlNode *node);
           void gen_hex(xmlNode *node);
+          void gen_indefinite(xmlNode *node);
           void gen_primitive();
           void gen_constructed();
           void pop();
@@ -98,6 +99,13 @@ namespace xfsx {
         memw_.clear();
         memw_ << rank_stack_.top() << '\0';
         xxxml::new_prop(node, "rank", memw_.begin());
+      }
+
+      void Tree_Generator::gen_indefinite(xmlNode *node)
+      {
+        if (!args_.dump_indefinite || !tlc->is_indefinite)
+          return;
+        xxxml::new_prop(node, "definite", "false");
       }
 
       void Tree_Generator::gen_hex(xmlNode *node)
@@ -164,11 +172,11 @@ namespace xfsx {
         if (node_stack_.empty()) {
           node = xxxml::new_doc_node(doc_, name);
           xxxml::doc::set_root_element(doc_, node);
-          gen_rank(node);
         } else {
           node = xxxml::new_child(node_stack_.top(), name);
-          gen_rank(node);
         }
+        gen_rank(node);
+        gen_indefinite(node);
         if (tlc->is_indefinite || tlc->length) {
           node_stack_.push(node);
           rank_stack_.push(0);

@@ -1,8 +1,10 @@
 #include <boost/test/unit_test.hpp>
 #include <boost/filesystem.hpp>
+#include <boost/algorithm/string/predicate.hpp>
 
 #include <unistd.h>
 #include <fcntl.h>
+#include <algorithm>
 
 #include <ixxx/util.hh>
 #include <bed/command.hh>
@@ -59,8 +61,11 @@ BOOST_AUTO_TEST_SUITE(bed_)
       ixxx::util::Mapped_File f(out.generic_string());
       BOOST_REQUIRE(bf::file_size(out));
 
-      BOOST_CHECK_EQUAL(string(f.s_begin(), f.s_end()),
-          string(ref_begin, ref_end));
+      if (boost::algorithm::ends_with(output_filename, ".ber"))
+        BOOST_CHECK(std::equal(f.s_begin(), f.s_end(), ref_begin, ref_end));
+      else
+        BOOST_CHECK_EQUAL(string(f.s_begin(), f.s_end()),
+            string(ref_begin, ref_end));
     }
 
     void compare_bed_output(
@@ -116,6 +121,20 @@ BOOST_AUTO_TEST_SUITE(bed_)
       BOOST_REQUIRE(bf::file_size(out));
       BOOST_CHECK_EQUAL(string(f.begin(), f.end()),
           "<Sender>WERFD</Sender>\n");
+    }
+
+    BOOST_AUTO_TEST_CASE(search_print_indefinite)
+    {
+      const char ref[] =
+        R"(<CurrencyConversion definite="false">
+  <ExchangeRateCode>1</ExchangeRateCode>
+  <NumberOfDecimalPlaces>5</NumberOfDecimalPlaces>
+  <ExchangeRate>116203</ExchangeRate>
+</CurrencyConversion>
+)";
+      compare_bed_output("tap_3_12_strip.asn1", "tap_3_12_valid_most_indef.ber",
+          "search_print_indefinite.xml", { "search", "//CurrencyConversion" },
+          ref, ref + sizeof(ref) - 1);
     }
 
     BOOST_AUTO_TEST_CASE(xsd_result_invalid)
@@ -237,6 +256,14 @@ BOOST_AUTO_TEST_SUITE(bed_)
         ixxx::util::Mapped_File g(ref.generic_string());
         BOOST_CHECK(std::equal(f.begin(), f.end(), g.begin(), g.end()));
       }
+    }
+
+    BOOST_AUTO_TEST_CASE(edit_remove_indefinite)
+    {
+      compare_bed_output("tap_3_12_strip.asn1", "tap_3_12_valid_most_indef.ber",
+          "edit_remove_indefinite.ber",
+          { "edit", "-c", "remove", "(/*/CallEventDetailList/*)[3]" }
+         );
     }
 
     BOOST_AUTO_TEST_CASE(edit_replace)
