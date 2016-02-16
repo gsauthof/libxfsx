@@ -98,32 +98,11 @@ BOOST_AUTO_TEST_SUITE(bed_)
 
       BOOST_AUTO_TEST_CASE(search_xpath)
       {
-        bf::path in_path(test::path::in());
-        bf::path asn(in_path);
-        asn /= "../../libgrammar/test/in/asn1/tap_3_12_strip.asn1";
-        bf::path input(in_path);
-        input /= "asn1c/examples/sample.source.TAP3/sample-DataInterChange-1.ber";
-        bf::path out_path(test::path::out());
-        bf::path out(out_path);
-        out /= "bed/command";
-        out /= "search_xpath.xml";
-        BOOST_TEST_CHECKPOINT("Removing: " << out);
-        bf::remove(out);
-        BOOST_TEST_CHECKPOINT("Create directories: " << out);
-        bf::create_directories(out.parent_path());
-
-        bed::Arguments args;
-        args.in_filename = input.generic_string();
-        args.asn_filenames.push_back(asn.generic_string());
-        args.out_filename = out.generic_string();
-        args.xpaths.push_back("//Sender");
-        bed::command::Search_XPath c(args);
-        c.execute();
-        ixxx::util::Mapped_File f(out.generic_string());
-        BOOST_TEST_CHECKPOINT("Checking output: " << out);
-        BOOST_REQUIRE(bf::file_size(out));
-        BOOST_CHECK_EQUAL(string(f.begin(), f.end()),
-            "<Sender>WERFD</Sender>\n");
+        const char ref[] = "<Sender>WERFD</Sender>\n";
+        compare_bed_output("tap_3_12_strip.asn1",
+            "asn1c/examples/sample.source.TAP3/sample-DataInterChange-1.ber", "search_xpath.xml",
+            { "search", "//Sender" },
+            ref, ref+sizeof(ref)-1);
       }
 
       BOOST_AUTO_TEST_CASE(search_skip)
@@ -240,69 +219,18 @@ BOOST_AUTO_TEST_SUITE(bed_)
 
       BOOST_AUTO_TEST_CASE(lxml_ber_writer)
       {
-        bf::path in_path(test::path::in());
-        bf::path asn(in_path);
-        asn /= "../../libgrammar/test/in/asn1/tap_3_12_strip.asn1";
-        bf::path input(in_path);
-        input /= "tap_3_12_valid.ber";
-        bf::path out_path(test::path::out());
-        bf::path out(out_path);
-        out /= "bed/command";
-        out /= "edit_identity.ber";
-        BOOST_TEST_CHECKPOINT("Removing: " << out);
-        bf::remove(out);
-        BOOST_TEST_CHECKPOINT("Create directories: " << out);
-        bf::create_directories(out.parent_path());
-
-        bed::Arguments args;
-        args.in_filename = input.generic_string();
-        args.asn_filenames.push_back(asn.generic_string());
-        args.out_filename = out.generic_string();
-        args.edit_ops.emplace_back(bed::Edit_Command::REMOVE, "/foobar");
-        bed::command::Edit c(args);
-        c.execute();
-        {
-          ixxx::util::Mapped_File f(out.generic_string());
-          BOOST_TEST_CHECKPOINT("Checking output: " << out);
-          BOOST_REQUIRE(bf::file_size(out));
-          ixxx::util::Mapped_File g(input.generic_string());
-          BOOST_CHECK(std::equal(f.begin(), f.end(), g.begin(), g.end()));
-        }
+        compare_bed_output("tap_3_12_strip.asn1", "tap_3_12_valid.ber",
+            "edit_identity.ber", "../../../in/tap_3_12_valid.ber",
+            { "edit", "-c", "remove", "/foobar" }
+           );
       }
 
       BOOST_AUTO_TEST_CASE(edit_remove)
       {
-        bf::path in_path(test::path::in());
-        bf::path asn(in_path);
-        asn /= "../../libgrammar/test/in/asn1/tap_3_12_strip.asn1";
-        bf::path input(in_path);
-        input /= "tap_3_12_valid.ber";
-        bf::path ref(in_path);
-        ref /= "tap_3_12_valid_removed.ber";
-        bf::path out_path(test::path::out());
-        bf::path out(out_path);
-        out /= "bed/command";
-        out /= "edit_remove.ber";
-        BOOST_TEST_CHECKPOINT("Removing: " << out);
-        bf::remove(out);
-        BOOST_TEST_CHECKPOINT("Create directories: " << out);
-        bf::create_directories(out.parent_path());
-
-        bed::Arguments args;
-        args.in_filename = input.generic_string();
-        args.asn_filenames.push_back(asn.generic_string());
-        args.out_filename = out.generic_string();
-        args.edit_ops.emplace_back(bed::Edit_Command::REMOVE, "//MobileOriginatedCall");
-        bed::command::Edit c(args);
-        c.execute();
-        {
-          ixxx::util::Mapped_File f(out.generic_string());
-          BOOST_TEST_CHECKPOINT("Checking output: " << out);
-          BOOST_REQUIRE(bf::file_size(out));
-          BOOST_TEST_CHECKPOINT("Comparing: " << ref << " vs. " << out);
-          ixxx::util::Mapped_File g(ref.generic_string());
-          BOOST_CHECK(std::equal(f.begin(), f.end(), g.begin(), g.end()));
-        }
+        compare_bed_output("tap_3_12_strip.asn1", "tap_3_12_valid.ber",
+            "edit_remove.ber", "../../../in/tap_3_12_valid_removed.ber",
+            { "edit", "-c", "remove", "//MobileOriginatedCall" }
+           );
       }
 
       BOOST_AUTO_TEST_CASE(edit_remove_indefinite)
@@ -315,193 +243,62 @@ BOOST_AUTO_TEST_SUITE(bed_)
 
       BOOST_AUTO_TEST_CASE(edit_replace)
       {
-        bf::path in_path(test::path::in());
-        bf::path asn(in_path);
-        asn /= "../../libgrammar/test/in/asn1/tap_3_12_strip.asn1";
-        bf::path input(in_path);
-        input /= "tap_3_12_valid.ber";
-        bf::path ref(in_path);
-        ref /= "tap_3_12_valid_replaced.ber";
-        bf::path out_path(test::path::out());
-        bf::path out(out_path);
-        out /= "bed/command";
-        out /= "tap_3_12_valid_replaced.ber";
-        BOOST_TEST_CHECKPOINT("Removing: " << out);
-        bf::remove(out);
-        BOOST_TEST_CHECKPOINT("Create directories: " << out);
-        bf::create_directories(out.parent_path());
-
-        bed::Arguments args;
-        args.in_filename = input.generic_string();
-        args.asn_filenames.push_back(asn.generic_string());
-        args.out_filename = out.generic_string();
-        args.edit_ops.emplace_back(bed::Edit_Command::REPLACE, "//LocalTimeStamp",
-            "^[0-9]{4}(.*)$", "2016\\1");
-        bed::command::Edit c(args);
-        c.execute();
-        {
-          ixxx::util::Mapped_File f(out.generic_string());
-          BOOST_TEST_CHECKPOINT("Checking output: " << out);
-          BOOST_REQUIRE(bf::file_size(out));
-          BOOST_TEST_CHECKPOINT("Comparing: " << ref << " vs. " << out);
-          ixxx::util::Mapped_File g(ref.generic_string());
-          BOOST_CHECK(std::equal(f.begin(), f.end(), g.begin(), g.end()));
-        }
+        compare_bed_output("tap_3_12_strip.asn1", "tap_3_12_valid.ber",
+            "tap_3_12_valid_replaced.ber", "../../../in/tap_3_12_valid_replaced.ber",
+            { "edit", "-c", "replace", "//LocalTimeStamp",
+                                       "^[0-9]{4}(.*)$", "2016\\1" }
+           );
       }
 
       BOOST_AUTO_TEST_CASE(edit_add)
       {
-        bf::path in_path(test::path::in());
-        bf::path asn(in_path);
-        asn /= "../../libgrammar/test/in/asn1/tap_3_12_strip.asn1";
-        bf::path input(in_path);
-        input /= "tap_3_12_valid.ber";
-        bf::path ref(in_path);
-        ref /= "tap_3_12_valid_add_osi.ber";
-        bf::path out_path(test::path::out());
-        bf::path out(out_path);
-        out /= "bed/command";
-        out /= "tap_3_12_valid_add_osi.ber";
-        BOOST_TEST_CHECKPOINT("Removing: " << out);
-        bf::remove(out);
-        BOOST_TEST_CHECKPOINT("Create directories: " << out);
-        bf::create_directories(out.parent_path());
-
-        bed::Arguments args;
-        args.in_filename = input.generic_string();
-        args.asn_filenames.push_back(asn.generic_string());
-        args.out_filename = out.generic_string();
-        args.edit_ops.emplace_back(bed::Edit_Command::ADD, "//AuditControlInfo",
-            "OperatorSpecInfoList/OperatorSpecInformation", "Patched for xyz");
-        args.edit_ops.emplace_back(bed::Edit_Command::ADD, "//AuditControlInfo",
-            "OperatorSpecInfoList/+OperatorSpecInformation", "Patchdate: 2015-05-01");
-        bed::command::Edit c(args);
-        c.execute();
-        {
-          ixxx::util::Mapped_File f(out.generic_string());
-          BOOST_TEST_CHECKPOINT("Checking output: " << out);
-          BOOST_REQUIRE(bf::file_size(out));
-          BOOST_TEST_CHECKPOINT("Comparing: " << ref << " vs. " << out);
-          ixxx::util::Mapped_File g(ref.generic_string());
-          BOOST_CHECK(std::equal(f.begin(), f.end(), g.begin(), g.end()));
-        }
+        compare_bed_output("tap_3_12_strip.asn1", "tap_3_12_valid.ber",
+            "tap_3_12_valid_add_osi.ber", "../../../in/tap_3_12_valid_add_osi.ber",
+            { "edit",
+              "-c", "add", "//AuditControlInfo",
+        "OperatorSpecInfoList/OperatorSpecInformation", "Patched for xyz",
+              "-c", "add", "//AuditControlInfo",
+        "OperatorSpecInfoList/+OperatorSpecInformation", "Patchdate: 2015-05-01"
+            }
+           );
       }
 
       BOOST_AUTO_TEST_CASE(edit_set_att)
       {
-        bf::path in_path(test::path::in());
-        bf::path asn(in_path);
-        asn /= "../../libgrammar/test/in/asn1/tap_3_12_strip.asn1";
-        bf::path input(in_path);
-        input /= "tap_3_12_valid.ber";
-        bf::path ref(in_path);
-        ref /= "tap_3_12_valid_att.ber";
-        bf::path out_path(test::path::out());
-        bf::path out(out_path);
-        out /= "bed/command";
-        out /= "tap_3_12_valid_att.ber";
-        BOOST_TEST_CHECKPOINT("Removing: " << out);
-        bf::remove(out);
-        BOOST_TEST_CHECKPOINT("Create directories: " << out);
-        bf::create_directories(out.parent_path());
-
-        bed::Arguments args;
-        args.in_filename = input.generic_string();
-        args.asn_filenames.push_back(asn.generic_string());
-        args.out_filename = out.generic_string();
-        args.edit_ops.emplace_back(bed::Edit_Command::SET_ATT, "//TransferBatch",
-            "definite", "false");
-        args.edit_ops.emplace_back(bed::Edit_Command::SET_ATT, "//CallEventDetailList",
-            "definite", "false");
-        args.edit_ops.emplace_back(bed::Edit_Command::SET_ATT, "//GprsCall",
-            "l_size", "4");
-        bed::command::Edit c(args);
-        c.execute();
-        {
-          ixxx::util::Mapped_File f(out.generic_string());
-          BOOST_TEST_CHECKPOINT("Checking output: " << out);
-          BOOST_REQUIRE(bf::file_size(out));
-          BOOST_TEST_CHECKPOINT("Comparing: " << ref << " vs. " << out);
-          ixxx::util::Mapped_File g(ref.generic_string());
-          BOOST_CHECK(std::equal(f.begin(), f.end(), g.begin(), g.end()));
-        }
+        compare_bed_output("tap_3_12_strip.asn1", "tap_3_12_valid.ber",
+            "tap_3_12_valid_att.ber", "../../../in/tap_3_12_valid_att.ber",
+            { "edit",
+              "-c", "set-att", "//TransferBatch", "definite", "false",
+              "-c", "set-att", "//CallEventDetailList", "definite", "false",
+              "-c", "set-att", "//GprsCall", "l_size", "4"
+            }
+           );
       }
 
       BOOST_AUTO_TEST_CASE(edit_set_uint)
       {
-        bf::path in_path(test::path::in());
-        bf::path asn(in_path);
-        asn /= "../../libgrammar/test/in/asn1/tap_3_12_strip.asn1";
-        bf::path input(in_path);
-        input /= "tap_3_12_negative_volume.ber";
-        bf::path ref(in_path);
-        ref /= "tap_3_12_negative_volume_fixed.ber";
-        bf::path out_path(test::path::out());
-        bf::path out(out_path);
-        out /= "bed/command";
-        out /= "tap_3_12_negative_volume_fixed.ber";
-        BOOST_TEST_CHECKPOINT("Removing: " << out);
-        bf::remove(out);
-        BOOST_TEST_CHECKPOINT("Create directories: " << out);
-        bf::create_directories(out.parent_path());
-
-        bed::Arguments args;
-        args.in_filename = input.generic_string();
-        args.asn_filenames.push_back(asn.generic_string());
-        args.out_filename = out.generic_string();
-        args.edit_ops.emplace_back(bed::Edit_Command::SET_ATT,
-            "//DataVolumeIncoming",
-            "uint2int", "true");
-        bed::command::Edit c(args);
-        c.execute();
-        {
-          ixxx::util::Mapped_File f(out.generic_string());
-          BOOST_TEST_CHECKPOINT("Checking output: " << out);
-          BOOST_REQUIRE(bf::file_size(out));
-          BOOST_TEST_CHECKPOINT("Comparing: " << ref << " vs. " << out);
-          ixxx::util::Mapped_File g(ref.generic_string());
-          BOOST_CHECK(std::equal(f.begin(), f.end(), g.begin(), g.end()));
-        }
+        compare_bed_output("tap_3_12_strip.asn1", "tap_3_12_negative_volume.ber",
+            "tap_3_12_negative_volume_fixed.ber",
+            "../../../in/tap_3_12_negative_volume_fixed.ber",
+            { "edit",
+              "-c", "set-att", "//DataVolumeIncoming", "uint2int", "true"
+            }
+           );
       }
 
       BOOST_AUTO_TEST_CASE(edit_insert)
       {
-        bf::path in_path(test::path::in());
-        bf::path asn(in_path);
-        asn /= "../../libgrammar/test/in/asn1/tap_3_12_strip.asn1";
-        bf::path input(in_path);
-        input /= "tap_3_12_valid.ber";
-        bf::path ref(in_path);
-        ref /= "tap_3_12_valid_add_osi.ber";
-        bf::path out_path(test::path::out());
-        bf::path out(out_path);
-        out /= "bed/command";
-        out /= "tap_3_12_valid_insert_osi.ber";
-        BOOST_TEST_CHECKPOINT("Removing: " << out);
-        bf::remove(out);
-        BOOST_TEST_CHECKPOINT("Create directories: " << out);
-        bf::create_directories(out.parent_path());
-
-        bed::Arguments args;
-        args.in_filename = input.generic_string();
-        args.asn_filenames.push_back(asn.generic_string());
-        args.out_filename = out.generic_string();
-        args.edit_ops.emplace_back(bed::Edit_Command::INSERT,
-            "//AuditControlInfo",
+        compare_bed_output("tap_3_12_strip.asn1", "tap_3_12_valid.ber",
+            "tap_3_12_valid_insert_osi.ber",
+            "../../../in/tap_3_12_valid_add_osi.ber",
+            { "edit",
+              "-c", "insert", "//AuditControlInfo",
             "<OperatorSpecInfoList>\n"
             "  <OperatorSpecInformation>Patched for xyz</OperatorSpecInformation>\n"
             "  <OperatorSpecInformation>Patchdate: 2015-05-01</OperatorSpecInformation>\n"
-            "</OperatorSpecInfoList>", "-1");
-        bed::command::Edit c(args);
-        c.execute();
-        {
-          ixxx::util::Mapped_File f(out.generic_string());
-          BOOST_TEST_CHECKPOINT("Checking output: " << out);
-          BOOST_REQUIRE(bf::file_size(out));
-          BOOST_TEST_CHECKPOINT("Comparing: " << ref << " vs. " << out);
-          ixxx::util::Mapped_File g(ref.generic_string());
-          BOOST_CHECK(std::equal(f.begin(), f.end(), g.begin(), g.end()));
-        }
+            "</OperatorSpecInfoList>", "-1"
+            }
+           );
       }
 
       BOOST_AUTO_TEST_CASE(edit_insert_file)
