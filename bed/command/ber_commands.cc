@@ -41,6 +41,10 @@
 #include <grammar/grammar.hh>
 #include <grammar/asn1/grammar.hh>
 
+#if (defined(__MINGW32__) || defined(__MINGW64__))
+  #include <windows.h>
+#endif
+
 using namespace std;
 
 namespace bed {
@@ -161,7 +165,7 @@ namespace bed {
       if (args_.out_filename.empty())
         out = stdout;
       else {
-        out_file = ixxx::util::File(args_.out_filename, "w");
+        out_file = ixxx::util::File(args_.out_filename, "wb");
         out = out_file.get();
       }
 
@@ -198,7 +202,16 @@ namespace bed {
       if (out_file.get()) {
         ixxx::ansi::fflush(out_file);
         int fd = ixxx::posix::fileno(out_file);
-        fsync(fd);
+#if (defined(__MINGW32__) || defined(__MINGW64__))
+        HANDLE h = reinterpret_cast<HANDLE>(_get_osfhandle(fd));
+        if (h == INVALID_HANDLE_VALUE)
+          throw std::runtime_error("could not get handle for syncing");
+        int r = FlushFileBuffers(h);
+        if (!r)
+          throw std::runtime_error("could not flush buffers"); // GetLastError()
+#else
+        ixxx::posix::fsync(fd);
+#endif
         out_file.close();
       }
     }

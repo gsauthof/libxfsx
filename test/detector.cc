@@ -56,11 +56,19 @@ BOOST_AUTO_TEST_SUITE(xfsx_)
       bf::path asn_link(odir);
       asn_link /= "tap_3_10.asn1";
       bf::remove(asn_link);
+#if (defined(__MINGW32__) || defined(__MINGW64__))
+      bf::copy_file(
+          bf::absolute(test::path::in()
+            + "/../../libgrammar/test/in/asn1").generic_string()
+          + "/tap_3_12.asn1",
+          asn_link);
+#else
       bf::create_symlink(
           bf::absolute(test::path::in()
             + "/../../libgrammar/test/in/asn1").generic_string()
           + "/tap_3_12.asn1",
           asn_link);
+#endif
 
       deque<string> asn_search_path = {
         test::path::in() + "/../../libgrammar/test/in/asn1",
@@ -164,11 +172,19 @@ BOOST_AUTO_TEST_SUITE(xfsx_)
       bf::path asn_link(odir);
       asn_link /= "tap_3_10.asn1";
       bf::remove(asn_link);
+#if (defined(__MINGW32__) || defined(__MINGW64__))
+      bf::copy_file(
+          bf::absolute(test::path::in()
+            + "/../../libgrammar/test/in/asn1").generic_string()
+          + "/tap_3_12.asn1",
+          asn_link);
+#else
       bf::create_symlink(
           bf::absolute(test::path::in()
             + "/../../libgrammar/test/in/asn1").generic_string()
           + "/tap_3_12.asn1",
           asn_link);
+#endif
 
       deque<string> asn_search_path = {
         test::path::in() + "/../../libgrammar/test/in/asn1",

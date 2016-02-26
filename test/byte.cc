@@ -145,10 +145,25 @@ BOOST_AUTO_TEST_SUITE(xfsx_)
         BOOST_CHECK_EQUAL(string(w.begin(), w.end()), "Hello     World");
       }
 
+      BOOST_AUTO_TEST_CASE(newline)
+      {
+        bf::path out_path(test::path::out());
+        out_path /= "writer";
+        bf::path out(out_path);
+        out /= "newline";
+        BOOST_TEST_CHECKPOINT("Removing: " << out);
+        bf::remove(out);
+        ixxx::util::FD fd(out.generic_string(), O_CREAT | O_WRONLY, 0666);
+        xfsx::byte::writer::File w{fd};
+        w << "Hello\n";
+        w << "World\n";
+        w.flush();
+        BOOST_CHECK_EQUAL(boost::filesystem::file_size(out), 12);
+      }
 
-    BOOST_AUTO_TEST_SUITE_END()
 
-  BOOST_AUTO_TEST_SUITE_END()
+    BOOST_AUTO_TEST_SUITE_END() // writer_
 
+  BOOST_AUTO_TEST_SUITE_END() // byte_
 
-BOOST_AUTO_TEST_SUITE_END()
+BOOST_AUTO_TEST_SUITE_END() // xfsx_
