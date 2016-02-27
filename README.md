@@ -360,6 +360,8 @@ Tested on:
 - Debian 8, PowerPC64
 - Solaris 10, SPARC (64 Bit, GCC 4.9)
 - Mac OS X 10.9.5, x86-64 (Apple LLVM clang 3.5)
+- Windows 7 64 Bit, [Wine][wine] 1.9.3 ([staging][winest]) 32 and 64 Bit
+  ([mingw64][mingw64] cross compiler - Host: Fedora 23)
 
 The low-level components are written in a portable fashion, i.e.
 the C++ code is portable between little- and big-endian architectures,
@@ -389,3 +391,6 @@ available.
 [cppformat]: https://github.com/cppformat/cppformat
 [td60]: http://www.gsma.com/newsroom/wp-content/uploads/TD.60-v30.5.pdf
 [xer]: https://en.wikipedia.org/wiki/XML_Encoding_Rules
+[mingw64]: http://mingw-w64.org/doku.php
+[wine]: https://www.winehq.org/
+[winest]: https://www.wine-staging.com/
