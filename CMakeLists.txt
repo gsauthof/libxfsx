@@ -4,8 +4,11 @@ project(xfsx CXX)
 set(XFSX_VERSION "0.5.1" CACHE STRING "Library version")
 set(XFSX_DATE "2015-06-30" CACHE STRING "Date of last significant change")
 
-include (${CMAKE_SOURCE_DIR}/cmake/modules/coverage.cmake)
-include (${CMAKE_SOURCE_DIR}/cmake/modules/sanitize.cmake)
+# guard from super-projects, i.e. when it is added as subdirectory
+IF(CMAKE_CURRENT_SOURCE_DIR STREQUAL CMAKE_SOURCE_DIR)
+  include (${CMAKE_SOURCE_DIR}/cmake/modules/coverage.cmake)
+  include (${CMAKE_SOURCE_DIR}/cmake/modules/sanitize.cmake)
+endif()
 
 if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
   if(CMAKE_CXX_COMPILER_VERSION VERSION_LESS "4.8")
@@ -13,18 +16,21 @@ if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
   endif()
 endif()
 
-# Remove existing -Wall in debug flags because we unconditionally supply
-# -Wall and we don't want a trailing -Wall re-enable the silenced
-# warnings
-string(REPLACE "-Wall" "" CMAKE_CXX_FLAGS_DEBUG ${CMAKE_CXX_FLAGS_DEBUG})
+# guard from super-projects, i.e. when it is added as subdirectory
+IF(CMAKE_CURRENT_SOURCE_DIR STREQUAL CMAKE_SOURCE_DIR)
+  # Remove existing -Wall in debug flags because we unconditionally supply
+  # -Wall and we don't want a trailing -Wall re-enable the silenced
+  # warnings
+  string(REPLACE "-Wall" "" CMAKE_CXX_FLAGS_DEBUG ${CMAKE_CXX_FLAGS_DEBUG})
 
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++1y")
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wno-unused-local-typedefs")
-# Without that clang issues some questionable warnings
-# See also:
-# http://stackoverflow.com/questions/13905200/is-it-wise-to-ignore-gcc-clangs-wmissing-braces-warning
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-missing-braces")
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fstrict-aliasing -Wstrict-aliasing")
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++1y")
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wno-unused-local-typedefs")
+  # Without that clang issues some questionable warnings
+  # See also:
+  # http://stackoverflow.com/questions/13905200/is-it-wise-to-ignore-gcc-clangs-wmissing-braces-warning
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-missing-braces")
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fstrict-aliasing -Wstrict-aliasing")
+endif()
 
 find_package(Boost 1.58
   COMPONENTS
@@ -34,14 +40,17 @@ find_package(Boost 1.58
     unit_test_framework
   REQUIRED)
 
-add_subdirectory(libixxx)
-add_subdirectory(libixxxutil)
-add_subdirectory(libxxxml)
-add_subdirectory(libgrammar)
-set(OLD_BUILD_SHARED_LIBS ${BUILD_SHARED_LIBS})
-set(BUILD_SHARED_LIBS true)
-add_subdirectory(cppformat)
-set(BUILD_SHARED_LIBS ${OLD_BUILD_SHARED_LIBS})
+# guard from super-projects, i.e. when it is added as subdirectory
+IF(CMAKE_CURRENT_SOURCE_DIR STREQUAL CMAKE_SOURCE_DIR)
+  add_subdirectory(libixxx)
+  add_subdirectory(libixxxutil)
+  add_subdirectory(libxxxml)
+  add_subdirectory(libgrammar)
+  set(OLD_BUILD_SHARED_LIBS ${BUILD_SHARED_LIBS})
+  set(BUILD_SHARED_LIBS true)
+  add_subdirectory(cppformat)
+  set(BUILD_SHARED_LIBS ${OLD_BUILD_SHARED_LIBS})
+endif()
 
 
 configure_file(config.cc.in ${CMAKE_BINARY_DIR}/config.cc)
@@ -121,7 +130,7 @@ IF(${CMAKE_PROJECT_NAME} STREQUAL "xfsx")
     bed/command.cc
     bed/command/ber_commands.cc
 
-    cppformat/format.cc
+    ${CMAKE_SOURCE_DIR}/cppformat/format.cc
   )
   set_property(TARGET ut PROPERTY INCLUDE_DIRECTORIES
     ${XML2_INCLUDE_DIR}
@@ -155,17 +164,18 @@ add_executable(bed
   bed/command.cc
   bed/command/ber_commands.cc
   
-  cppformat/format.cc
+  ${CMAKE_SOURCE_DIR}/cppformat/format.cc
   )
 
 set_property(TARGET xfsx xfsx_static bed PROPERTY INCLUDE_DIRECTORIES
   ${XML2_INCLUDE_DIR}
   ${Boost_INCLUDE_DIRS}
   ${CMAKE_CURRENT_SOURCE_DIR}
-  ${CMAKE_CURRENT_SOURCE_DIR}/libixxx
-  ${CMAKE_CURRENT_SOURCE_DIR}/libixxxutil
-  ${CMAKE_CURRENT_SOURCE_DIR}/libxxxml
-  ${CMAKE_CURRENT_SOURCE_DIR}/libgrammar
+  ${CMAKE_SOURCE_DIR}
+  ${CMAKE_SOURCE_DIR}/libixxx
+  ${CMAKE_SOURCE_DIR}/libixxxutil
+  ${CMAKE_SOURCE_DIR}/libxxxml
+  ${CMAKE_SOURCE_DIR}/libgrammar
 )
 
 target_link_libraries(bed
@@ -195,6 +205,9 @@ target_link_libraries(bcd_speed
   xfsx_static
 )
 
-add_custom_target(check COMMAND ut)
+# guard from super-projects, i.e. when it is added as subdirectory
+IF(CMAKE_CURRENT_SOURCE_DIR STREQUAL CMAKE_SOURCE_DIR)
+  add_custom_target(check COMMAND ut)
+endif()
 
 
