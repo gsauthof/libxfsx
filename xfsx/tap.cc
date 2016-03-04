@@ -21,9 +21,12 @@
 #include "tap.hh"
 
 #include "xfsx.hh"
+#include "ber_writer_arguments.hh"
+
 #include <grammar/asn1/grammar.hh>
 #include <grammar/asn1/mini_parser.hh>
 #include <grammar/tap/tap.hh>
+
 
 using namespace std;
 
@@ -66,29 +69,41 @@ namespace xfsx {
           xfsx::Type::INT_64);
     }
 
-      static const std::vector<xfsx::Tag_Int> aci_path_ = {
+    void apply_grammar(const std::deque<std::string> &asn_filenames,
+        xfsx::BER_Writer_Arguments &args)
+    {
+      if (asn_filenames.empty())
+        return;
+      grammar::Grammar g = xfsx::tap::read_asn_grammar(asn_filenames);
+      args.translator = xfsx::Name_Translator(
+          grammar::map_name_to_shape_klasse_tag(g));
+      xfsx::tap::init_dereferencer(g, args.dereferencer);
+      xfsx::tap::init_typifier(args.typifier);
+    }
+
+    static const std::vector<xfsx::Tag_Int> aci_path_ = {
         grammar::tap::TRANSFER_BATCH,
         grammar::tap::AUDIT_CONTROL_INFO };
-      static const std::vector<xfsx::Tag_Int> raci_path_ = {
+    static const std::vector<xfsx::Tag_Int> raci_path_ = {
         grammar::rap::RETURN_BATCH,
         grammar::rap::RAP_AUDIT_CONTROL_INFO };
-      static const std::vector<xfsx::Tag_Int> naci_path_ = {
+    static const std::vector<xfsx::Tag_Int> naci_path_ = {
         grammar::nrt::NRTRDE,
         grammar::nrt::CALL_EVENTS_COUNT
       };
-      static const std::vector<xfsx::Tag_Int> kth_cdr_path_ = {
+    static const std::vector<xfsx::Tag_Int> kth_cdr_path_ = {
         grammar::tap::TRANSFER_BATCH,
         grammar::tap::CALL_EVENT_DETAIL_LIST,
         0 };
-      static const std::vector<xfsx::Tag_Int> kth_rcdr_path_ = {
+    static const std::vector<xfsx::Tag_Int> kth_rcdr_path_ = {
         grammar::rap::RETURN_BATCH,
         grammar::rap::RETURN_DETAIL_LIST,
         0 };
-      static const std::vector<xfsx::Tag_Int> kth_ncdr_path_ = {
+    static const std::vector<xfsx::Tag_Int> kth_ncdr_path_ = {
         grammar::nrt::NRTRDE,
         grammar::nrt::CALL_EVENT_LIST,
         0 };
-      static const std::vector<xfsx::Tag_Int> empty_path_;
+    static const std::vector<xfsx::Tag_Int> empty_path_;
 
     const std::vector<xfsx::Tag_Int> &aci_path()
     {

@@ -33,6 +33,8 @@ namespace xfsx {
   class Tag_Typifier;
   class Tag_Translator;
   using Tag_Int = uint32_t;
+
+  class BER_Writer_Arguments;
 }
 
 namespace xfsx {
@@ -44,6 +46,9 @@ namespace xfsx {
     void init_dereferencer(const grammar::Grammar &g,
         xfsx::Tag_Dereferencer &dereferencer);
     void init_typifier(xfsx::Tag_Typifier &typifier);
+
+    void apply_grammar(const std::deque<std::string> &asn_filenames,
+        xfsx::BER_Writer_Arguments &args);
 
     const std::vector<xfsx::Tag_Int> &aci_path();
     const std::vector<xfsx::Tag_Int> &aci_path(const xfsx::Tag_Translator &translator);

@@ -291,22 +291,10 @@ namespace bed {
       cout << "validates\n";
     }
 
-    static void apply_grammar(const std::deque<std::string> &asn_filenames,
-        xfsx::BER_Writer_Arguments &args)
-    {
-      if (asn_filenames.empty())
-        return;
-      grammar::Grammar g = xfsx::tap::read_asn_grammar(asn_filenames);
-      args.translator = xfsx::Name_Translator(
-          grammar::map_name_to_shape_klasse_tag(g));
-      xfsx::tap::init_dereferencer(g, args.dereferencer);
-      xfsx::tap::init_typifier(args.typifier);
-    }
-
     void Write_BER::execute()
     {
       xfsx::BER_Writer_Arguments args;
-      apply_grammar(args_.asn_filenames, args);
+      xfsx::tap::apply_grammar(args_.asn_filenames, args);
       ixxx::util::Mapped_File f(args_.in_filename);
       xfsx::xml::write_ber(f.s_begin(), f.s_end(), args_.out_filename, args);
     }
@@ -359,7 +347,7 @@ namespace bed {
       }
 
       xfsx::BER_Writer_Arguments args;
-      apply_grammar(args_.asn_filenames, args);
+      xfsx::tap::apply_grammar(args_.asn_filenames, args);
 
       xfsx::xml::l2::write_ber(doc, args_.out_filename, args);
     }
