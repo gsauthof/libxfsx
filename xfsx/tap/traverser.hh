@@ -81,13 +81,12 @@ namespace xfsx {
             template <typename T, typename Proxy>
             xfsx::traverser::Hint operator()(const Proxy &p, const T &t)
             {
+              if (!p.height(t))
+                return Hint::DESCEND;
               if (p.tag(t) == grammar::tap::AUDIT_CONTROL_INFO) {
                 inside_cdrs_ = false;
                 return Hint::STOP;
               }
-              if (p.height(t) < 2
-                  && p.tag(t) != grammar::tap::CALL_EVENT_DETAIL_LIST)
-                return Hint::SKIP_CHILDREN;
               if (p.tag(t) == grammar::tap::CALL_EVENT_DETAIL_LIST) {
                 inside_cdrs_ = true;
                 return Hint::DESCEND;
@@ -152,7 +151,7 @@ namespace xfsx {
                       state_ = INSIDE_NETWORK_INFO;
                       return Hint::DESCEND;
                   }
-                  break;
+                  return p.height(t) ? Hint::SKIP_CHILDREN : Hint::DESCEND;
                 case INSIDE_NETWORK_INFO:
                   switch (p.tag(t)) {
                     case grammar::tap::UTC_TIME_OFFSET_CODE:
