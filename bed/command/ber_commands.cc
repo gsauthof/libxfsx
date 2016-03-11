@@ -131,6 +131,7 @@ namespace bed {
       ixxx::util::Mapped_File in(args_.in_filename);
       if (args_.out_filename.empty()) {
         ixxx::util::FD fd(1);
+        fd.set_keep_open(true);
         xfsx::byte::writer::File w(fd, 4096);
         xfsx::xml::write(in.begin(), in.end(), w, args);
         w.flush();
@@ -148,6 +149,7 @@ namespace bed {
 
       if (args_.out_filename.empty()) {
         ixxx::util::FD fd(1);
+        fd.set_keep_open(true);
         xfsx::byte::writer::File w(fd, 4096);
         xfsx::xml::pretty_write(in.begin(), in.end(), w, args);
         w.flush();
