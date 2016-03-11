@@ -24,14 +24,11 @@
 #include <xfsx/tap/traverser.hh>
 #include <xfsx/traverser/tlc.hh>
 #include <xfsx/xfsx.hh>
+#include <xfsx/byte.hh>
 #include <bed/arguments.hh>
 
 #include <ixxx/util.hh>
-
-#include <fstream>
-#include <iostream>
-#include <iterator>
-#include <algorithm>
+#include <fcntl.h>
 
 using namespace std;
 
@@ -44,9 +41,16 @@ namespace bed {
       Indent(unsigned i) : i(i) {}
       Indent operator()(unsigned k) const { return i*k; }
     };
+    /*
     ostream &operator<<(ostream &o, const Indent &i)
     {
       std::fill_n(std::ostreambuf_iterator<char>(o), i.i, ' ');
+      return o;
+    }
+    */
+    xfsx::byte::writer::Base &operator<<(xfsx::byte::writer::Base &o, const Indent &i)
+    {
+      o.fill(i.i);
       return o;
     }
 
@@ -65,10 +69,13 @@ namespace bed {
       Traverse t;
       t(p, tlc, count, sum, first_charging, last_charging);
 
-      ofstream f;
-      if (!args_.out_filename.empty())
-        f.open(args_.out_filename, ios_base::out | ios_base::binary);
-      ostream &o = args_.out_filename.empty() ? cout : f;
+      ixxx::util::FD fd;
+      if (args_.out_filename.empty()) {
+        fd = ixxx::util::FD(1);
+        fd.set_keep_open(true);
+      } else
+        fd = ixxx::util::FD(args_.out_filename, O_CREAT | O_WRONLY, 0666);
+      xfsx::byte::writer::File o(fd);
 
       Indent i(args_.indent_size);
       o << "<AuditControlInfo>\n" << i <<
