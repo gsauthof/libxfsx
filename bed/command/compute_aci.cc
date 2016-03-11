@@ -30,12 +30,25 @@
 
 #include <fstream>
 #include <iostream>
+#include <iterator>
+#include <algorithm>
 
 using namespace std;
 
 namespace bed {
 
   namespace command {
+
+    struct Indent {
+      unsigned i;
+      Indent(unsigned i) : i(i) {}
+      Indent operator()(unsigned k) const { return i*k; }
+    };
+    ostream &operator<<(ostream &o, const Indent &i)
+    {
+      std::fill_n(std::ostreambuf_iterator<char>(o), i.i, ' ');
+      return o;
+    }
 
     void Compute_ACI::execute()
     {
@@ -57,19 +70,22 @@ namespace bed {
         f.open(args_.out_filename, ios_base::out | ios_base::binary);
       ostream &o = args_.out_filename.empty() ? cout : f;
 
-      o << "<AuditControlInfo>\n"
-"    <EarliestCallTimeStamp>\n"
-"        <LocalTimeStamp>" << first_charging().first << "</LocalTimeStamp>\n"
-"        <UtcTimeOffset>" << first_charging().second << "</UtcTimeOffset>\n"
-"    </EarliestCallTimeStamp>\n"
-"    <LatestCallTimeStamp>\n"
-"        <LocalTimeStamp>" << last_charging().first << "</LocalTimeStamp>\n"
-"        <UtcTimeOffset>" << last_charging().second << "</UtcTimeOffset>\n"
-"    </LatestCallTimeStamp>\n"
-"    <TotalCharge>" << sum() << "</TotalCharge>\n"
-"    <TotalTaxValue>0</TotalTaxValue>\n"
-"    <TotalDiscountValue>0</TotalDiscountValue>\n"
-"    <CallEventDetailsCount>" << count() << "</CallEventDetailsCount>\n"
+      Indent i(args_.indent_size);
+      o << "<AuditControlInfo>\n" << i <<
+"<EarliestCallTimeStamp>\n" << i(2) <<
+  "<LocalTimeStamp>" << first_charging().first << "</LocalTimeStamp>\n"
+    << i(2) <<
+  "<UtcTimeOffset>" << first_charging().second << "</UtcTimeOffset>\n" << i <<
+"</EarliestCallTimeStamp>\n" << i <<
+"<LatestCallTimeStamp>\n" << i(2) <<
+  "<LocalTimeStamp>" << last_charging().first << "</LocalTimeStamp>\n"
+    << i(2) <<
+  "<UtcTimeOffset>" << last_charging().second << "</UtcTimeOffset>\n" << i <<
+"</LatestCallTimeStamp>\n" << i <<
+"<TotalCharge>" << sum() << "</TotalCharge>\n" << i <<
+"<TotalTaxValue>0</TotalTaxValue>\n" << i <<
+"<TotalDiscountValue>0</TotalDiscountValue>\n" << i <<
+"<CallEventDetailsCount>" << count() << "</CallEventDetailsCount>\n"
 "</AuditControlInfo>\n"
           ;
 
