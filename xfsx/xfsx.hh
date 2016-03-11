@@ -381,7 +381,7 @@ namespace xfsx {
     const uint8_t *read(const uint8_t *begin, const uint8_t *end);
     uint8_t *write(uint8_t *begin, uint8_t *end) const;
 
-    template <typename T> void copy_content(T &t)
+    template <typename T> void copy_content(T &t) const
     {
       if (shape == Shape::CONSTRUCTED)
         throw std::range_error("Cannot copy from CONSTRUCTED tag");

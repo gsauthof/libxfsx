@@ -65,6 +65,8 @@ Commands:
   edit          Apply edit operations to a BER file.
                 For that, the BER file is loaded into memory.
 
+  compute-aci   Compute the Audit Control Info of a TAP file and print
+                the result as XML.
 
 Files:
 
@@ -191,6 +193,19 @@ Arguments:
     --first         Stop reading at the end of the first element
                     (i.e. trailing garbage is ignored)
 
+  compute-aci:
+
+    --indent N      Indentation step size (default: 4)
+    -a,--asn FILE   Use ASN.1 grammar for pretty printing (can be specified
+                    multiple times)
+    --asn-path DIR  Search path when auto-detecting the ASN.1 grammar
+                    (can be specified multiple times)
+                    (default: $ASN1_PATH, $HOME/.config/xfsx/asn1,
+                     /etc/xfsx/asn1, PREFIX/share/xfsx/asn1)
+    --asn-cfg FILE  JSON file that configures the auto-detection
+                    (default: first detector.json in the asn search path)
+    --no-detect     Disable autodetect
+
 
 BED stands for BER Editor, where the BER acronym means 'Basic Encoding Rules'.
 BER is a binary format (think: XML, but binary; Google Protocol Buffers, but
@@ -199,7 +214,7 @@ an ASN.1 (Abstract Syntax Notation, think: XSD, but kind of independent of
 the encoding format) grammar.
 
 2015, Georg Sauthoff <mail@georg.so>
-          
+
 )";
 
 #include <iostream>
@@ -224,7 +239,8 @@ static map<string, bed::Command> command_map = {
   { "write-ber"  , bed::Command::WRITE_BER        },
   { "search"     , bed::Command::SEARCH_XPATH     },
   { "validate"   , bed::Command::VALIDATE_XSD     },
-  { "edit"       , bed::Command::EDIT             } 
+  { "edit"       , bed::Command::EDIT             },
+  { "compute-aci", bed::Command::COMPUTE_ACI      }
 };
 
 static map<string, bed::Edit_Command> edit_command_map = {
@@ -233,7 +249,7 @@ static map<string, bed::Edit_Command> edit_command_map = {
   { "add"        , bed::Edit_Command::ADD     },
   { "set-att"    , bed::Edit_Command::SET_ATT },
   { "set_att"    , bed::Edit_Command::SET_ATT },
-  { "insert"     , bed::Edit_Command::INSERT  } 
+  { "insert"     , bed::Edit_Command::INSERT  }
 };
 
 static map<bed::Edit_Command, unsigned> edit_command_to_argc_map = {

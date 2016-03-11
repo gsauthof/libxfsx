@@ -69,6 +69,9 @@ namespace bed {
         case Command::EDIT:
           c = make_unique<Edit>(args);
           break;
+        case Command::COMPUTE_ACI:
+          c = make_unique<Compute_ACI>(args);
+          break;
         default:
           throw logic_error("Command not implemented yet");
       }

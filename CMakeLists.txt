@@ -120,15 +120,18 @@ IF(${CMAKE_PROJECT_NAME} STREQUAL "xfsx")
     test/xml.cc
     test/byte.cc
     test/bed/command.cc
+    test/bed/command/compute_aci.cc
     test/detector.cc
     test/character.cc
     test/xml2lxml.cc
     test/tap.cc
     test/path.cc
+    test/xfsx/tap/traverser.cc
 
     bed/arguments.cc
     bed/command.cc
     bed/command/ber_commands.cc
+    bed/command/compute_aci.cc
 
     ${CMAKE_SOURCE_DIR}/cppformat/format.cc
   )
@@ -163,6 +166,7 @@ add_executable(bed
   bed/arguments.cc
   bed/command.cc
   bed/command/ber_commands.cc
+  bed/command/compute_aci.cc
   
   ${CMAKE_SOURCE_DIR}/cppformat/format.cc
   )

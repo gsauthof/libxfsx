@@ -23,6 +23,8 @@
 
 #include <bed/command.hh>
 
+#include <bed/command/compute_aci.hh>
+
 namespace bed {
 
   namespace command {
