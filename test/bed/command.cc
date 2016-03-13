@@ -339,9 +339,10 @@ BOOST_AUTO_TEST_SUITE(bed_)
         args.in_filename = input.generic_string();
         args.asn_filenames.push_back(asn.generic_string());
         args.out_filename = out.generic_string();
-        args.edit_ops.emplace_back(bed::Edit_Command::INSERT,
-            "//AuditControlInfo",
-            "@" + xml.generic_string(), "-1");
+        args.edit_ops.push_back(unique_ptr<bed::command::edit_op::Base>(
+              new bed::command::edit_op::Insert));
+        args.edit_ops.back()->argv = {
+            "//AuditControlInfo", "@" + xml.generic_string(), "-1" };
         bed::command::Edit c(args);
         c.execute();
         {

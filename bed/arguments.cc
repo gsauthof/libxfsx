@@ -264,6 +264,28 @@ static map<bed::Edit_Command, unsigned> edit_command_to_argc_map = {
   { bed::Edit_Command::WRITE_ACI,0u }
 };
 
+
+template <typename R>
+struct Creator_Base  {
+  virtual std::unique_ptr<R> create() const = 0;
+};
+
+template <typename R, typename T>
+struct Creator : public Creator_Base<R> {
+  std::unique_ptr<R> create() const override { return std::unique_ptr<R>(new T); }
+};
+
+template <typename R, typename ...T>
+  std::unique_ptr<R> new_nth(unsigned i)
+{
+  if (i > sizeof...(T))
+    throw out_of_range("new_nth: index out of range");
+  std::array<std::unique_ptr<Creator_Base<R> >, sizeof...(T)> r = {
+    unique_ptr<Creator_Base<R> >(new Creator<R, T>())...  } ;
+  return r.at(i)->create();
+}
+
+
 static void print_version()
 {
   cout << "bed " << xfsx::config::date() << '\n';
@@ -394,19 +416,28 @@ namespace bed {
           try {
             Edit_Command c = edit_command_map.at(command_str);
             unsigned x = edit_command_to_argc_map.at(c);
+            auto n = static_cast<unsigned>(c)-1;
+            auto op = new_nth<command::edit_op::Base,
+                 command::edit_op::Remove,
+                 command::edit_op::Replace,
+                 command::edit_op::Add,
+                 command::edit_op::Set_Att,
+                 command::edit_op::Insert,
+                 command::edit_op::Write_ACI>(n);
             if (i + int(x) >= argc)
               throw Argument_Error("One or more arguments missing for: "
                   + command_str);
             switch (x) {
-              case 0: edit_ops.emplace_back(c); break;
-              case 1: edit_ops.emplace_back(c, argv[i+1]); break;
-              case 2: edit_ops.emplace_back(c, argv[i+1], argv[i+2]); break;
-              case 3: edit_ops.emplace_back(c, argv[i+1], argv[i+2], argv[i+3]);
+              case 0: break;
+              case 1: op->argv = { argv[i+1] }; break;
+              case 2: op->argv = { argv[i+1], argv[i+2] }; break;
+              case 3: op->argv = { argv[i+1], argv[i+2], argv[i+3]};
                       break;
               default:
                 throw logic_error("this argument edit op not implemented yet");
             }
             i += x;
+            edit_ops.push_back(std::move(op));
           } catch (const std::out_of_range &e) {
               throw Argument_Error("Unknown command: " + command_str);
           }
@@ -481,37 +512,5 @@ namespace bed {
     }
   }
 
-  Edit_Op::Edit_Op(Edit_Command c)
-    :
-      command(c)
-  {
-  }
-  Edit_Op::Edit_Op(Edit_Command c,
-        const std::string &a1)
-    :
-      command(c),
-      argv(1)
-  {
-    argv[0] = a1;
-  }
-  Edit_Op::Edit_Op(Edit_Command c,
-        const std::string &a1, const std::string &a2)
-    :
-      command(c),
-      argv(2)
-  {
-    argv[0] = a1;
-    argv[1] = a2;
-  }
-  Edit_Op::Edit_Op(Edit_Command c,
-        const std::string &a1, const std::string &a2, const std::string &a3)
-    :
-      command(c),
-      argv(3)
-  {
-    argv[0] = a1;
-    argv[1] = a2;
-    argv[2] = a3;
-  }
 
 }

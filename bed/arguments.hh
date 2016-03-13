@@ -25,6 +25,7 @@
 #include <deque>
 #include <vector>
 #include <stdexcept>
+#include <memory>
 
 namespace bed {
 
@@ -49,19 +50,30 @@ namespace bed {
     ADD,
     SET_ATT,
     INSERT,
-    WRITE_ACI
+    WRITE_ACI,
+    LAST_
   };
 
-  struct Edit_Op {
-    Edit_Command command;
-    std::vector<std::string> argv;
+  namespace command {
 
-    Edit_Op(Edit_Command c);
-    Edit_Op(Edit_Command c, const std::string &a1);
-    Edit_Op(Edit_Command c, const std::string &a1, const std::string &a2);
-    Edit_Op(Edit_Command c,
-        const std::string &a1, const std::string &a2, const std::string &a3);
-  };
+    namespace edit_op {
+
+      struct Detail;
+
+      struct Base {
+        std::vector<std::string> argv;
+        virtual void execute(Detail &d) = 0;
+      };
+      struct Remove    : public Base { void execute(Detail &d) override; };
+      struct Replace   : public Base { void execute(Detail &d) override; };
+      struct Add       : public Base { void execute(Detail &d) override; };
+      struct Set_Att   : public Base { void execute(Detail &d) override; };
+      struct Insert    : public Base { void execute(Detail &d) override; };
+      struct Write_ACI : public Base { void execute(Detail &d) override; };
+    }
+
+  }
+
 
   class Argument_Error : public std::runtime_error {
     private:
@@ -103,7 +115,7 @@ namespace bed {
       std::string kth_cdr;
 
       std::deque<std::string> xpaths;
-      std::deque<Edit_Op>     edit_ops;
+      std::deque<std::unique_ptr<command::edit_op::Base> > edit_ops;
 
       Command  command   {Command::NONE};
       unsigned verbosity {0};
