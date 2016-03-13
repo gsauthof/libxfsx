@@ -18,9 +18,15 @@
     along with libxfsx.  If not, see <http://www.gnu.org/licenses/>.
 
 }}} */
-#ifndef BED_COMMAND_HH
-#define BED_COMMAND_HH
+#ifndef BED_COMMAND_ARGUMENTS_HH
+#define BED_COMMAND_ARGUMENTS_HH
 
+namespace xfsx {
+  namespace xml {
+    struct Writer_Arguments;
+    struct Pretty_Writer_Arguments;
+  }
+}
 
 namespace bed {
 
@@ -28,20 +34,16 @@ namespace bed {
 
   namespace command {
 
-    class Base {
-      private:
-      protected:
-        const Arguments &args_;
-      public:
-        Base(const Arguments &args);
-        virtual void execute() = 0;
-    };
+    void apply_arguments(const Arguments &a,
+        xfsx::xml::Writer_Arguments &b);
 
-    void execute(const Arguments &args);
+    void apply_arguments(const Arguments &a,
+        xfsx::xml::Pretty_Writer_Arguments &b);
 
   }
 
 }
 
-
 #endif
+
+

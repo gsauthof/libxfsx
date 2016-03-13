@@ -130,8 +130,10 @@ IF(${CMAKE_PROJECT_NAME} STREQUAL "xfsx")
 
     bed/arguments.cc
     bed/command.cc
+    bed/command/arguments.cc
     bed/command/ber_commands.cc
     bed/command/compute_aci.cc
+    bed/command/edit.cc
 
     ${CMAKE_SOURCE_DIR}/cppformat/format.cc
   )
@@ -165,8 +167,10 @@ add_executable(bed
   bed/main.cc
   bed/arguments.cc
   bed/command.cc
+  bed/command/arguments.cc
   bed/command/ber_commands.cc
   bed/command/compute_aci.cc
+  bed/command/edit.cc
   
   ${CMAKE_SOURCE_DIR}/cppformat/format.cc
   )

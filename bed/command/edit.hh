@@ -18,30 +18,24 @@
     along with libxfsx.  If not, see <http://www.gnu.org/licenses/>.
 
 }}} */
-#ifndef BED_COMMAND_HH
-#define BED_COMMAND_HH
+#ifndef BED_COMMAND_EDIT_HH
+#define BED_COMMAND_EDIT_HH
 
+#include <bed/command.hh>
 
 namespace bed {
 
-  class Arguments;
-
   namespace command {
 
-    class Base {
-      private:
-      protected:
-        const Arguments &args_;
+    class Edit : public Base {
       public:
-        Base(const Arguments &args);
-        virtual void execute() = 0;
+        using Base::Base;
+        void execute() override;
     };
 
-    void execute(const Arguments &args);
 
-  }
+  } // command
 
-}
-
+} // bed
 
 #endif

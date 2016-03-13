@@ -23,6 +23,7 @@
 
 #include <bed/command.hh>
 
+#include <bed/command/edit.hh>
 #include <bed/command/compute_aci.hh>
 
 namespace bed {
@@ -76,13 +77,6 @@ namespace bed {
         using Base::Base;
         void execute() override;
     };
-
-    class Edit : public Base {
-      public:
-        using Base::Base;
-        void execute() override;
-    };
-
   }
 
 }
