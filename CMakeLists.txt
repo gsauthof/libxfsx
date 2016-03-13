@@ -80,6 +80,7 @@ set(LIB_SRC
   xfsx/detector.cc
   xfsx/character.cc
   xfsx/path.cc
+  xfsx/tap/traverser.cc
   )
 add_library(xfsx SHARED
   ${LIB_SRC}

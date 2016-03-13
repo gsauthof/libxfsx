@@ -158,11 +158,22 @@ namespace xfsx {
 
       };
 
-    }
+      struct Indent {
+        unsigned i;
+        Indent(unsigned i) : i(i) {}
+        Indent operator()(unsigned k) const { return i*k; }
+      };
+      inline Base &operator<<(Base &o, const Indent &i)
+      {
+        o.fill(i.i);
+        return o;
+      }
 
-  }
+    } // memory
 
-}
+  } // byte
+
+} // xfsx
 
 
 #endif

@@ -69,7 +69,7 @@ namespace xfsx {
         p_.first = t.skip_children(p_.first, p_.second);
       }
 
-      bool eot() const
+      bool eot(const Vertical_TLC &t) const
       {
         return p_.first == p_.second;
       }

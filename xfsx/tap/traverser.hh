@@ -31,6 +31,11 @@
 #include <functional>
 
 namespace xfsx {
+  namespace byte {
+    namespace writer {
+      class Base;
+    }
+  }
 
   namespace tap {
 
@@ -228,6 +233,29 @@ namespace xfsx {
             }
             const std::pair<std::string, std::string> &operator()() const
             { return timestamp_long_; }
+        };
+
+        class Audit_Control_Info {
+          private:
+          public:
+            CDR_Count count;
+            Charge_Sum sum;
+            Timestamp<Less_Tag>    first_timestamp;
+            Timestamp<Greater_Tag> last_timestamp;
+
+            std::string comment;
+
+            template <typename ...F, typename T, typename Proxy>
+                void operator()(Proxy &p, T &t, F& ... f)
+                {
+                  Traverse st;
+                  st(p, t, count, sum,
+                      first_timestamp, last_timestamp,
+                      f...);
+                }
+
+            void print(xfsx::byte::writer::Base &o, unsigned indent = 4u);
+
         };
 
     }

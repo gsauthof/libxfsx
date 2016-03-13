@@ -189,6 +189,8 @@ Arguments:
                                        SNIP - XML or filename (@FILENAME)
                                        POS  - 1 -> first child, -1 -> last child
                                               2 -> after node,  -2 -> before node
+          write-aci                  Compute and rewrite Audit Control Info
+                                     (ACI)
     --skip BYTES    Skip BYTES of input file
     --first         Stop reading at the end of the first element
                     (i.e. trailing garbage is ignored)
@@ -244,20 +246,22 @@ static map<string, bed::Command> command_map = {
 };
 
 static map<string, bed::Edit_Command> edit_command_map = {
-  { "remove"     , bed::Edit_Command::REMOVE  },
-  { "replace"    , bed::Edit_Command::REPLACE },
-  { "add"        , bed::Edit_Command::ADD     },
-  { "set-att"    , bed::Edit_Command::SET_ATT },
-  { "set_att"    , bed::Edit_Command::SET_ATT },
-  { "insert"     , bed::Edit_Command::INSERT  }
+  { "remove"     , bed::Edit_Command::REMOVE    },
+  { "replace"    , bed::Edit_Command::REPLACE   },
+  { "add"        , bed::Edit_Command::ADD       },
+  { "set-att"    , bed::Edit_Command::SET_ATT   },
+  { "set_att"    , bed::Edit_Command::SET_ATT   },
+  { "insert"     , bed::Edit_Command::INSERT    },
+  { "write-aci"  , bed::Edit_Command::WRITE_ACI }
 };
 
 static map<bed::Edit_Command, unsigned> edit_command_to_argc_map = {
-  { bed::Edit_Command::REMOVE,  1u },
-  { bed::Edit_Command::REPLACE, 3u },
-  { bed::Edit_Command::ADD,     3u },
-  { bed::Edit_Command::SET_ATT, 3u },
-  { bed::Edit_Command::INSERT,  3u }
+  { bed::Edit_Command::REMOVE,   1u },
+  { bed::Edit_Command::REPLACE,  3u },
+  { bed::Edit_Command::ADD,      3u },
+  { bed::Edit_Command::SET_ATT,  3u },
+  { bed::Edit_Command::INSERT,   3u },
+  { bed::Edit_Command::WRITE_ACI,0u }
 };
 
 static void print_version()

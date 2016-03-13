@@ -48,7 +48,8 @@ namespace bed {
     REPLACE,
     ADD,
     SET_ATT,
-    INSERT
+    INSERT,
+    WRITE_ACI
   };
 
   struct Edit_Op {

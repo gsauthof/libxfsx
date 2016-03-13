@@ -56,6 +56,7 @@ namespace bf = boost::filesystem;
       ixxx::util::Mapped_File f(out.generic_string());
       BOOST_REQUIRE(bf::file_size(out));
 
+      BOOST_TEST_CHECKPOINT("Comparing: " << out);
       if (boost::algorithm::ends_with(output_filename, ".ber"))
         BOOST_CHECK(std::equal(f.s_begin(), f.s_end(), ref_begin, ref_end));
       else
@@ -351,6 +352,14 @@ BOOST_AUTO_TEST_SUITE(bed_)
           ixxx::util::Mapped_File g(ref.generic_string());
           BOOST_CHECK(std::equal(f.begin(), f.end(), g.begin(), g.end()));
         }
+      }
+
+      BOOST_AUTO_TEST_CASE(compute_aci)
+      {
+        compare_bed_output("tap_3_12_strip.asn1", "tap_3_12_valid.ber",
+            "edit_aci.ber",
+            { "edit", "-c", "write-aci" }
+           );
       }
 
     BOOST_AUTO_TEST_SUITE_END() // edit

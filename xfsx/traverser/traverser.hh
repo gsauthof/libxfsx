@@ -40,7 +40,7 @@ namespace xfsx {
     template <typename F, typename T, typename Proxy>
         void operator()(Proxy &p, T &t, F &f)
         {
-          while (!p.eot()) {
+          while (!p.eot(t)) {
             auto r = f(p, t);
             if (r == Hint::STOP)
               return;
@@ -53,7 +53,7 @@ namespace xfsx {
     template <typename ...F, typename T, typename Proxy>
         void operator()(Proxy &p, T &t, F& ... f)
         {
-          while (!p.eot()) {
+          while (!p.eot(t)) {
             std::array<Hint, sizeof...(F)> r = { f(p, t)... };
             if (std::all_of(r.begin(), r.end(),
                   [](auto x){ return x == Hint::STOP; }))
