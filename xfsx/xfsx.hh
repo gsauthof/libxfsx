@@ -363,6 +363,7 @@ namespace xfsx {
 
     Unit();
     Unit(Tag_Int tag);
+    Unit(Klasse klasse, Tag_Int tag, size_t length);
     Unit(EOC);
 
     template <typename T> Unit(Tag_Int tag, const T &t)

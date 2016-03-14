@@ -364,6 +364,12 @@ namespace xfsx {
   {
     init_constructed_from(tag);
   }
+  Unit::Unit(Klasse klasse, Tag_Int tag, size_t length)
+    :
+      klasse(klasse)
+  {
+    init_constructed_from(tag, length);
+  }
   Unit::Unit(Unit::EOC)
     :
       klasse          (Klasse::UNIVERSAL),

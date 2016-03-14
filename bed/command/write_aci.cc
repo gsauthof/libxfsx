@@ -72,9 +72,7 @@ namespace bed {
 
       size_t n = (end-begin) + bw.size();
 
-      xfsx::Unit tb;
-      tb.klasse = xfsx::Klasse::APPLICATION;
-      tb.init_constructed_from(grammar::tap::TRANSFER_BATCH, n);
+      xfsx::Unit tb(xfsx::Klasse::APPLICATION, grammar::tap::TRANSFER_BATCH, n);
 
       ixxx::util::FD fd(ixxx::util::FD(
             args_.out_filename, O_CREAT | O_WRONLY | O_TRUNC, 0666));
