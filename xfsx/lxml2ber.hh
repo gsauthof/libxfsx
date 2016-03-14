@@ -26,16 +26,33 @@
 #include "ber_writer_arguments.hh"
 #include <xxxml/xxxml.hh>
 
+#include "ber_writer.hh"
+
 namespace xfsx {
   namespace xml {
     namespace l2 {
 
-    void write_ber(const xxxml::doc::Ptr &doc,
-        const std::string &filename,
-        const BER_Writer_Arguments &args = default_ber_writer_arguments);
+      class BER_Writer : public BER_Writer_Base {
+        private:
+          const xxxml::doc::Ptr &doc_;
 
-    }
-  }
-}
+          void write_element(const xmlNode *element);
+          void read_attributes(const xmlNode *element);
+        protected:
+        public:
+          BER_Writer(const xxxml::doc::Ptr &doc,
+              const BER_Writer_Arguments &args
+              );
+          void write(const std::string &filename);
+          void write();
+      };
+
+      void write_ber(const xxxml::doc::Ptr &doc,
+          const std::string &filename,
+          const BER_Writer_Arguments &args = default_ber_writer_arguments);
+
+    } // l2
+  } // xml
+} // xfsx
 
 #endif

@@ -179,21 +179,37 @@ namespace xfsx {
       }
     }
 
+    size_t BER_Writer_Base::size() const
+    {
+      return root.length();
+    }
+
     void BER_Writer_Base::store(const string &filename)
     {
       if (node_stack.size() > 1)
         throw runtime_error("some tags still open at the end of the document");
 
       ixxx::util::Mapped_File f(filename, false, true, root.length());
-      auto p = f.begin();
-      for (auto &child : root.children()) {
-        p = child->write(p, f.end());
-      }
-      if (p < f.end())
-        throw runtime_error("written less than computed before");
-      if (p > f.end())
-        throw runtime_error("written more than computed before");
+      store(f.begin(), f.end());
       f.close();
+    }
+
+    void BER_Writer_Base::store(uint8_t *begin, uint8_t *end)
+    {
+      if (node_stack.size() > 1)
+        throw runtime_error("some tags still open at the end of the document");
+
+      auto n = root.length();
+      if (end-begin < ssize_t(n))
+        throw underflow_error("ber_writer_base: destination buffer too small");
+      auto p = begin;
+      for (auto &child : root.children()) {
+        p = child->write(p, end);
+      }
+      if (p < begin + n)
+        throw runtime_error("written less than computed before");
+      if (p > begin + n)
+        throw runtime_error("written more than computed before");
     }
 
 

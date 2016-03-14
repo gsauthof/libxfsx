@@ -33,19 +33,6 @@ namespace xfsx {
     namespace l2 {
 
 
-      class BER_Writer : public BER_Writer_Base {
-        private:
-          const xxxml::doc::Ptr &doc_;
-
-          void write_element(const xmlNode *element);
-          void read_attributes(const xmlNode *element);
-        protected:
-        public:
-          BER_Writer(const xxxml::doc::Ptr &doc,
-              const BER_Writer_Arguments &args
-              );
-          void write(const string &filename);
-      };
       BER_Writer::BER_Writer(const xxxml::doc::Ptr &doc,
           const BER_Writer_Arguments &args
           )
@@ -54,7 +41,7 @@ namespace xfsx {
           doc_(doc)
       {
       }
-      void BER_Writer::write(const std::string &filename)
+      void BER_Writer::write()
       {
         stack<const xmlNode*> element_stack;
         const xmlNode *root = xxxml::doc::get_root_element(doc_);
@@ -79,6 +66,10 @@ namespace xfsx {
             element_stack.push(child);
           }
         }
+      }
+      void BER_Writer::write(const std::string &filename)
+      {
+        write();
         store(filename);
       }
       void BER_Writer::write_element(const xmlNode *element)
