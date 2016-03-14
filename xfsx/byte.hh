@@ -107,7 +107,7 @@ namespace xfsx {
           void flush();
 
           char *obtain_chunk(size_t n);
-          void write(const char *begin, const char *end);
+          virtual void write(const char *begin, const char *end);
           virtual void rewind(size_t n) = 0;
 
           void fill(size_t n, char value = ' ');
@@ -154,6 +154,7 @@ namespace xfsx {
         public:
           File(ixxx::util::FD &fd, size_t n = 128u * 1024u);
           ~File();
+          void write(const char *begin, const char *end) override;
 
 
       };

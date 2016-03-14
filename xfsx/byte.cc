@@ -298,6 +298,35 @@ namespace xfsx {
         }
         Memory::make_room_for(n);
       }
+      void File::write(const char *begin, const char *end)
+      {
+        size_t n = end-begin;
+        size_t m = cur_ - v_.data();
+
+        if (increment_ - m % increment_ > n) {
+          Base::write(begin, end);
+        } else {
+          const char *next_begin = begin +
+            (m % increment_ ?  increment_ - m % increment_ : 0);
+          cur_ = copy(begin, next_begin, cur_);
+          for (const char *x = v_.data(); x < cur_; x += increment_) {
+            auto r = ixxx::posix::write(fd_, x, increment_);
+            if (size_t(r) != increment_)
+              throw runtime_error("less bytes written than expected");
+          }
+          written_ += next_begin - begin;;
+          cur_ = v_.data();
+          for (const char *x = next_begin; x + increment_ <= end; x += increment_) {
+            auto r = ixxx::posix::write(fd_, x, increment_);
+            if (size_t(r) != increment_)
+              throw runtime_error("less bytes written than expected");
+          }
+          size_t a = end - next_begin;
+          written_ += a / increment_ * increment_;
+          size_t rest = a % increment_;
+          Base::write(end-rest, end);
+        }
+      }
       void File::flush_it()
       {
         size_t m = cur_ - v_.data();

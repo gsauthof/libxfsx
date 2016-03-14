@@ -95,20 +95,20 @@ BOOST_AUTO_TEST_SUITE(xfsx_)
           File w(fd, 5);
           const char inp[] = "Hello";
           w.write(inp, inp + sizeof(inp)-1);
-          BOOST_CHECK_EQUAL(string(w.begin(), w.end()), "Hello");
-          w << "World";
-          BOOST_CHECK_EQUAL(string(w.begin(), w.end()), "World");
+          BOOST_CHECK_EQUAL(string(w.begin(), w.end()), "");
+          w << "Worl";
+          BOOST_CHECK_EQUAL(string(w.begin(), w.end()), "Worl");
           auto r = w.obtain_chunk(3);
           const char inp2[] = " 23";
           copy(inp2, inp2 + sizeof(inp2) - 1, r);
-          BOOST_CHECK_EQUAL(string(w.begin(), w.end()), " 23");
+          BOOST_CHECK_EQUAL(string(w.begin(), w.end()), "Worl 23");
           // also called at scope exit, but here it is allowed to throw
           w.flush();
         }
         BOOST_TEST_CHECKPOINT("Comparing: " << out);
         {
           ixxx::util::Mapped_File f(out.generic_string());
-          BOOST_CHECK_EQUAL(string(f.s_begin(), f.s_end()), "HelloWorld 23");
+          BOOST_CHECK_EQUAL(string(f.s_begin(), f.s_end()), "HelloWorl 23");
         }
       }
 
@@ -159,6 +159,32 @@ BOOST_AUTO_TEST_SUITE(xfsx_)
         w << "World\n";
         w.flush();
         BOOST_CHECK_EQUAL(boost::filesystem::file_size(out), 12);
+      }
+
+      BOOST_AUTO_TEST_CASE(directly_write_inc_multiples)
+      {
+        bf::path out_path(test::path::out());
+        out_path /= "writer";
+        bf::path out(out_path);
+        out /= "newline";
+        BOOST_TEST_CHECKPOINT("Removing: " << out);
+        bf::remove(out);
+        {
+        ixxx::util::FD fd(out.generic_string(), O_CREAT | O_WRONLY, 0666);
+        xfsx::byte::writer::File w{fd, 3};
+        const char inp1[] = "Hello World";
+        const char inp2[] = "foobar23";
+        w.write(inp1, inp1 + sizeof(inp1)-1);
+        BOOST_CHECK_EQUAL(w.written(), sizeof(inp1)-1);
+        BOOST_CHECK_EQUAL(string(w.begin(), w.end()), "ld");
+        w.write(inp2, inp2 + sizeof(inp2)-1);
+        BOOST_CHECK_EQUAL(w.written(), sizeof(inp1)-1+sizeof(inp2)-1);
+        BOOST_CHECK_EQUAL(string(w.begin(), w.end()), "3");
+        w.flush();
+        }
+        BOOST_CHECK_EQUAL(boost::filesystem::file_size(out), 19);
+        ixxx::util::Mapped_File f(out.generic_string());
+        BOOST_CHECK_EQUAL(string(f.s_begin(), f.s_end()), "Hello Worldfoobar23");
       }
 
 
