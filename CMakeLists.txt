@@ -105,6 +105,16 @@ if(${UNIX})
   set_target_properties(xfsx_static PROPERTIES OUTPUT_NAME xfsx)
 endif()
 
+set(BED_SRC
+    bed/arguments.cc
+    bed/command.cc
+    bed/command/arguments.cc
+    bed/command/ber_commands.cc
+    bed/command/compute_aci.cc
+    bed/command/edit.cc
+    bed/command/write_aci.cc
+  )
+
 IF(${CMAKE_PROJECT_NAME} STREQUAL "xfsx")
 
   add_executable(ut
@@ -131,13 +141,7 @@ IF(${CMAKE_PROJECT_NAME} STREQUAL "xfsx")
     test/path.cc
     test/xfsx/tap/traverser.cc
 
-    bed/arguments.cc
-    bed/command.cc
-    bed/command/arguments.cc
-    bed/command/ber_commands.cc
-    bed/command/compute_aci.cc
-    bed/command/edit.cc
-    bed/command/write_aci.cc
+    ${BED_SRC}
 
     ${CMAKE_SOURCE_DIR}/cppformat/format.cc
   )
@@ -169,12 +173,7 @@ endif() # CMAKE_PROJECT_NAME
 
 add_executable(bed
   bed/main.cc
-  bed/arguments.cc
-  bed/command.cc
-  bed/command/arguments.cc
-  bed/command/ber_commands.cc
-  bed/command/compute_aci.cc
-  bed/command/edit.cc
+  ${BED_SRC}
   
   ${CMAKE_SOURCE_DIR}/cppformat/format.cc
   )
