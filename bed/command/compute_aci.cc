@@ -60,7 +60,8 @@ namespace bed {
         fd = ixxx::util::FD(1);
         fd.set_keep_open(true);
       } else
-        fd = ixxx::util::FD(args_.out_filename, O_CREAT | O_WRONLY, 0666);
+        fd = ixxx::util::FD(args_.out_filename, O_CREAT | O_WRONLY | O_TRUNC,
+            0666);
       xfsx::byte::writer::File o(fd);
 
       aci.print(o);
