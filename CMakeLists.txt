@@ -123,6 +123,7 @@ IF(${CMAKE_PROJECT_NAME} STREQUAL "xfsx")
     test/bed/command.cc
     test/bed/command/compute_aci.cc
     test/bed/command/edit.cc
+    test/bed/command/write_aci.cc
     test/detector.cc
     test/character.cc
     test/xml2lxml.cc
@@ -136,6 +137,7 @@ IF(${CMAKE_PROJECT_NAME} STREQUAL "xfsx")
     bed/command/ber_commands.cc
     bed/command/compute_aci.cc
     bed/command/edit.cc
+    bed/command/write_aci.cc
 
     ${CMAKE_SOURCE_DIR}/cppformat/format.cc
   )

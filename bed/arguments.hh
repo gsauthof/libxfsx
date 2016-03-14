@@ -40,7 +40,8 @@ namespace bed {
     SEARCH_XPATH,
     VALIDATE_XSD,
     EDIT,
-    COMPUTE_ACI
+    COMPUTE_ACI,
+    WRITE_ACI
   };
 
   enum class Edit_Command {

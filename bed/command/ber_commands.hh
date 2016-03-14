@@ -25,6 +25,7 @@
 
 #include <bed/command/edit.hh>
 #include <bed/command/compute_aci.hh>
+#include <bed/command/write_aci.hh>
 
 namespace bed {
 

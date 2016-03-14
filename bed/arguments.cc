@@ -68,6 +68,11 @@ Commands:
   compute-aci   Compute the Audit Control Info of a TAP file and print
                 the result as XML.
 
+  write-aci     Compute the Audit Control Info of a TAP file and rewrite
+                it in the output file. This operation has constant
+                memory usage, but otherwise yields the same result
+                as `edit -c write-aci`.
+
 Files:
 
   The OUTPUT argument is mandatory for most commands. For the xml command
@@ -242,7 +247,8 @@ static map<string, bed::Command> command_map = {
   { "search"     , bed::Command::SEARCH_XPATH     },
   { "validate"   , bed::Command::VALIDATE_XSD     },
   { "edit"       , bed::Command::EDIT             },
-  { "compute-aci", bed::Command::COMPUTE_ACI      }
+  { "compute-aci", bed::Command::COMPUTE_ACI      },
+  { "write-aci",   bed::Command::WRITE_ACI        }
 };
 
 static map<string, bed::Edit_Command> edit_command_map = {
@@ -479,6 +485,7 @@ namespace bed {
            || command == Command::WRITE_INDEFINITE
            || command == Command::WRITE_BER
            || command == Command::EDIT
+           || command == Command::WRITE_ACI
          )
          && out_filename.empty())
       throw Argument_Error("no output file given");
