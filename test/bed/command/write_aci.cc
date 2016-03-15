@@ -7,6 +7,7 @@
 #include <bed/command.hh>
 #include <bed/command/write_aci.hh>
 
+#include <ixxx/ixxx.hh>
 #include <ixxx/ansi.hh>
 #include <ixxx/posix.hh>
 
@@ -33,7 +34,9 @@ BOOST_AUTO_TEST_SUITE(bed_)
 
       BOOST_AUTO_TEST_CASE(autodetect)
       {
-        string old_asn1_path {ixxx::ansi::getenv("ASN1_PATH")};
+        string old_asn1_path;
+        try { old_asn1_path = ixxx::ansi::getenv("ASN1_PATH"); }
+        catch (const ixxx::runtime_error &e) {}
         string a {test::path::in() + "/../../libgrammar/test/in/asn1"};
         string b {test::path::in() + "/../../config"};
         ixxx::posix::setenv("ASN1_PATH", a + ":" + b, true);
@@ -42,7 +45,8 @@ BOOST_AUTO_TEST_SUITE(bed_)
             "edit_aci.ber",
             { "write-aci" }
             );
-        ixxx::posix::setenv("ASN1_PATH", old_asn1_path, true);
+        if (!old_asn1_path.empty())
+          ixxx::posix::setenv("ASN1_PATH", old_asn1_path, true);
       }
 
     BOOST_AUTO_TEST_SUITE_END() // write_aci
