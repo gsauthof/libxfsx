@@ -45,7 +45,7 @@ namespace xfsx {
           "<UtcTimeOffset>" << last_timestamp().second << "</UtcTimeOffset>\n" << i <<
           "</LatestCallTimeStamp>\n" << i <<
           "<TotalCharge>" << sum() << "</TotalCharge>\n" << i <<
-          "<TotalTaxValue>0</TotalTaxValue>\n" << i <<
+          "<TotalTaxValue>" << tax_sum() << "</TotalTaxValue>\n" << i <<
           "<TotalDiscountValue>0</TotalDiscountValue>\n" << i <<
           "<CallEventDetailsCount>" << count() << "</CallEventDetailsCount>\n";
 

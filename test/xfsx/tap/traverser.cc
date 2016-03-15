@@ -447,6 +447,62 @@ BOOST_AUTO_TEST_SUITE(xfsx_)
           BOOST_CHECK_EQUAL(f().second, "+0000");
         }
 
+        BOOST_AUTO_TEST_CASE(exclude_refund)
+        {
+          using namespace xfsx::tap::traverser;
+          using namespace grammar::tap;
+          Fake_Proxy p;
+          Fake_Proxy::Tags t = {
+            make_tuple(Tag::TRANSFER_BATCH, string(), 0 ),
+            make_tuple(Tag::CALL_EVENT_DETAIL_LIST, string(), 1 ),
+
+            make_tuple(23, string(), 2),
+            make_tuple(Tag::CHARGE, "13", 5),
+            make_tuple(Tag::TAX_VALUE, string("2"), 4),
+
+            make_tuple(23, string(), 2),
+            make_tuple(Tag::CHARGE_REFUND_INDICATOR, string(), 3),
+            make_tuple(Tag::CHARGE, "15", 5),
+            make_tuple(Tag::TAX_VALUE, string("20"), 4),
+
+            make_tuple(23, string(), 1),
+            make_tuple(Tag::AUDIT_CONTROL_INFO, string(), 1 )
+          };
+          Charge_Sum f;
+          Simple_Traverse st;
+          st(p, t, f);
+
+          BOOST_CHECK_EQUAL(f(), 13);
+        }
+
+        BOOST_AUTO_TEST_CASE(tax)
+        {
+          using namespace xfsx::tap::traverser;
+          using namespace grammar::tap;
+          Fake_Proxy p;
+          Fake_Proxy::Tags t = {
+            make_tuple(Tag::TRANSFER_BATCH, string(), 0 ),
+            make_tuple(Tag::CALL_EVENT_DETAIL_LIST, string(), 1 ),
+
+            make_tuple(23, string(), 2),
+            make_tuple(Tag::CHARGE, "13", 5),
+            make_tuple(Tag::TAX_VALUE, string("2"), 4),
+
+            make_tuple(23, string(), 2),
+            make_tuple(Tag::CHARGE_REFUND_INDICATOR, string(), 3),
+            make_tuple(Tag::CHARGE, "15", 5),
+            make_tuple(Tag::TAX_VALUE, string("20"), 4),
+
+            make_tuple(23, string(), 1),
+            make_tuple(Tag::AUDIT_CONTROL_INFO, string(), 1 )
+          };
+          Tax_Sum f;
+          Simple_Traverse st;
+          st(p, t, f);
+
+          BOOST_CHECK_EQUAL(f(), 2);
+        }
+
       BOOST_AUTO_TEST_SUITE_END() // fake
 
     BOOST_AUTO_TEST_SUITE_END() // traverser_

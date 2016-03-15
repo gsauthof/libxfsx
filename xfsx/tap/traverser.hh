@@ -76,7 +76,11 @@ namespace xfsx {
             size_t operator()() const { return counter_; }
         };
 
-        class Charge_Sum {
+        struct Charge_Tag {};
+        struct Tax_Tag {};
+
+        template<typename Tag = Charge_Tag>
+        class Sum {
           private:
             uint64_t charge_ {0};
             std::string charge_type_ {"00"};
@@ -101,6 +105,10 @@ namespace xfsx {
                   charge_type_ = "00";
                   refund_ = false;
                 } else {
+                  constexpr grammar::tap::Tag s_label =
+                    std::is_same<Tag, Charge_Tag>::value
+                        ? grammar::tap::CHARGE
+                        : grammar::tap::TAX_VALUE;
                   switch (p.tag(t)) {
                     case grammar::tap::CHARGE_TYPE:
                       p.string(t, charge_type_);
@@ -109,8 +117,12 @@ namespace xfsx {
                       refund_ = true;
                       break;
                     case grammar::tap::CAMEL_INVOCATION_FEE:
-                    case grammar::tap::CHARGE:
-                      if (!refund_ && charge_type_ == "00")
+                      if (!std::is_same<Tag, Charge_Tag>::value)
+                        break;
+                    case s_label:
+                      if (!refund_
+                                   && (    charge_type_ == "00"
+                                        || std::is_same<Tag, Tax_Tag>::value))
                         charge_ += p.uint64(t);
                       break;
                   }
@@ -121,6 +133,8 @@ namespace xfsx {
             }
             uint64_t operator()() const { return charge_; }
         };
+        using Charge_Sum = Sum<Charge_Tag>;
+        using Tax_Sum = Sum<Tax_Tag>;
 
         struct Less_Tag {};
         struct Greater_Tag {};
@@ -409,6 +423,7 @@ namespace xfsx {
           public:
             CDR_Count count;
             Charge_Sum sum;
+            Tax_Sum tax_sum;
             Timestamp<Less_Tag>    first_timestamp;
             Timestamp<Greater_Tag> last_timestamp;
 
@@ -420,6 +435,7 @@ namespace xfsx {
                   Traverse st;
                   st(p, t, count, sum,
                       first_timestamp, last_timestamp,
+                      tax_sum,
                       f...);
                 }
 
