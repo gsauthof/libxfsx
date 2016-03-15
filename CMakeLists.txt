@@ -10,10 +10,9 @@ IF(CMAKE_CURRENT_SOURCE_DIR STREQUAL CMAKE_SOURCE_DIR)
   include (${CMAKE_SOURCE_DIR}/cmake/modules/sanitize.cmake)
 endif()
 
-if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
-  if(CMAKE_CXX_COMPILER_VERSION VERSION_LESS "4.8")
-    message(FATAL_ERROR "You need at least version 4.8 when compiling with GCC")
-  endif()
+if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU"
+    AND CMAKE_CXX_COMPILER_VERSION VERSION_LESS "4.8")
+  message(FATAL_ERROR "You need at least version 4.8 when compiling with GCC")
 endif()
 
 # guard from super-projects, i.e. when it is added as subdirectory
@@ -24,11 +23,19 @@ IF(CMAKE_CURRENT_SOURCE_DIR STREQUAL CMAKE_SOURCE_DIR)
   string(REPLACE "-Wall" "" CMAKE_CXX_FLAGS_DEBUG ${CMAKE_CXX_FLAGS_DEBUG})
 
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++1y")
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wno-unused-local-typedefs")
-  # Without that clang issues some questionable warnings
-  # See also:
-  # http://stackoverflow.com/questions/13905200/is-it-wise-to-ignore-gcc-clangs-wmissing-braces-warning
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-missing-braces")
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall")
+  if(CMAKE_CXX_COMPILER_ID STREQUAL "Clang"
+      AND CMAKE_CXX_COMPILER_VERSION VERSION_LESS "3.7")
+    # clang 3.6 does not know this option
+  else()
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-unused-local-typedefs")
+  endif()
+  if(CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
+    # Without that clang issues some questionable warnings
+    # See also:
+    # http://stackoverflow.com/questions/13905200/is-it-wise-to-ignore-gcc-clangs-wmissing-braces-warning
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-missing-braces")
+  endif()
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fstrict-aliasing -Wstrict-aliasing")
 endif()
 
