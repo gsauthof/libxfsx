@@ -161,7 +161,6 @@ namespace xfsx {
             template <typename T, typename Proxy>
             xfsx::traverser::Hint operator()(const Proxy &p, const T &t)
             {
-              // XXX implement strict TD.57 rules
               if (p.height(t) < 2)
                 state_ = OUTSIDE;
               switch (state_) {
@@ -196,11 +195,18 @@ namespace xfsx {
                     // 'charging timestamp' of records or 'Call Event Details'.
                     // Thus, ignoring the Charge Detail Time Stamp for now.
                     // case grammar::tap::CHARGE_DETAIL_TIME_STAMP:
+                    //
+                    // inside SupplServiceEvent, LocationService (opt),
+                    // MobileOriginatedCall (opt), MobileTerminatedCall (opt)
                     case grammar::tap::CHARGING_TIME_STAMP:
+                    // inside MobileOriginatedCall, MobileTerminatedCall,
+                    // GprsCall
                     case grammar::tap::CALL_EVENT_START_TIME_STAMP:
+                    // inside MessagingEvent, MobileSession
+                    case grammar::tap::SERVICE_START_TIME_STAMP:
                       state_ = INSIDE_CHARGING_TIME_STAMP;
                       break;
-                    // Service Center Usage (SCU) timestamps
+                    // ServiceCentreUsage (SCU) timestamps
                     case grammar::tap::DEPOSIT_TIME_STAMP:
                       state_ = INSIDE_DEPOSIT_TIME_STAMP;
                       break;
@@ -226,7 +232,7 @@ namespace xfsx {
                         deposit_code_ = 0;
                       }
                       break;
-                    // Content Transaction timestamps
+                    // ContentTransaction timestamps
                     case grammar::tap::CONTENT_TRANSACTION_BASIC_INFO:
                       content_charging_point_ = 0;
                       order_placed_timestamp_.clear();
