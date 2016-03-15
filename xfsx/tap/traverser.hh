@@ -137,10 +137,23 @@ namespace xfsx {
             uint32_t deposit_code_ {0};
             std::string deposit_timestamp_;
             std::string cp_;
+
+            unsigned content_service_used_height_ {0};
+            unsigned content_charging_point_ {0};
+            std::string order_placed_timestamp_;
+            uint32_t order_placed_code_ {0};
+            std::string requested_delivery_timestamp_;
+            uint32_t requested_delivery_code_ {0};
+            std::string actual_delivery_timestamp_;
+            uint32_t actual_delivery_code_ {0};
             enum State { OUTSIDE, INSIDE_NETWORK_INFO, INSIDE_CDRS,
               INSIDE_CHARGING_TIME_STAMP,
               INSIDE_COMPLETION_TIME_STAMP,
-              INSIDE_DEPOSIT_TIME_STAMP
+              INSIDE_DEPOSIT_TIME_STAMP,
+              INSIDE_ORDER_PLACED_TIME_STAMP,
+              INSIDE_REQUESTED_DELIVERY_TIME_STAMP,
+              INSIDE_ACTUAL_DELIVERY_TIME_STAMP,
+              INSIDE_CONTENT_SERVICE_USED
             };
             State state_ {OUTSIDE};
             std::pair<std::string, std::string> timestamp_long_;
@@ -187,6 +200,7 @@ namespace xfsx {
                     case grammar::tap::CALL_EVENT_START_TIME_STAMP:
                       state_ = INSIDE_CHARGING_TIME_STAMP;
                       break;
+                    // Service Center Usage (SCU) timestamps
                     case grammar::tap::DEPOSIT_TIME_STAMP:
                       state_ = INSIDE_DEPOSIT_TIME_STAMP;
                       break;
@@ -212,6 +226,34 @@ namespace xfsx {
                         deposit_code_ = 0;
                       }
                       break;
+                    // Content Transaction timestamps
+                    case grammar::tap::CONTENT_TRANSACTION_BASIC_INFO:
+                      content_charging_point_ = 0;
+                      order_placed_timestamp_.clear();
+                      order_placed_code_ = 0;
+                      requested_delivery_timestamp_.clear();
+                      requested_delivery_code_ = 0;
+                      actual_delivery_timestamp_.clear();
+                      actual_delivery_code_ = 0;
+                      break;
+                    case grammar::tap::ORDER_PLACED_TIME_STAMP:
+                      // set the default in case content service used
+                      // omits a ContentChargingPoint
+                      content_charging_point_ = 1;
+                      state_ = INSIDE_ORDER_PLACED_TIME_STAMP;
+                      break;
+                    case grammar::tap::REQUESTED_DELIVERY_TIME_STAMP:
+                      content_charging_point_ = 2;
+                      state_ = INSIDE_REQUESTED_DELIVERY_TIME_STAMP;
+                      break;
+                    case grammar::tap::ACTUAL_DELIVERY_TIME_STAMP:
+                      content_charging_point_ = 3;
+                      state_ = INSIDE_ACTUAL_DELIVERY_TIME_STAMP;
+                      break;
+                    case grammar::tap::CONTENT_SERVICE_USED:
+                      state_ = INSIDE_CONTENT_SERVICE_USED;
+                      content_service_used_height_ = p.height(t);
+                      break;
                   }
                   return Hint::DESCEND;
                 case INSIDE_DEPOSIT_TIME_STAMP:
@@ -225,6 +267,7 @@ namespace xfsx {
                       break;
                   }
                   return Hint::DESCEND;
+                // Service Center Usage timestamps
                 case INSIDE_COMPLETION_TIME_STAMP:
                   switch (p.tag(t)) {
                     case grammar::tap::LOCAL_TIME_STAMP:
@@ -246,6 +289,58 @@ namespace xfsx {
                       push(timestamp_, code);
                       state_ = INSIDE_CDRS;
                       break;
+                  }
+                  return Hint::DESCEND;
+                // Content Transaction timestamps
+                case INSIDE_ORDER_PLACED_TIME_STAMP:
+                  switch (p.tag(t)) {
+                    case grammar::tap::LOCAL_TIME_STAMP:
+                      p.string(t, order_placed_timestamp_);
+                      break;
+                    case grammar::tap::UTC_TIME_OFFSET_CODE:
+                      order_placed_code_ = p.uint32(t);
+                      state_ = INSIDE_CDRS;
+                      break;
+                  }
+                  return Hint::DESCEND;
+                case INSIDE_REQUESTED_DELIVERY_TIME_STAMP:
+                  switch (p.tag(t)) {
+                    case grammar::tap::LOCAL_TIME_STAMP:
+                      p.string(t, requested_delivery_timestamp_);
+                      break;
+                    case grammar::tap::UTC_TIME_OFFSET_CODE:
+                      requested_delivery_code_ = p.uint32(t);
+                      state_ = INSIDE_CDRS;
+                      break;
+                  }
+                  return Hint::DESCEND;
+                case INSIDE_ACTUAL_DELIVERY_TIME_STAMP:
+                  switch (p.tag(t)) {
+                    case grammar::tap::LOCAL_TIME_STAMP:
+                      p.string(t, actual_delivery_timestamp_);
+                      break;
+                    case grammar::tap::UTC_TIME_OFFSET_CODE:
+                      actual_delivery_code_ = p.uint32(t);
+                      state_ = INSIDE_CDRS;
+                      break;
+                  }
+                  return Hint::DESCEND;
+                case INSIDE_CONTENT_SERVICE_USED:
+                  if (p.height(t) <= content_service_used_height_) {
+                    switch (content_charging_point_) {
+                      case 1:
+                        push(order_placed_timestamp_, order_placed_code_);
+                        break;
+                      case 2:
+                        push(requested_delivery_timestamp_, requested_delivery_code_);
+                        break;
+                      case 3:
+                        push(actual_delivery_timestamp_, actual_delivery_code_);
+                        break;
+                    }
+                    state_ = INSIDE_CDRS;
+                  } else if (p.tag(t) == grammar::tap::CONTENT_CHARGING_POINT) {
+                    content_charging_point_ = p.uint32(t);
                   }
                   return Hint::DESCEND;
               }
