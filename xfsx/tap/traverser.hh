@@ -169,7 +169,12 @@ namespace xfsx {
                   return Hint::DESCEND;
                 case INSIDE_CDRS:
                   switch (p.tag(t)) {
-                    case grammar::tap::CHARGE_DETAIL_TIME_STAMP:
+                    // The TD.57 is not absolutely clear on this; the
+                    // resulting field is called 'Earliest Call Timestamp'
+                    // and the description talks about the
+                    // 'charging timestamp' of records or 'Call Event Details'.
+                    // Thus, ignoring the Charge Detail Time Stamp for now.
+                    // case grammar::tap::CHARGE_DETAIL_TIME_STAMP:
                     case grammar::tap::CHARGING_TIME_STAMP:
                     case grammar::tap::CALL_EVENT_START_TIME_STAMP:
                       state_ = INSIDE_CHARGING_TIME_STAMP;

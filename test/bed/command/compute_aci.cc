@@ -23,7 +23,7 @@ BOOST_AUTO_TEST_SUITE(bed_)
         <UtcTimeOffset>+0200</UtcTimeOffset>
     </EarliestCallTimeStamp>
     <LatestCallTimeStamp>
-        <LocalTimeStamp>20140302151252</LocalTimeStamp>
+        <LocalTimeStamp>20140302151200</LocalTimeStamp>
         <UtcTimeOffset>-0500</UtcTimeOffset>
     </LatestCallTimeStamp>
     <TotalCharge>71200</TotalCharge>
