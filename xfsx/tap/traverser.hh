@@ -132,8 +132,16 @@ namespace xfsx {
             std::map<uint32_t, std::string> timestamps_;
             uint32_t code_ {0};
             std::string timestamp_;
+            uint32_t completion_code_ {0};
+            std::string completion_timestamp_;
+            uint32_t deposit_code_ {0};
+            std::string deposit_timestamp_;
+            std::string cp_;
             enum State { OUTSIDE, INSIDE_NETWORK_INFO, INSIDE_CDRS,
-              INSIDE_CHARGING_TIME_STAMP };
+              INSIDE_CHARGING_TIME_STAMP,
+              INSIDE_COMPLETION_TIME_STAMP,
+              INSIDE_DEPOSIT_TIME_STAMP
+            };
             State state_ {OUTSIDE};
             std::pair<std::string, std::string> timestamp_long_;
           public:
@@ -179,6 +187,53 @@ namespace xfsx {
                     case grammar::tap::CALL_EVENT_START_TIME_STAMP:
                       state_ = INSIDE_CHARGING_TIME_STAMP;
                       break;
+                    case grammar::tap::DEPOSIT_TIME_STAMP:
+                      state_ = INSIDE_DEPOSIT_TIME_STAMP;
+                      break;
+                    case grammar::tap::COMPLETION_TIME_STAMP:
+                      state_ = INSIDE_COMPLETION_TIME_STAMP;
+                      break;
+                    case grammar::tap::CHARGING_POINT:
+                      {
+                        p.string(t, cp_);
+                        if (cp_.size() != 1)
+                          throw std::runtime_error("Unexpected charging point size");
+                        switch (cp_[0]) {
+                          case 'C':
+                            push(completion_timestamp_, completion_code_);
+                            break;
+                          case 'D':
+                            push(deposit_timestamp_, deposit_code_);
+                            break;
+                        }
+                        completion_timestamp_.clear();
+                        completion_code_ = 0;
+                        deposit_timestamp_.clear();
+                        deposit_code_ = 0;
+                      }
+                      break;
+                  }
+                  return Hint::DESCEND;
+                case INSIDE_DEPOSIT_TIME_STAMP:
+                  switch (p.tag(t)) {
+                    case grammar::tap::LOCAL_TIME_STAMP:
+                      p.string(t, deposit_timestamp_);
+                      break;
+                    case grammar::tap::UTC_TIME_OFFSET_CODE:
+                      deposit_code_ = p.uint32(t);
+                      state_ = INSIDE_CDRS;
+                      break;
+                  }
+                  return Hint::DESCEND;
+                case INSIDE_COMPLETION_TIME_STAMP:
+                  switch (p.tag(t)) {
+                    case grammar::tap::LOCAL_TIME_STAMP:
+                      p.string(t, completion_timestamp_);
+                      break;
+                    case grammar::tap::UTC_TIME_OFFSET_CODE:
+                      completion_code_ = p.uint32(t);
+                      state_ = INSIDE_CDRS;
+                      break;
                   }
                   return Hint::DESCEND;
                 case INSIDE_CHARGING_TIME_STAMP:
@@ -188,20 +243,27 @@ namespace xfsx {
                       break;
                     case grammar::tap::UTC_TIME_OFFSET_CODE:
                       auto code = p.uint32(t);
-                      auto i = timestamps_.find(code);
-                      if (i == timestamps_.end())
-                        timestamps_[code] = timestamp_;
-                      else {
-                        using Cmp = typename std::conditional<std::is_same<Tag, Less_Tag>::value, std::less<std::string>, std::greater<std::string> >::type;
-                        if (Cmp()(timestamp_, i->second))
-                          i->second = timestamp_;
-                      }
+                      push(timestamp_, code);
                       state_ = INSIDE_CDRS;
                       break;
                   }
                   return Hint::DESCEND;
               }
               return Hint::DESCEND;
+            }
+            void push(const std::string &timestamp, uint32_t code)
+            {
+              auto i = timestamps_.find(code);
+              if (i == timestamps_.end())
+                timestamps_[code] = timestamp;
+              else {
+                using Cmp = typename std::conditional<
+                  std::is_same<Tag, Less_Tag>::value,
+                    std::less<std::string>,
+                    std::greater<std::string> >::type;
+                if (Cmp()(timestamp, i->second))
+                  i->second = timestamp;
+              }
             }
             void finalize()
             {

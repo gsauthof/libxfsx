@@ -310,6 +310,35 @@ BOOST_AUTO_TEST_SUITE(xfsx_)
           BOOST_CHECK_EQUAL(f().second, "+0000");
         }
 
+        BOOST_AUTO_TEST_CASE(min_service_center_usage)
+        {
+          using namespace xfsx::tap::traverser;
+          using namespace grammar::tap;
+          Fake_Proxy p;
+          Fake_Proxy::Tags t = {
+            make_tuple(Tag::TRANSFER_BATCH, string(), 0 ),
+            make_tuple(Tag::NETWORK_INFO, string(), 1 ),
+            make_tuple(Tag::UTC_TIME_OFFSET_CODE, string("1"), 3 ),
+            make_tuple(Tag::UTC_TIME_OFFSET, string("+0000"), 3 ),
+            make_tuple(Tag::CALL_EVENT_DETAIL_LIST, string(), 1 ),
+            make_tuple(Tag::DEPOSIT_TIME_STAMP, string(), 3 ),
+            make_tuple(Tag::LOCAL_TIME_STAMP, string("20160310202323"), 4 ),
+            make_tuple(Tag::UTC_TIME_OFFSET_CODE, string("1"), 4 ),
+            make_tuple(23, string(), 2),
+            make_tuple(Tag::COMPLETION_TIME_STAMP, string(), 3 ),
+            make_tuple(Tag::LOCAL_TIME_STAMP, string("20160310212323"), 4 ),
+            make_tuple(Tag::UTC_TIME_OFFSET_CODE, string("1"), 4 ),
+            make_tuple(Tag::CHARGING_POINT, string("C"), 3 ),
+            make_tuple(Tag::AUDIT_CONTROL_INFO, string(), 1 )
+          };
+          Timestamp<Less_Tag> f;
+          Simple_Traverse st;
+          st(p, t, f);
+
+          BOOST_CHECK_EQUAL(f().first, "20160310212323");
+          BOOST_CHECK_EQUAL(f().second, "+0000");
+        }
+
       BOOST_AUTO_TEST_SUITE_END() // fake
 
     BOOST_AUTO_TEST_SUITE_END() // traverser_
