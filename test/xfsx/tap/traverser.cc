@@ -33,11 +33,52 @@
 
 #include <ixxx/util.hh>
 
+#include <xfsx/integer.hh>
+#include <xfsx/s_pair.hh>
+
 #include <deque>
+#include <tuple>
 
 #include <boost/filesystem.hpp>
 
 using namespace std;
+
+    class Fake_Proxy {
+      public:
+        using Tags = std::deque<std::tuple<xfsx::Tag_Int, std::string, uint32_t> >;
+
+        xfsx::Tag_Int tag(const Tags &tags) const { return get<0>(tags.front()); }
+      uint32_t height(const Tags &tags) const { return get<2>(tags.front()); }
+      void string(const Tags &tags, std::string &s) const
+      {
+        s = get<1>(tags.front());
+      }
+      uint64_t uint64(const Tags &tags) const
+      {
+        return xfsx::integer::range_to_uint64(xfsx::s_pair::mk_s_pair(
+              get<1>(tags.front()).c_str()));
+      }
+      uint32_t uint32(const Tags &tags) const
+      {
+        return xfsx::integer::range_to_uint32(xfsx::s_pair::mk_s_pair(
+              get<1>(tags.front()).c_str()));
+      }
+
+      void advance(Tags &tags)
+      {
+        tags.pop_front();
+      }
+
+      void skip_children(Tags &t)
+      {
+        advance(t);
+      }
+
+      bool eot(const Tags &tags) const
+      {
+        return tags.empty();;
+      }
+    };
 
 BOOST_AUTO_TEST_SUITE(xfsx_)
 
@@ -112,7 +153,7 @@ BOOST_AUTO_TEST_SUITE(xfsx_)
           Simple_Traverse st;
           st(p, t, f);
 
-          BOOST_CHECK_EQUAL(f().first, "20140302150800");
+          BOOST_CHECK_EQUAL(f().first, "20140301140342");
           BOOST_CHECK_EQUAL(f().second, "+0200");
         }
 
@@ -130,8 +171,8 @@ BOOST_AUTO_TEST_SUITE(xfsx_)
           Simple_Traverse st;
           st(p, t, f);
 
-          BOOST_CHECK_EQUAL(f().first, "20140302151159");
-          BOOST_CHECK_EQUAL(f().second, "-0500");
+          BOOST_CHECK_EQUAL(f().first, "20140301140342");
+          BOOST_CHECK_EQUAL(f().second, "+0200");
         }
 
         BOOST_AUTO_TEST_CASE(max_multi_off)
@@ -148,8 +189,8 @@ BOOST_AUTO_TEST_SUITE(xfsx_)
           Simple_Traverse st;
           st(p, t, f);
 
-          BOOST_CHECK_EQUAL(f().first, "20140302151159");
-          BOOST_CHECK_EQUAL(f().second, "+0200");
+          BOOST_CHECK_EQUAL(f().first, "20140302151252");
+          BOOST_CHECK_EQUAL(f().second, "-0500");
         }
 
         BOOST_AUTO_TEST_CASE(multi_apply)
@@ -171,7 +212,7 @@ BOOST_AUTO_TEST_SUITE(xfsx_)
 
           BOOST_CHECK_EQUAL(f1(), 4);
           BOOST_CHECK_EQUAL(f2(), 71200);
-          BOOST_CHECK_EQUAL(f3().first, "20140302150800");
+          BOOST_CHECK_EQUAL(f3().first, "20140301140342");
           BOOST_CHECK_EQUAL(f3().second, "+0200");
           BOOST_CHECK_EQUAL(f4().first, "20140302150800");
           BOOST_CHECK_EQUAL(f4().second, "+0200");
@@ -200,13 +241,48 @@ BOOST_AUTO_TEST_SUITE(xfsx_)
 
           BOOST_CHECK_EQUAL(aci.count(), 4);
           BOOST_CHECK_EQUAL(aci.sum(), 71200);
-          BOOST_CHECK_EQUAL(aci.first_timestamp().first, "20140302150800");
+          BOOST_CHECK_EQUAL(aci.first_timestamp().first, "20140301140342");
           BOOST_CHECK_EQUAL(aci.first_timestamp().second, "+0200");
           BOOST_CHECK_EQUAL(aci.last_timestamp().first, "20140302150800");
           BOOST_CHECK_EQUAL(aci.last_timestamp().second, "+0200");
         }
 
       BOOST_AUTO_TEST_SUITE_END() // lxml
+
+
+      BOOST_AUTO_TEST_SUITE(fake)
+
+        BOOST_AUTO_TEST_CASE(min_timestamp)
+        {
+          using namespace xfsx::tap::traverser;
+          using namespace grammar::tap;
+          Fake_Proxy p;
+          Fake_Proxy::Tags t = {
+            make_tuple(Tag::TRANSFER_BATCH, string(), 0 ),
+            make_tuple(Tag::NETWORK_INFO, string(), 1 ),
+            make_tuple(Tag::UTC_TIME_OFFSET_CODE, string("1"), 3 ),
+            make_tuple(Tag::UTC_TIME_OFFSET, string("-1000"), 3 ),
+            make_tuple(Tag::UTC_TIME_OFFSET_CODE, string("2"), 3 ),
+            make_tuple(Tag::UTC_TIME_OFFSET, string("-0400"), 3 ),
+            make_tuple(Tag::CALL_EVENT_DETAIL_LIST, string(), 1 ),
+            make_tuple(Tag::CALL_EVENT_START_TIME_STAMP, string(), 3 ),
+            make_tuple(Tag::LOCAL_TIME_STAMP, string("20160310212323"), 4 ),
+            make_tuple(Tag::UTC_TIME_OFFSET_CODE, string("2"), 4 ),
+            make_tuple(23, string(), 2),
+            make_tuple(Tag::CALL_EVENT_START_TIME_STAMP, string(), 3 ),
+            make_tuple(Tag::LOCAL_TIME_STAMP, string("20160310202323"), 4 ),
+            make_tuple(Tag::UTC_TIME_OFFSET_CODE, string("1"), 4 ),
+            make_tuple(Tag::AUDIT_CONTROL_INFO, string(), 1 )
+          };
+          Timestamp<Less_Tag> f;
+          Simple_Traverse st;
+          st(p, t, f);
+
+          BOOST_CHECK_EQUAL(f().first, "20160310212323");
+          BOOST_CHECK_EQUAL(f().second, "-0400");
+        }
+
+      BOOST_AUTO_TEST_SUITE_END() // fake
 
     BOOST_AUTO_TEST_SUITE_END() // traverser_
 

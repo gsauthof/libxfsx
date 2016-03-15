@@ -171,6 +171,7 @@ namespace xfsx {
                   switch (p.tag(t)) {
                     case grammar::tap::CHARGE_DETAIL_TIME_STAMP:
                     case grammar::tap::CHARGING_TIME_STAMP:
+                    case grammar::tap::CALL_EVENT_START_TIME_STAMP:
                       state_ = INSIDE_CHARGING_TIME_STAMP;
                       break;
                   }
@@ -223,9 +224,9 @@ namespace xfsx {
                     integer::range_to_uint32(std::make_pair(t+1, t+3)),
                     integer::range_to_uint32(std::make_pair(t+3, t+5)), 0);
                 if (*t == '+')
-                  pt += off;
-                else
                   pt -= off;
+                else
+                  pt += off;
                 m[pt] = make_pair(x.second, off_str);
               }
               // or as UTC, or in the localtime of the sender ...

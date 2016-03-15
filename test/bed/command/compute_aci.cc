@@ -19,12 +19,12 @@ BOOST_AUTO_TEST_SUITE(bed_)
       {
         const char ref[] =R"(<AuditControlInfo>
     <EarliestCallTimeStamp>
-        <LocalTimeStamp>20140302151159</LocalTimeStamp>
-        <UtcTimeOffset>-0500</UtcTimeOffset>
+        <LocalTimeStamp>20140301140342</LocalTimeStamp>
+        <UtcTimeOffset>+0200</UtcTimeOffset>
     </EarliestCallTimeStamp>
     <LatestCallTimeStamp>
-        <LocalTimeStamp>20140302151159</LocalTimeStamp>
-        <UtcTimeOffset>+0200</UtcTimeOffset>
+        <LocalTimeStamp>20140302151252</LocalTimeStamp>
+        <UtcTimeOffset>-0500</UtcTimeOffset>
     </LatestCallTimeStamp>
     <TotalCharge>71200</TotalCharge>
     <TotalTaxValue>0</TotalTaxValue>
