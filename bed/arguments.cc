@@ -494,7 +494,9 @@ namespace bed {
       if (    command == Command::WRITE_XML
            || command == Command::EDIT
            || command == Command::SEARCH_XPATH
-           || command == Command::VALIDATE_XSD) {
+           || command == Command::VALIDATE_XSD
+           || command == Command::WRITE_ACI
+           ) {
         try {
           auto r = xfsx::detector::detect_ber(in_filename, asn_config_filename,
               asn_search_path);

@@ -25,7 +25,8 @@ namespace bf = boost::filesystem;
       bf::path in_path(test::path::in());
       bf::path asn(in_path);
       asn /= "../../libgrammar/test/in/asn1/";
-      asn /= asn1_filename;
+      if (!asn1_filename.empty())
+        asn /= asn1_filename;
       bf::path input(in_path);
       input /= input_filename;
       bf::path out_path(test::path::out());
@@ -40,8 +41,10 @@ namespace bf = boost::filesystem;
       BOOST_TEST_CHECKPOINT("Reading: " << input);
       vector<string> argvv = { "./bed" };
       argvv.insert(argvv.end(), args.begin(), args.end());
-      argvv.push_back( "--asn");
-      argvv.push_back(asn.generic_string());
+      if (!asn1_filename.empty()) {
+        argvv.push_back( "--asn");
+        argvv.push_back(asn.generic_string());
+      }
       argvv.push_back(input.generic_string());
       argvv.push_back(out.generic_string());
       vector<char *> argv;
