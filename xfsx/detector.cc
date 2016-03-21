@@ -236,7 +236,10 @@ namespace xfsx {
           } catch (const runtime_error &e) {
           }
         }
+#if (defined(__MINGW32__) || defined(__MINGW64__))
+#else
         r.push_back("/etc/xfsx/asn1");
+#endif
         r.push_back(string(config::prefix()) + "/share/xfsx/asn1");
       }
       return r;
