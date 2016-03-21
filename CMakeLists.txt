@@ -11,8 +11,8 @@ IF(CMAKE_CURRENT_SOURCE_DIR STREQUAL CMAKE_SOURCE_DIR)
 endif()
 
 if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU"
-    AND CMAKE_CXX_COMPILER_VERSION VERSION_LESS "4.8")
-  message(FATAL_ERROR "You need at least version 4.8 when compiling with GCC")
+    AND CMAKE_CXX_COMPILER_VERSION VERSION_LESS "4.9")
+  message(FATAL_ERROR "You need at least version 4.9 when compiling with GCC")
 endif()
 
 # guard from super-projects, i.e. when it is added as subdirectory
