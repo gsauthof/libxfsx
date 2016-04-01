@@ -19,7 +19,8 @@
         }
         ],
       "initial_grammars": [ "tap_3_12.asn1" ],
-      "resulting_grammars": [ "tap_{major}_{minor}.asn1" ]
+      "resulting_grammars": [ "tap_{major}_{minor}.asn1" ],
+      "resulting_constraints": [ "tap_{major}_{minor}_constraints.zsv", "tadig_codes.zsv" ]
     },
     {
       "name": "TAPN",

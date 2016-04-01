@@ -56,6 +56,9 @@ BOOST_AUTO_TEST_SUITE(xfsx_)
       bf::path asn_link(odir);
       asn_link /= "tap_3_10.asn1";
       bf::remove(asn_link);
+      bf::path zsv_link(odir);
+      zsv_link /= "tap_3_10_constraints.zsv";
+      bf::remove(zsv_link);
 #if (defined(__MINGW32__) || defined(__MINGW64__))
       bf::copy_file(
           bf::absolute(test::path::in()
@@ -69,9 +72,15 @@ BOOST_AUTO_TEST_SUITE(xfsx_)
           + "/tap_3_12.asn1",
           asn_link);
 #endif
+      bf::copy_file(
+          bf::absolute(test::path::in()
+            + "/../../libgrammar/grammar/xml").generic_string()
+          + "/tap_3_12_constraints.zsv",
+          zsv_link);
 
       deque<string> asn_search_path = {
         test::path::in() + "/../../libgrammar/test/in/asn1",
+        test::path::in() + "/../../libgrammar/grammar/xml",
         odir.generic_string(),
         "." };
 
@@ -102,6 +111,7 @@ BOOST_AUTO_TEST_SUITE(xfsx_)
 
       deque<string> asn_search_path = {
         test::path::in() + "/../../libgrammar/test/in/asn1",
+        test::path::in() + "/../../libgrammar/grammar/xml",
         odir.generic_string(),
         "." };
 
@@ -115,6 +125,11 @@ BOOST_AUTO_TEST_SUITE(xfsx_)
       BOOST_CHECK_EQUAL(r.asn_filenames.size(), 1u);
       BOOST_CHECK(
           r.asn_filenames.front().find("tap_3_12.asn1") != string::npos);
+      BOOST_REQUIRE_EQUAL(r.constraint_filenames.size(), 2u);
+      BOOST_CHECK(
+          r.constraint_filenames.front().find("tap_3_12_constraints.zsv") != string::npos);
+      BOOST_CHECK(
+          r.constraint_filenames.back().find("tadig_codes.zsv") != string::npos);
     }
 
     BOOST_AUTO_TEST_CASE(not_detected)
@@ -131,6 +146,7 @@ BOOST_AUTO_TEST_SUITE(xfsx_)
 
       deque<string> asn_search_path = {
         test::path::in() + "/../../libgrammar/test/in/asn1",
+        test::path::in() + "/../../libgrammar/grammar/xml",
         odir.generic_string(),
         "." };
 
@@ -188,6 +204,7 @@ BOOST_AUTO_TEST_SUITE(xfsx_)
 
       deque<string> asn_search_path = {
         test::path::in() + "/../../libgrammar/test/in/asn1",
+        test::path::in() + "/../../libgrammar/grammar/xml",
         odir.generic_string(),
         "." };
 

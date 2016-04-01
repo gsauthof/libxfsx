@@ -19,7 +19,8 @@
           "additionalItems": false
         },
         "initial_grammars": { "type": "array", "items": { "type": "string" } },
-        "resulting_grammars": { "type": "array", "items": { "type": "string" } }
+        "resulting_grammars": { "type": "array", "items": { "type": "string" } },
+        "resulting_constraints": { "type": "array", "items": { "type": "string" } }
       },
       "additionalProperties": false
     },

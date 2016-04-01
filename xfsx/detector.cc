@@ -48,6 +48,7 @@ namespace xfsx {
       const char DEFINITIONS[]        = "definitions";
       const char INITIAL_GRAMMARS[]   = "initial_grammars";
       const char RESULTING_GRAMMARS[] = "resulting_grammars";
+      const char RESULTING_CONSTRAINTS[] = "resulting_constraints";
       const char NAME[]               = "name";
       const char PATH[]               = "path";
       const char LONG_NAME[]          = "long_name";
@@ -193,6 +194,14 @@ namespace xfsx {
       resulting_grammars = map_which(resulting_grammars);
       resulting_grammars = resulting_grammars;
       result_.asn_filenames = resulting_grammars;
+
+      auto resulting_constraints = get_list(
+          definition.get_child(KEY::RESULTING_CONSTRAINTS));
+      resulting_constraints = replace_variables(resulting_constraints);
+      resulting_constraints = map_which(resulting_constraints);
+      resulting_constraints = resulting_constraints;
+      result_.constraint_filenames = resulting_constraints;
+
       result_.name = definition.get<string>(KEY::NAME);
       result_.long_name = definition.get<string>(KEY::LONG_NAME);
       result_.major = boost::lexical_cast<size_t>(var_map_.at(KEY::MAJOR));

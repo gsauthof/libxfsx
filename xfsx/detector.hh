@@ -45,6 +45,7 @@ namespace xfsx {
 
     struct Result {
       std::deque<std::string> asn_filenames;
+      std::deque<std::string> constraint_filenames;
       std::string name;
       std::string long_name;
       size_t major{0};
