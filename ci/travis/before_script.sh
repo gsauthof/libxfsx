@@ -13,10 +13,15 @@ function prepare_osx()
   CXX=$MY_CXX CC=$MY_CC cmake -G Ninja -DCMAKE_BUILD_TYPE=$CMAKE_BUILD_TYPE ..
 }
 
+function prepare_linux()
+{
+}
+
 case $TRAVIS_OS_NAME in
   osx)
     prepare_osx
     ;;
   linux)
+    prepare_linux
     ;;
 esac

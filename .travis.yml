@@ -38,6 +38,9 @@ matrix:
     - os: osx
       compiler: clang
       env: CMAKE_BUILD_TYPE=Release  MY_CXX=clang++-3.7 MY_CC=clang-3.7
+    - os: linux
+      services: docker
+      env: docker_image=gsauthof/fedora-cxx-devel:23
 
 
 before_install:
@@ -62,4 +65,5 @@ script:
 
 #after_deploy:
 
-#after_script:
+after_script:
+  - ./ci/travis/after_script.sh

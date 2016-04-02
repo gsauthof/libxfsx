@@ -16,10 +16,12 @@ function install_osx()
   # nm -gU /usr/local/opt/boost/lib/libboost_regex-mt.dylib
 }
 
-case $TRAVIS_OS_NAME in
-  osx)
-    install_osx
-    ;;
-  linux)
-    ;;
-esac
+function install_linux()
+{
+  docker exec cxx-devel \
+    /srv/src/libxfsx/ci/docker/build.sh \
+    /srv/src/libxfsx \
+    /srv/build/libxfsx
+}
+
+install_$TRAVIS_OS_NAME
