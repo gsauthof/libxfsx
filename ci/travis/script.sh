@@ -13,7 +13,8 @@ function run_linux()
   docker exec cxx-devel \
     /srv/src/libxfsx/ci/docker/run.sh \
     /srv/src/libxfsx \
-    /srv/build/libxfsx
+    /srv/build/libxfsx \
+    "$build_tag"
 }
 
 run_$TRAVIS_OS_NAME

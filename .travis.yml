@@ -40,7 +40,10 @@ matrix:
       env: CMAKE_BUILD_TYPE=Release  MY_CXX=clang++-3.7 MY_CC=clang-3.7
     - os: linux
       services: docker
-      env: docker_image=gsauthof/fedora-cxx-devel:23
+      env: docker_image=gsauthof/fedora-cxx-devel:23 build_tag=linux CMAKE_BUILD_TYPE=Sanitize
+    - os: linux
+      services: docker
+      env: docker_image=gsauthof/fedora-mingw64-devel:23 docker_image_b=gsauthof/fedora-mingw64-runtime:23 build_tag=mingw64 CMAKE_BUILD_TYPE=Release
 
 
 before_install:

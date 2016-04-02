@@ -19,9 +19,11 @@ function install_osx()
 function install_linux()
 {
   docker exec cxx-devel \
+    env CMAKE_BUILD_TYPE="$CMAKE_BUILD_TYPE" \
     /srv/src/libxfsx/ci/docker/build.sh \
     /srv/src/libxfsx \
-    /srv/build/libxfsx
+    /srv/build/libxfsx \
+    "$build_tag"
 }
 
 install_$TRAVIS_OS_NAME
