@@ -11,69 +11,55 @@
 # - default GCC is too old (4.8)
 # - default Boost is too old (1.54)
 
-language: cpp
-
-env:
-  #- CMAKE_BUILD_TYPE=Debug
-  # Apple's clang 3.5 doesn't support sanitize options
-  # although the upstream 3.5 does ...
-  - CMAKE_BUILD_TYPE=DEBUG    MY_CXX=clang++     MY_CC=clang
-  # clang 3.7 from Homebrew understands all sanitize flags
-  # but the runtime libraries aren't available
-  #- CMAKE_BUILD_TYPE=Sanitize MY_CXX=clang++-3.7 MY_CC=clang-3.7
-  - CMAKE_BUILD_TYPE=Debug    MY_CXX=clang++-3.7 MY_CC=clang-3.7
-  - CMAKE_BUILD_TYPE=Release  MY_CXX=clang++-3.7 MY_CC=clang-3.7
-
-compiler:
-  # use envionment variables to define other compilers
-  - clang
-
-os:
-  # TODO enable trusty again (exclude os x env, install newer compilers, boost)
-  #  - linux
-  - osx
 
 sudo: required
 
-dist: trusty
+#dist: trusty
+
+#os:
+# TODO enable linux in build matrix
+#  - linux
+
+language: cpp
+
+matrix:
+  include:
+    - os: osx
+      compiler: clang
+      # Apple's clang 3.5 doesn't support sanitize options
+      # although the upstream 3.5 does ...
+      env: CMAKE_BUILD_TYPE=DEBUG    MY_CXX=clang++     MY_CC=clang
+    - os: osx
+      compiler: clang
+      # clang 3.7 from Homebrew understands all sanitize flags
+      # but the runtime libraries aren't available
+      #- CMAKE_BUILD_TYPE=Sanitize MY_CXX=clang++-3.7 MY_CC=clang-3.7
+      env: CMAKE_BUILD_TYPE=Debug    MY_CXX=clang++-3.7 MY_CC=clang-3.7
+    - os: osx
+      compiler: clang
+      env: CMAKE_BUILD_TYPE=Release  MY_CXX=clang++-3.7 MY_CC=clang-3.7
+
 
 before_install:
-  # apparently there are sudo-wrappers for brew
-  # thus, sudo can be omitted
-  - if [ "$TRAVIS_OS_NAME" = osx   ]; then brew update ; fi
-  - if [ "$TRAVIS_OS_NAME" = osx   ]; then brew tap homebrew/versions ; fi
-  - if [ "$TRAVIS_OS_NAME" = osx   ]; then brew install ragel ; fi
-  - if [ "$TRAVIS_OS_NAME" = osx   ]; then brew install ninja ; fi
-  - if [ "$TRAVIS_OS_NAME" = osx   ]; then brew install libxml2 ; fi
-  # brew complains:
-  # Error: boost-1.55.0_2 already installed
-  # To install this version, first `brew unlink boost`
-  # ( -> we need at least 1.58)
-  - if [ "$TRAVIS_OS_NAME" = osx   ]; then brew unlink boost ; fi
-  - if [ "$TRAVIS_OS_NAME" = osx   ]; then brew install boost ; fi
-  # this would give us 5.3 (or higher)
-  #- if [ "$TRAVIS_OS_NAME" = osx -a "$CXX" = g++  ]; then brew unlink gcc ; fi
-  #- if [ "$TRAVIS_OS_NAME" = osx -a "$CXX" = g++  ]; then brew install gcc ; fi
-  # cf. http://apple.stackexchange.com/questions/227026/how-to-install-recent-clang-with-homebrew
-  - if [ "$TRAVIS_OS_NAME" = osx -a "$CXX" = clang++ ]; then brew install llvm37 ; fi
+  - ./ci/travis/before_install.sh
 
 install:
-  - sw_vers
-  - uname -a
-  #- find /usr/local/ '(' -type f -or -type l ')'  '(' -name 'g++*' -or -name 'clang++*' ')'
-  #- find /usr/local/ -name 'libboost*' -ls
-  #- brew --prefix boost
-  #- brew cat boost
-  #- ls -l /usr/local/opt/boost/lib/libboost_regex-mt.dylib
-  #- nm -gU /usr/local/opt/boost/lib/libboost_regex-mt.dylib
+  - ./ci/travis/install.sh
 
-# BOOST_ROOT doesn't have to be explicitly set on OS X since
-# Homebrew directly links it under /usr/local
 before_script:
-  - mkdir build
-  - cd build
-  # PWD -> build
-  - CXX=$MY_CXX CC=$MY_CC cmake -G Ninja -DCMAKE_BUILD_TYPE=$CMAKE_BUILD_TYPE ..
+  - ./ci/travis/before_script.sh
 
-# PWD -> build
-script: ninja -j1 bed xfsx xfsx_static check
+script:
+  - ./ci/travis/script.sh
+
+#after_success:
+
+#after_failure:
+
+#before_deploy:
+
+#deploy:
+
+#after_deploy:
+
+#after_script:
