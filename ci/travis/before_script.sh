@@ -15,6 +15,7 @@ function prepare_osx()
 
 function prepare_linux()
 {
+  :
 }
 
 case $TRAVIS_OS_NAME in
