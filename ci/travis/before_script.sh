@@ -2,7 +2,6 @@
 
 set -eux
 
-: ${docker_image_b:=$docker_image}
 
 function prepare_osx()
 {
@@ -17,9 +16,14 @@ function prepare_osx()
 
 function prepare_linux()
 {
+  : ${docker_image_b:=$docker_image}
+
   if [ "$docker_image" != "$docker_image_b" ] ; then
     docker stop cxx-devel
     docker rm cxx-devel
+
+    build="$HOME"/build/libxfsx
+    src="$PWD"/..
 
     docker create --name cxx-devel  \
       -v "$src":/srv/src:ro,Z \
@@ -30,11 +34,4 @@ function prepare_linux()
   fi
 }
 
-case $TRAVIS_OS_NAME in
-  osx)
-    prepare_osx
-    ;;
-  linux)
-    prepare_linux
-    ;;
-esac
+prepare_"$TRAVIS_OS_NAME"
