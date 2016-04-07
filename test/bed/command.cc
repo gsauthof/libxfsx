@@ -28,7 +28,10 @@ namespace bf = boost::filesystem;
       if (!asn1_filename.empty())
         asn /= asn1_filename;
       bf::path input(in_path);
-      input /= input_filename;
+      if (!input_filename.find(test::path::out()))
+        input = input_filename;
+      else
+        input /= input_filename;
       bf::path out_path(test::path::out());
       bf::path out(out_path);
       out /= "bed/command";

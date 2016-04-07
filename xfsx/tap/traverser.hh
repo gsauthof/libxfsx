@@ -438,6 +438,7 @@ namespace xfsx {
                       tax_sum,
                       f...);
                 }
+            void finalize();
 
             void print(xfsx::byte::writer::Base &o, unsigned indent = 4u);
 

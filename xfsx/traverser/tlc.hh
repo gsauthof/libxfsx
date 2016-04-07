@@ -61,17 +61,23 @@ namespace xfsx {
 
       void advance(Vertical_TLC &t)
       {
-        p_.first = t.read(p_.first, p_.second);
+        if (!p_.first || p_.first == p_.second)
+          p_.first = nullptr;
+        else
+          p_.first = t.read(p_.first, p_.second);
       }
 
       void skip_children(Vertical_TLC &t)
       {
-        p_.first = t.skip_children(p_.first, p_.second);
+        if (!p_.first || p_.first == p_.second)
+          p_.first = nullptr;
+        else
+          p_.first = t.skip_children(p_.first, p_.second);
       }
 
       bool eot(const Vertical_TLC &t) const
       {
-        return p_.first == p_.second;
+        return !p_.first;
       }
     };
 

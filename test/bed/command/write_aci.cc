@@ -6,6 +6,7 @@
 
 #include <bed/command.hh>
 #include <bed/command/write_aci.hh>
+#include <bed/arguments.hh>
 
 #include <ixxx/ixxx.hh>
 #include <ixxx/ansi.hh>
@@ -48,6 +49,31 @@ BOOST_AUTO_TEST_SUITE(bed_)
             );
         if (!old_asn1_path.empty())
           ixxx::posix::setenv("ASN1_PATH", old_asn1_path, true);
+      }
+
+      BOOST_AUTO_TEST_CASE(no_prior_aci)
+      {
+        string out(test::path::out() + "/bed/command/aci_removed.ber");
+        boost::filesystem::remove(out);
+        {
+          vector<string> argvv = { "./bed", "edit", "-c", "remove",
+              "/*/AuditControlInfo", "--asn"  };
+          argvv.push_back(test::path::in()
+              + "/../../libgrammar/test/in/asn1/tap_3_12_strip.asn1");
+          argvv.push_back(test::path::in() + "/tap_3_12_valid.ber");
+          argvv.push_back(out);
+          vector<char *> argv;
+          for (auto &s : argvv)
+            argv.push_back(&*s.begin());
+          argv.push_back(nullptr);
+          bed::Arguments parsed_args(argvv.size(), argv.data());
+          bed::command::execute(parsed_args);
+        }
+        compare_bed_output("tap_3_12_strip.asn1",
+            out, "aci_removed_fixed.ber",
+            "edit_aci.ber",
+            { "write-aci" }
+            );
       }
 
     BOOST_AUTO_TEST_SUITE_END() // write_aci

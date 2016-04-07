@@ -58,6 +58,12 @@ namespace xfsx {
           ;
       }
 
+      void Audit_Control_Info::finalize()
+      {
+        first_timestamp.finalize();
+        last_timestamp.finalize();
+      }
+
 
     } // traverser
 
