@@ -23,6 +23,7 @@
 
 #include "command.hh"
 
+#include <xxxml/xxxml.hh>
 
 #include <iostream>
 
@@ -30,6 +31,7 @@ using namespace std;
 
 int main(int argc, char **argv)
 {
+  xxxml::Library xxxml_library;
   using namespace bed;
   try {
     Arguments args(argc, argv);
