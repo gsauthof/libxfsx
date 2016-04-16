@@ -145,6 +145,9 @@ IF(${CMAKE_PROJECT_NAME} STREQUAL "xfsx")
     test/bed/command/write_def.cc
     test/bed/command/write_indef.cc
     test/bed/command/write_ber.cc
+    test/bed/command/search.cc
+    test/bed/command/validate.cc
+    test/bed/command/write_xml.cc
     test/detector.cc
     test/character.cc
     test/xml2lxml.cc
