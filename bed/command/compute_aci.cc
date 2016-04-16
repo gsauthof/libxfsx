@@ -64,7 +64,7 @@ namespace bed {
             0666);
       xfsx::byte::writer::File o(fd);
 
-      aci.print(o);
+      aci.print(o, args_.indent_size);
 
     }
 
