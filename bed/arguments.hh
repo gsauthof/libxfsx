@@ -44,16 +44,6 @@ namespace bed {
     WRITE_ACI
   };
 
-  enum class Edit_Command {
-    NONE,
-    REMOVE,
-    REPLACE,
-    ADD,
-    SET_ATT,
-    INSERT,
-    WRITE_ACI,
-    LAST_
-  };
 
   namespace command {
 
@@ -84,10 +74,12 @@ namespace bed {
 
   class Arguments {
     private:
-      void parse(int argc, char **argv);
+      void parse(unsigned argc, char **argv);
+      void validate();
+      void autodetect_stuff();
     public:
       Arguments();
-      Arguments(int argc, char **argv);
+      Arguments(unsigned argc, char **argv);
 
       std::string argv0;
       std::deque<std::string> positional;
@@ -119,6 +111,7 @@ namespace bed {
       std::deque<std::unique_ptr<command::edit_op::Base> > edit_ops;
 
       Command  command   {Command::NONE};
+      std::string command_str;
       unsigned verbosity {0};
   };
 }

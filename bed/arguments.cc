@@ -19,6 +19,7 @@
 
 }}} */
 #include "arguments.hh"
+#include "arguments_impl.hh"
 static const char help_text[] =
 R"( COMMAND [OPTIONS] INPUT [OUTPUT]
 
@@ -226,6 +227,7 @@ the encoding format) grammar.
 
 #include <iostream>
 #include <map>
+#include <set>
 #include <stdlib.h>
 #include <string.h>
 
@@ -237,38 +239,6 @@ the encoding format) grammar.
 
 namespace bf = boost::filesystem;
 using namespace std;
-
-static map<string, bed::Command> command_map = {
-  { "write-id"   , bed::Command::WRITE_IDENTITY   },
-  { "write-def"  , bed::Command::WRITE_DEFINITE   },
-  { "write-indef", bed::Command::WRITE_INDEFINITE },
-  { "write-xml"  , bed::Command::WRITE_XML        },
-  { "write-ber"  , bed::Command::WRITE_BER        },
-  { "search"     , bed::Command::SEARCH_XPATH     },
-  { "validate"   , bed::Command::VALIDATE_XSD     },
-  { "edit"       , bed::Command::EDIT             },
-  { "compute-aci", bed::Command::COMPUTE_ACI      },
-  { "write-aci",   bed::Command::WRITE_ACI        }
-};
-
-static map<string, bed::Edit_Command> edit_command_map = {
-  { "remove"     , bed::Edit_Command::REMOVE    },
-  { "replace"    , bed::Edit_Command::REPLACE   },
-  { "add"        , bed::Edit_Command::ADD       },
-  { "set-att"    , bed::Edit_Command::SET_ATT   },
-  { "set_att"    , bed::Edit_Command::SET_ATT   },
-  { "insert"     , bed::Edit_Command::INSERT    },
-  { "write-aci"  , bed::Edit_Command::WRITE_ACI }
-};
-
-static map<bed::Edit_Command, unsigned> edit_command_to_argc_map = {
-  { bed::Edit_Command::REMOVE,   1u },
-  { bed::Edit_Command::REPLACE,  3u },
-  { bed::Edit_Command::ADD,      3u },
-  { bed::Edit_Command::SET_ATT,  3u },
-  { bed::Edit_Command::INSERT,   3u },
-  { bed::Edit_Command::WRITE_ACI,0u }
-};
 
 
 template <typename R>
@@ -292,22 +262,349 @@ template <typename R, typename ...T>
 }
 
 
-static void print_version()
-{
-  cout << "bed " << xfsx::config::date() << '\n';
-}
-
-static void print_help(const std::string &argv0)
-{
-  cout << "call: " << argv0 << help_text << '\n';
-  print_version();
-}
-
-
 namespace bed {
 
+  static map<string, Command> command_map = {
+    { "write-id"   , Command::WRITE_IDENTITY   },
+    { "write-def"  , Command::WRITE_DEFINITE   },
+    { "write-indef", Command::WRITE_INDEFINITE },
+    { "write-xml"  , Command::WRITE_XML        },
+    { "write-ber"  , Command::WRITE_BER        },
+    { "search"     , Command::SEARCH_XPATH     },
+    { "validate"   , Command::VALIDATE_XSD     },
+    { "edit"       , Command::EDIT             },
+    { "compute-aci", Command::COMPUTE_ACI      },
+    { "write-aci",   Command::WRITE_ACI        }
+  };
 
-  Arguments::Arguments(int argc, char **argv)
+  static map<string, Edit_Command> edit_command_map = {
+    { "remove"     , Edit_Command::REMOVE    },
+    { "replace"    , Edit_Command::REPLACE   },
+    { "add"        , Edit_Command::ADD       },
+    { "set-att"    , Edit_Command::SET_ATT   },
+    { "set_att"    , Edit_Command::SET_ATT   },
+    { "insert"     , Edit_Command::INSERT    },
+    { "write-aci"  , Edit_Command::WRITE_ACI }
+  };
+
+  static map<Edit_Command, unsigned> edit_command_to_argc_map = {
+    { Edit_Command::REMOVE,   1u },
+    { Edit_Command::REPLACE,  3u },
+    { Edit_Command::ADD,      3u },
+    { Edit_Command::SET_ATT,  3u },
+    { Edit_Command::INSERT,   3u },
+    { Edit_Command::WRITE_ACI,0u }
+  };
+
+  static map<string, Option> option_map = {
+    { "-v"          , Option::VERBOSE   },
+    { "--verbose"   , Option::VERBOSE   },
+    { "-h"          , Option::HELP      },
+    { "--help"      , Option::HELP      },
+    { "--version"   , Option::VERSION   },
+    { "--indent"    , Option::INDENT    },
+    { "-a"          , Option::ASN       },
+    { "--asn"       , Option::ASN       },
+    { "--asn-path"  , Option::ASN_PATH  },
+    { "--asn-cfg"   , Option::ASN_CFG   },
+    { "--no-detect" , Option::NO_DETECT },
+    { "-x"          , Option::HEX       },
+    { "--hex"       , Option::HEX       },
+    { "--tag"       , Option::TAG       },
+    { "--class"     , Option::KLASSE    },
+    { "--tl"        , Option::TL        },
+    { "--t_size"    , Option::T_SIZE    },
+    { "--length"    , Option::LENGTH    },
+    { "--len"       , Option::LENGTH    },
+    { "--off"       , Option::OFFSET    },
+    { "--offset"    , Option::OFFSET    },
+    { "--skip"      , Option::SKIP      },
+    { "--bci"       , Option::BCI       },
+    { "--search"    , Option::SEARCH    },
+    { "--aci"       , Option::ACI       },
+    { "--cdr"       , Option::CDR       },
+    { "--first"     , Option::FIRST     },
+    { "--count"     , Option::COUNT     },
+    { "-e"          , Option::EXPR      },
+    // --expr
+    { "--xsd"       , Option::XSD       },
+    { "-c"          , Option::COMMAND   },
+    { "--command"   , Option::COMMAND   } 
+  };
+
+  static map<Option, pair<unsigned, unsigned> > option_to_argc_map = {
+    { Option::VERBOSE   ,  { 0 , 0 }  },
+    { Option::HELP      ,  { 0 , 1 }  },
+    { Option::VERSION   ,  { 0 , 0 }  },
+    { Option::INDENT    ,  { 1 , 1 }  },
+    { Option::ASN       ,  { 1 , 1 }  },
+    { Option::ASN_PATH  ,  { 1 , 1 }  },
+    { Option::ASN_CFG   ,  { 1 , 1 }  },
+    { Option::NO_DETECT ,  { 0 , 0 }  },
+    { Option::HEX       ,  { 0 , 0 }  },
+    { Option::TAG       ,  { 0 , 0 }  },
+    { Option::KLASSE    ,  { 0 , 0 }  },
+    { Option::TL        ,  { 0 , 0 }  },
+    { Option::T_SIZE    ,  { 0 , 0 }  },
+    { Option::LENGTH    ,  { 0 , 0 }  },
+    { Option::OFFSET    ,  { 0 , 0 }  },
+    { Option::SKIP      ,  { 1 , 1 }  },
+    { Option::BCI       ,  { 0 , 0 }  },
+    { Option::SEARCH    ,  { 1 , 1 }  },
+    { Option::ACI       ,  { 0 , 0 }  },
+    { Option::CDR       ,  { 1 , 1 }  },
+    { Option::FIRST     ,  { 0 , 0 }  },
+    { Option::COUNT     ,  { 1 , 1 }  },
+    { Option::EXPR      ,  { 1 , 1 }  },
+    { Option::XSD       ,  { 1 , 1 }  },
+    { Option::COMMAND   ,  { 1 , 4 }  }
+  };
+
+  static map<Option, set<Command> > option_comp_map = {
+    { Option::VERBOSE   ,  { }  },
+    { Option::HELP      ,  { }  },
+    { Option::VERSION   ,  { }  },
+    { Option::INDENT    ,  { Command::WRITE_XML, Command::PRETTY_WRITE_XML,
+                             Command::COMPUTE_ACI }  },
+    { Option::ASN       ,  { }  },
+    { Option::ASN_PATH  ,  { }  },
+    { Option::ASN_CFG   ,  { }  },
+    { Option::NO_DETECT ,  { }  },
+    { Option::HEX       ,  { Command::WRITE_XML, Command::PRETTY_WRITE_XML,
+                             Command::SEARCH_XPATH }  },
+    { Option::TAG       ,  { Command::WRITE_XML, Command::PRETTY_WRITE_XML }  },
+    { Option::KLASSE    ,  { Command::WRITE_XML, Command::PRETTY_WRITE_XML }  },
+    { Option::TL        ,  { Command::WRITE_XML, Command::PRETTY_WRITE_XML }  },
+    { Option::T_SIZE    ,  { Command::WRITE_XML, Command::PRETTY_WRITE_XML }  },
+    { Option::LENGTH    ,  { Command::WRITE_XML, Command::PRETTY_WRITE_XML }  },
+    { Option::OFFSET    ,  { Command::WRITE_XML, Command::PRETTY_WRITE_XML }  },
+    { Option::SKIP      ,  { Command::WRITE_XML, Command::PRETTY_WRITE_XML,
+                             Command::SEARCH_XPATH,
+                             Command::VALIDATE_XSD, Command::EDIT }  },
+    { Option::BCI       ,  { Command::WRITE_XML, Command::PRETTY_WRITE_XML }  },
+    { Option::SEARCH    ,  { Command::WRITE_XML, Command::PRETTY_WRITE_XML }  },
+    { Option::ACI       ,  { Command::WRITE_XML, Command::PRETTY_WRITE_XML }  },
+    { Option::CDR       ,  { Command::WRITE_XML, Command::PRETTY_WRITE_XML }  },
+    { Option::FIRST     ,  { Command::WRITE_XML, Command::PRETTY_WRITE_XML,
+                             Command::SEARCH_XPATH,
+                             Command::VALIDATE_XSD, Command::EDIT }  },
+    { Option::COUNT     ,  { Command::WRITE_XML, Command::PRETTY_WRITE_XML,
+                             Command::SEARCH_XPATH }  },
+    { Option::EXPR      ,  { Command::SEARCH_XPATH }  },
+    { Option::XSD       ,  { Command::VALIDATE_XSD }  },
+    { Option::COMMAND   ,  { Command::EDIT }  }
+  };
+
+  static void print_help(const std::string &argv0);
+  static void print_version();
+
+  static void apply_verbose(Arguments &a, unsigned, unsigned&,
+      unsigned, char **)
+  {
+    ++a.verbosity;
+  }
+  static void apply_help(Arguments &a, unsigned, unsigned&,
+      unsigned, char **argv)
+  {
+    print_help(*argv);
+    exit(0);
+  }
+  static void apply_version(Arguments &a, unsigned, unsigned&,
+      unsigned, char **argv)
+  {
+    print_version();
+  }
+  static void apply_indent(Arguments &a, unsigned i, unsigned&,
+      unsigned, char **argv)
+  {
+    a.indent_size = boost::lexical_cast<unsigned>(argv[i]);
+  }
+  static void apply_asn(Arguments &a, unsigned i, unsigned&,
+      unsigned, char **argv)
+  {
+    a.asn_filenames.push_back(argv[i]);
+    if (a.command == Command::WRITE_XML)
+      a.command = Command::PRETTY_WRITE_XML;
+  }
+  static void apply_asn_path(Arguments &a, unsigned i, unsigned&,
+      unsigned, char **argv)
+  {
+    a.asn_search_path.push_back(argv[i]);
+  }
+  static void apply_asn_cfg(Arguments &a, unsigned i, unsigned&,
+      unsigned, char **argv)
+  {
+    a.asn_config_filename = argv[i];
+  }
+  static void apply_no_detect(Arguments &a, unsigned, unsigned&,
+      unsigned, char **)
+  {
+    a.autodetect = false;
+  }
+  static void apply_hex(Arguments &a, unsigned, unsigned&,
+      unsigned, char **)
+  {
+    a.hex_dump = true;
+  }
+  static void apply_tag(Arguments &a, unsigned, unsigned&,
+      unsigned, char **)
+  {
+    a.dump_tag = true;
+  }
+  static void apply_klasse(Arguments &a, unsigned, unsigned&,
+      unsigned, char **)
+  {
+    a.dump_class = true;
+  }
+  static void apply_tl(Arguments &a, unsigned, unsigned&,
+      unsigned, char **)
+  {
+    a.dump_tl = true;
+  }
+  static void apply_t_size(Arguments &a, unsigned, unsigned&,
+      unsigned, char **)
+  {
+    a.dump_t = true;
+  }
+  static void apply_length(Arguments &a, unsigned, unsigned&,
+      unsigned, char **)
+  {
+    a.dump_length = true;
+  }
+  static void apply_offset(Arguments &a, unsigned, unsigned&,
+      unsigned, char **)
+  {
+    a.dump_offset = true;
+  }
+  static void apply_skip(Arguments &a, unsigned i, unsigned&,
+      unsigned, char **argv)
+  {
+    a.skip = boost::lexical_cast<size_t>(argv[i]);
+  }
+  static void apply_bci(Arguments &a, unsigned, unsigned&,
+      unsigned, char **)
+  {
+    a.count = 18;
+  }
+  static void apply_search(Arguments &a, unsigned i, unsigned&,
+      unsigned, char **argv)
+  {
+    a.search_path = argv[i];
+    a.stop_after_first = true;
+  }
+  static void apply_aci(Arguments &a, unsigned, unsigned&,
+      unsigned, char **)
+  {
+    a.skip_to_aci = true;
+    a.stop_after_first = true;
+  }
+  static void apply_cdr(Arguments &a, unsigned i, unsigned&,
+      unsigned, char **argv)
+  {
+    a.kth_cdr = argv[i];
+    a.stop_after_first = true;
+  }
+  static void apply_first(Arguments &a, unsigned, unsigned&,
+      unsigned, char **)
+  {
+    a.stop_after_first = true;
+  }
+  static void apply_count(Arguments &a, unsigned i, unsigned&,
+      unsigned, char **argv)
+  {
+    a.count = boost::lexical_cast<size_t>(argv[i]);
+  }
+  static void apply_expr(Arguments &a, unsigned i, unsigned&,
+      unsigned, char **argv)
+  {
+    a.xpaths.push_back(argv[i]);
+  }
+  static void apply_xsd(Arguments &a, unsigned i, unsigned&,
+      unsigned, char **argv)
+  {
+    a.xsd_filename = argv[i];
+  }
+  static void apply_command(Arguments &a, unsigned i, unsigned &j,
+      unsigned argc, char **argv)
+  {
+    string command_str(argv[i]);
+    try {
+      Edit_Command c = edit_command_map.at(command_str);
+      unsigned x = edit_command_to_argc_map.at(c);
+      auto n = static_cast<unsigned>(c)-1;
+      auto op = new_nth<command::edit_op::Base,
+           command::edit_op::Remove,
+           command::edit_op::Replace,
+           command::edit_op::Add,
+           command::edit_op::Set_Att,
+           command::edit_op::Insert,
+           command::edit_op::Write_ACI>(n);
+      if (i + int(x) >= argc)
+        throw Argument_Error("One or more arguments missing for: "
+            + command_str);
+      switch (x) {
+        case 0: break;
+        case 1: op->argv = { argv[i+1] }; break;
+        case 2: op->argv = { argv[i+1], argv[i+2] }; break;
+        case 3: op->argv = { argv[i+1], argv[i+2], argv[i+3]};
+                break;
+        default:
+                throw logic_error("this argument edit op not implemented yet");
+      }
+      j = i + x;
+      a.edit_ops.push_back(std::move(op));
+    } catch (const std::out_of_range &e) {
+      throw Argument_Error("Unknown subcommand: " + command_str);
+    }
+  }
+
+  static map<Option,void (*)(Arguments &a, unsigned i, unsigned &j,
+      unsigned argc, char **argv)> option_to_apply_map = {
+    { Option::VERBOSE, apply_verbose },
+    { Option::HELP      , apply_help  },
+    { Option::VERSION   , apply_version  },
+    { Option::INDENT    , apply_indent  },
+    { Option::ASN       , apply_asn  },
+    { Option::ASN_PATH  , apply_asn_path  },
+    { Option::ASN_CFG   , apply_asn_cfg  },
+    { Option::NO_DETECT , apply_no_detect  },
+    { Option::HEX       , apply_hex  },
+    { Option::TAG       , apply_tag  },
+    { Option::KLASSE    , apply_klasse  },
+    { Option::TL        , apply_tl  },
+    { Option::T_SIZE    , apply_t_size  },
+    { Option::LENGTH    , apply_length  },
+    { Option::OFFSET    , apply_offset  },
+    { Option::SKIP      , apply_skip  },
+    { Option::BCI       , apply_bci  },
+    { Option::SEARCH    , apply_search  },
+    { Option::ACI       , apply_aci  },
+    { Option::CDR       , apply_cdr  },
+    { Option::FIRST     , apply_first  },
+    { Option::COUNT     , apply_count  },
+    { Option::EXPR      , apply_expr  },
+    { Option::XSD       , apply_xsd  },
+    { Option::COMMAND   , apply_command  }
+  };
+
+
+
+
+  static void print_version()
+  {
+    cout << "bed " << xfsx::config::date() << '\n';
+  }
+
+  static void print_help(const std::string &argv0)
+  {
+    cout << "call: " << argv0 << help_text << '\n';
+    print_version();
+  }
+
+
+
+
+  Arguments::Arguments(unsigned argc, char **argv)
   {
     parse(argc, argv);
   }
@@ -315,161 +612,58 @@ namespace bed {
   Arguments::Arguments()
   {
   }
-  void Arguments::parse(int argc, char **argv)
+  void Arguments::parse(unsigned argc, char **argv)
   {
     if (!argc)
       throw std::logic_error("argv has to contain at least the program name");
     argv0 = argv[0];
     bool ignore_switches {false};
-    for (int i = 1; i < argc; ++i) {
-      if (ignore_switches) {
-        positional.emplace_back(argv[i]);
-      } else {
-        if (!*argv[i]) {
-          throw Argument_Error("Empty argument string");
-        } else if (!strcmp(argv[i], "--")) {
-          ignore_switches = true;
-        } else if (!strcmp(argv[i], "-h") || !strcmp(argv[i], "--help")) {
-          print_help(argv0);
-          exit(0);
-        } else if (!strcmp(argv[i], "-v")) {
-          ++verbosity;
-        } else if (!strcmp(argv[i], "--version")) {
-          print_version();
-          exit(0);
-        } else if (!strcmp(argv[i], "--indent")) {
-          ++i;
-          if (i >= argc)
-            throw Argument_Error("indent size argument missing");
-          indent_size = boost::lexical_cast<unsigned>(argv[i]);
-        } else if (!strcmp(argv[i], "-a") || !strcmp(argv[i], "--asn")) {
-          ++i;
-          if (i >= argc)
-            throw Argument_Error("ASN.1 filename argument missing");
-          asn_filenames.push_back(argv[i]);
-          if (command == Command::WRITE_XML)
-            command = Command::PRETTY_WRITE_XML;
-        } else if (!strcmp(argv[i], "--asn-path")) {
-          ++i;
-          if (i >= argc)
-            throw Argument_Error("ASN.1 search path argument missing");
-          asn_search_path.push_back(argv[i]);
-        } else if (!strcmp(argv[i], "--asn-cfg")) {
-          ++i;
-          if (i >= argc)
-            throw Argument_Error("ASN.1 config argument (JSON file) missing");
-          asn_config_filename = argv[i];
-        } else if (!strcmp(argv[i], "--no-detect")) {
-          autodetect = false;
-        } else if (!strcmp(argv[i], "-x") || !strcmp(argv[i], "--hex")) {
-          hex_dump = true;
-        } else if (!strcmp(argv[i], "--tag")) {
-          dump_tag = true;
-        } else if (!strcmp(argv[i], "--class")) {
-          dump_class = true;
-        } else if (!strcmp(argv[i], "--tl")) {
-          dump_tl = true;
-        } else if (!strcmp(argv[i], "--t_size")) {
-          dump_t = true;
-        } else if (!strcmp(argv[i], "--length") || !strcmp(argv[i], "--len")) {
-          dump_length = true;
-        } else if (!strcmp(argv[i], "--off") || !strcmp(argv[i], "--offset")) {
-          dump_offset = true;
-        } else if (!strcmp(argv[i], "--skip")) {
-          ++i;
-          if (i >= argc)
-            throw Argument_Error("skip argument missing");
-          skip = boost::lexical_cast<size_t>(argv[i]);
-        } else if (!strcmp(argv[i], "--search")) {
-          ++i;
-          if (i >= argc)
-            throw Argument_Error("search path argument missing");
-          search_path = argv[i];
-          stop_after_first = true;
-        } else if (!strcmp(argv[i], "--aci")) {
-          skip_to_aci = true;
-          stop_after_first = true;
-        } else if (!strcmp(argv[i], "--cdr")) {
-          ++i;
-          if (i >= argc)
-            throw Argument_Error("cdr argument missing");
-          kth_cdr = argv[i];
-          stop_after_first = true;
-        } else if (!strcmp(argv[i], "--first")) {
-          stop_after_first = true;
-        } else if (!strcmp(argv[i], "--count")) {
-          ++i;
-          if (i >= argc)
-            throw Argument_Error("count argument missing");
-          count = boost::lexical_cast<size_t>(argv[i]);
-        } else if (!strcmp(argv[i], "--bci")) {
-          count = 18;
-        } else if (!strcmp(argv[i], "--xsd")) {
-          ++i;
-          if (i >= argc)
-            throw Argument_Error("XSD filename argument missing");
-          xsd_filename = argv[i];
-        } else if (!strcmp(argv[i], "-e")) {
-          ++i;
-          if (i >= argc)
-            throw Argument_Error("XPATH argument is missing");
-          xpaths.push_back(argv[i]);
-        } else if (!strcmp(argv[i], "-c") || !strcmp(argv[i], "--command")) {
-          ++i;
-          if (i >= argc)
-            throw Argument_Error("edit command argument is missing");
-          string command_str(argv[i]);
-          try {
-            Edit_Command c = edit_command_map.at(command_str);
-            unsigned x = edit_command_to_argc_map.at(c);
-            auto n = static_cast<unsigned>(c)-1;
-            auto op = new_nth<command::edit_op::Base,
-                 command::edit_op::Remove,
-                 command::edit_op::Replace,
-                 command::edit_op::Add,
-                 command::edit_op::Set_Att,
-                 command::edit_op::Insert,
-                 command::edit_op::Write_ACI>(n);
-            if (i + int(x) >= argc)
-              throw Argument_Error("One or more arguments missing for: "
-                  + command_str);
-            switch (x) {
-              case 0: break;
-              case 1: op->argv = { argv[i+1] }; break;
-              case 2: op->argv = { argv[i+1], argv[i+2] }; break;
-              case 3: op->argv = { argv[i+1], argv[i+2], argv[i+3]};
-                      break;
-              default:
-                throw logic_error("this argument edit op not implemented yet");
-            }
-            i += x;
-            edit_ops.push_back(std::move(op));
-          } catch (const std::out_of_range &e) {
-              throw Argument_Error("Unknown command: " + command_str);
-          }
-        } else if (*argv[i] == '-') {
+    for (unsigned i = 1; i < argc; ++i) {
+      if (!*argv[i]) {
+        throw Argument_Error("Empty argument string");
+      } else if (!strcmp(argv[i], "--")) {
+        ignore_switches = true;
+      } else if (*argv[i] == '-' && !ignore_switches) {
+        try {
+          auto o = option_map.at(argv[i]);
+          auto ac = option_to_argc_map.at(o);
+          auto &comp = option_comp_map.at(o);
+          if (!comp.empty() && !comp.count(command))
+            throw Argument_Error("Command " + command_str + " doesn't support"
+                " option " + string(argv[i]));
+          auto apply = option_to_apply_map.at(o);
+          auto j = i + ac.first;
+          if (j >= argc)
+            throw Argument_Error("missing " + string(argv[i]) + " argument");
+          apply(*this, i + 1, j, argc, argv);
+          i = j;
+        } catch (const std::out_of_range &e) {
           throw Argument_Error("Unknown argument switch: " + string(argv[i]));
-        } else {
-          positional.emplace_back(argv[i]);
-          if (positional.size() == 1) {
-            string command_str(positional.front());
-            try {
-              command = command_map.at(command_str);
-            } catch (const std::out_of_range &e) {
-              throw Argument_Error("Unknown command: " + command_str);
-            }
-            if (command == Command::SEARCH_XPATH) {
-              if (i+1 >= argc)
-                throw Argument_Error("missing XPATH argument");
-              if (argv[i+1][0] != '-') {
-                ++i;
-                xpaths.push_back(argv[i]);
-              }
-            }
+        }
+      } else {
+        positional.emplace_back(argv[i]);
+        if (positional.size() == 1) {
+          command_str = positional.front();
+          try {
+            command = command_map.at(command_str);
+          } catch (const std::out_of_range &e) {
+            throw Argument_Error("Unknown command: " + command_str);
+          }
+          if (command == Command::SEARCH_XPATH) {
+            if (i+1 >= argc)
+              throw Argument_Error("missing XPATH argument");
+            ++i;
+            xpaths.push_back(argv[i]);
           }
         }
       }
     }
+    validate();
+    autodetect_stuff();
+  }
+
+  void Arguments::validate()
+  {
     if (positional.empty())
       throw Argument_Error("Could not find any positional arguments");
     if (positional.size() > 3)
@@ -489,7 +683,10 @@ namespace bed {
          )
          && out_filename.empty())
       throw Argument_Error("no output file given");
+  }
 
+  void Arguments::autodetect_stuff()
+  {
     if (autodetect && asn_filenames.empty()) {
       if (    command == Command::WRITE_XML
            || command == Command::EDIT
