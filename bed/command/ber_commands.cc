@@ -244,7 +244,16 @@ namespace bed {
           args);
 
       xxxml::schema::validate_doc(v, doc);
-      cout << "validates\n";
+
+      FILE *out = nullptr;
+      ixxx::util::File out_file;
+      if (args_.out_filename.empty())
+        out = stdout;
+      else {
+        out_file = ixxx::util::File(args_.out_filename, "wb");
+        out = out_file.get();
+      }
+      ixxx::ansi::fputs("validates\n", out);
     }
 
     void Write_BER::execute()

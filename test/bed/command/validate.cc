@@ -72,6 +72,21 @@ BOOST_AUTO_TEST_SUITE(bed_)
         BOOST_CHECK_NO_THROW(c.execute());
       }
 
+      BOOST_AUTO_TEST_CASE(xsd_result_valid_cmd)
+      {
+        const char ref[] = "validates\n";
+
+        bf::path in_path(test::path::in());
+        bf::path xsd(in_path);
+        xsd /= "../../libgrammar/example/tap_3_12.xsd";
+
+        compare_bed_output("tap_3_12_strip.asn1", "tap_3_12_valid.ber",
+            "validate_ok.log",
+            { "validate", "--xsd", xsd.generic_string() },
+            ref, ref + sizeof(ref) - 1
+           );
+      }
+
     BOOST_AUTO_TEST_SUITE_END() // validate
 
   BOOST_AUTO_TEST_SUITE_END() // command
