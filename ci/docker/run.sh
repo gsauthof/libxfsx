@@ -26,6 +26,8 @@ function run_linux()
 
   ./ut && true
   : $((r+=$?))
+  bash bed.bash
+  : $((r+=$?))
 }
 
 function run_mingw64()

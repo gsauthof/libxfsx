@@ -20,6 +20,7 @@ function build_linux()
 {
   cmake -G Ninja -DCMAKE_BUILD_TYPE="$CMAKE_BUILD_TYPE" "$src_dir"
   ninja-build -j"$jobs" $targets
+  ninja-build completion
 }
 
 function build_mingw64()
