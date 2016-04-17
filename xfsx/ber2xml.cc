@@ -69,11 +69,10 @@ namespace xfsx {
         const uint8_t *begin, const uint8_t *end,
         const char *filename)
     {
-      ixxx::util::FD fd(filename, O_CREAT | O_WRONLY, 0666);
+      ixxx::util::FD fd(filename, O_CREAT | O_WRONLY | O_TRUNC, 0666);
       byte::writer::File w{fd};
       write_unber_tl(begin, end, w);
       w.flush();
-      ixxx::posix::ftruncate(fd, w.written());
     }
     void write_unber_tl(
         const uint8_t *begin, const uint8_t *end,
@@ -98,11 +97,10 @@ namespace xfsx {
         const uint8_t *begin, const uint8_t *end,
         const char *filename)
     {
-      ixxx::util::FD fd(filename, O_CREAT | O_WRONLY, 0666);
+      ixxx::util::FD fd(filename, O_CREAT | O_WRONLY | O_TRUNC, 0666);
       byte::writer::File w{fd};
       write_indent_unber_tl(begin, end, w);
       w.flush();
-      ixxx::posix::ftruncate(fd, w.written());
     }
     void write_indent_unber_tl(
         const uint8_t *begin, const uint8_t *end,
@@ -363,11 +361,10 @@ namespace xfsx {
         const char *filename,
         const Writer_Arguments &args)
     {
-      ixxx::util::FD fd(filename, O_CREAT | O_WRONLY, 0666);
+      ixxx::util::FD fd(filename, O_CREAT | O_WRONLY | O_TRUNC, 0666);
       byte::writer::File w{fd};
       write(begin, end, w, args);
       w.flush();
-      ixxx::posix::ftruncate(fd, w.written());
     }
     void write(
         const uint8_t *begin, const uint8_t *end,
@@ -509,11 +506,10 @@ namespace xfsx {
         const std::string &filename,
         const Pretty_Writer_Arguments &args)
     {
-        ixxx::util::FD fd(filename, O_CREAT | O_WRONLY, 0666);
+        ixxx::util::FD fd(filename, O_CREAT | O_WRONLY | O_TRUNC, 0666);
         xfsx::byte::writer::File w{fd};
         pretty_write(begin, end, w, args);
         w.flush();
-        ixxx::posix::ftruncate(fd, w.written());
     }
 
   }

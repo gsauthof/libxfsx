@@ -251,6 +251,16 @@ BOOST_AUTO_TEST_SUITE(bed_)
              ), bed::Argument_Error);
       }
 
+#if (defined(__MINGW32__) || defined(__MINGW64__))
+#else
+      BOOST_AUTO_TEST_CASE(open_with_o_trunc)
+      {
+        bf::path input(test::path::in());
+        input /= "tap_3_12_valid.ber";
+        run_bed({"bed", "write-xml", input.generic_string(), "/dev/null"});
+      }
+#endif
+
     BOOST_AUTO_TEST_SUITE_END() // write_xml
 
   BOOST_AUTO_TEST_SUITE_END() // command
