@@ -27,11 +27,6 @@ namespace bed {
 
   namespace command {
 
-    class Edit : public Base {
-      public:
-        using Base::Base;
-        void execute() override;
-    };
 
 
   } // command

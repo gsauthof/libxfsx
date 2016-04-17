@@ -241,28 +241,42 @@ namespace bf = boost::filesystem;
 using namespace std;
 
 
-template <typename R>
-struct Creator_Base  {
-  virtual std::unique_ptr<R> create() const = 0;
-};
-
-template <typename R, typename T>
-struct Creator : public Creator_Base<R> {
-  std::unique_ptr<R> create() const override { return std::unique_ptr<R>(new T); }
-};
-
 template <typename R, typename ...T>
-  std::unique_ptr<R> new_nth(unsigned i)
-{
-  if (i > sizeof...(T))
-    throw out_of_range("new_nth: index out of range");
-  std::array<std::unique_ptr<Creator_Base<R> >, sizeof...(T)> r = {
-    unique_ptr<Creator_Base<R> >(new Creator<R, T>())...  } ;
-  return r.at(i)->create();
-}
+struct New_Nth {
+  template <typename ...A>
+  struct Maker_Base  {
+    virtual std::unique_ptr<R> make(const A&...) const = 0;
+  };
+
+  template <typename TT, typename ...A>
+  struct Maker : public Maker_Base<A...> {
+    std::unique_ptr<R> make(const A&... a) const override
+    {
+      return std::unique_ptr<R>(new TT(a...));
+    }
+  };
+
+  template <typename ...A>
+    std::unique_ptr<R> make(unsigned i, const A&... a)
+  {
+    if (i > sizeof...(T))
+      throw out_of_range("new_nth: index out of range");
+    std::array<std::unique_ptr<Maker_Base<A...> >, sizeof...(T)> r = {
+      unique_ptr<Maker_Base<A...> >(new Maker<T, A...>())...  } ;
+    return r.at(i)->make(a...);
+  }
+};
 
 
 namespace bed {
+
+  namespace command {
+    Base::Base(const Arguments &args)
+      :
+        args_(args)
+    {
+    }
+  }
 
   static map<string, Command> command_map = {
     { "write-id"   , Command::WRITE_IDENTITY   },
@@ -532,13 +546,13 @@ namespace bed {
       Edit_Command c = edit_command_map.at(command_str);
       unsigned x = edit_command_to_argc_map.at(c);
       auto n = static_cast<unsigned>(c)-1;
-      auto op = new_nth<command::edit_op::Base,
+      auto op = New_Nth<command::edit_op::Base,
            command::edit_op::Remove,
            command::edit_op::Replace,
            command::edit_op::Add,
            command::edit_op::Set_Att,
            command::edit_op::Insert,
-           command::edit_op::Write_ACI>(n);
+           command::edit_op::Write_ACI>().make(n);
       if (i + int(x) >= argc)
         throw Argument_Error("One or more arguments missing for: "
             + command_str);
@@ -687,6 +701,20 @@ namespace bed {
 
   void Arguments::autodetect_stuff()
   {
+    auto n = static_cast<unsigned>(command)-1;
+    cmd = New_Nth<command::Base,
+                  command::Write_Identity,
+                  command::Write_Definite,
+                  command::Write_Indefinite,
+                  command::Write_XML,
+                  command::Pretty_Write_XML,
+                  command::Write_BER,
+                  command::Search_XPath,
+                  command::Validate_XSD,
+                  command::Edit,
+                  command::Compute_ACI,
+                  command::Write_ACI
+        >().make(n, *this);
     if (autodetect && asn_filenames.empty()) {
       if (    command == Command::WRITE_XML
            || command == Command::EDIT

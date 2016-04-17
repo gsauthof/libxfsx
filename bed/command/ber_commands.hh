@@ -31,53 +31,6 @@ namespace bed {
 
   namespace command {
 
-    class Write_Identity : public Base {
-      public:
-        using Base::Base;
-        void execute() override;
-    };
-
-    class Write_Definite : public Base {
-      public:
-        using Base::Base;
-        void execute() override;
-    };
-
-    class Write_Indefinite : public Base {
-      public:
-        using Base::Base;
-        void execute() override;
-    };
-
-    class Write_XML : public Base {
-      public:
-        using Base::Base;
-        void execute() override;
-    };
-
-    class Pretty_Write_XML : public Base {
-      public:
-        using Base::Base;
-        void execute() override;
-    };
-
-    class Search_XPath : public Base {
-      public:
-        using Base::Base;
-        void execute() override;
-    };
-
-    class Write_BER : public Base {
-      public:
-        using Base::Base;
-        void execute() override;
-    };
-
-    class Validate_XSD : public Base {
-      public:
-        using Base::Base;
-        void execute() override;
-    };
   }
 
 }

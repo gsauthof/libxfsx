@@ -32,54 +32,10 @@ namespace bed {
 
   namespace command {
 
-    Base::Base(const Arguments &args)
-      :
-        args_(args)
-    {
-    }
 
     void execute(const Arguments &args)
     {
-      unique_ptr<Base> c;
-      switch (args.command) {
-        case Command::WRITE_IDENTITY:
-          c = make_unique<Write_Identity>(args);
-          break;
-        case Command::WRITE_DEFINITE:
-          c = make_unique<Write_Definite>(args);
-          break;
-        case Command::WRITE_INDEFINITE:
-          c = make_unique<Write_Indefinite>(args);
-          break;
-        case Command::WRITE_XML:
-          c = make_unique<Write_XML>(args);
-          break;
-        case Command::PRETTY_WRITE_XML:
-          c = make_unique<Pretty_Write_XML>(args);
-          break;
-        case Command::SEARCH_XPATH:
-          c = make_unique<Search_XPath>(args);
-          break;
-        case Command::WRITE_BER:
-          c = make_unique<Write_BER>(args);
-          break;
-        case Command::VALIDATE_XSD:
-          c = make_unique<Validate_XSD>(args);
-          break;
-        case Command::EDIT:
-          c = make_unique<Edit>(args);
-          break;
-        case Command::COMPUTE_ACI:
-          c = make_unique<Compute_ACI>(args);
-          break;
-        case Command::WRITE_ACI:
-          c = make_unique<Write_ACI>(args);
-          break;
-        default:
-          throw logic_error("Command not implemented yet");
-      }
-      c->execute();
-
+      args.cmd->execute();
     }
 
   }

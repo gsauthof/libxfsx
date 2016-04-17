@@ -44,8 +44,28 @@ namespace bed {
     WRITE_ACI
   };
 
+  class Arguments;
 
   namespace command {
+
+    struct Base {
+        Base(const Arguments &args);
+        virtual void execute() = 0;
+      protected:
+        const Arguments &args_;
+    };
+
+    struct Write_Identity : Base { using Base::Base; void execute() override; };
+    struct Write_Definite : Base { using Base::Base; void execute() override; };
+    struct Write_Indefinite:Base { using Base::Base; void execute() override; };
+    struct Write_XML : Base { using Base::Base; void execute() override; };
+    struct Pretty_Write_XML:Base { using Base::Base; void execute() override; };
+    struct Write_BER : Base { using Base::Base; void execute() override; };
+    struct Search_XPath : Base { using Base::Base; void execute() override; };
+    struct Validate_XSD : Base { using Base::Base; void execute() override; };
+    struct Edit : Base { using Base::Base; void execute() override; };
+    struct Compute_ACI : Base { using Base::Base; void execute() override; };
+    struct Write_ACI : Base { using Base::Base; void execute() override; };
 
     namespace edit_op {
 
@@ -112,6 +132,7 @@ namespace bed {
 
       Command  command   {Command::NONE};
       std::string command_str;
+      std::unique_ptr<command::Base> cmd;
       unsigned verbosity {0};
   };
 }

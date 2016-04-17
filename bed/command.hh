@@ -28,15 +28,6 @@ namespace bed {
 
   namespace command {
 
-    class Base {
-      private:
-      protected:
-        const Arguments &args_;
-      public:
-        Base(const Arguments &args);
-        virtual void execute() = 0;
-    };
-
     void execute(const Arguments &args);
 
   }
