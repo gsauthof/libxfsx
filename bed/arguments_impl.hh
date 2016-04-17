@@ -59,7 +59,8 @@ namespace bed {
     COUNT,
     EXPR,
     XSD,
-    COMMAND
+    COMMAND,
+    OUTPUT
   };
 
 } // bed

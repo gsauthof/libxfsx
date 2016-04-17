@@ -14,6 +14,16 @@
 using namespace std;
 namespace bf = boost::filesystem;
 
+    void run_bed(const vector<string> &argvv)
+    {
+      vector<char *> argv;
+      for (auto &s : argvv)
+        argv.push_back(const_cast<char*>(s.c_str()));
+      argv.push_back(nullptr);
+      bed::Arguments parsed_args(argvv.size(), argv.data());
+      bed::command::execute(parsed_args);
+    }
+
     void compare_bed_output(
         const string &asn1_filename,
         const string &input_filename,
@@ -50,12 +60,7 @@ namespace bf = boost::filesystem;
       }
       argvv.push_back(input.generic_string());
       argvv.push_back(out.generic_string());
-      vector<char *> argv;
-      for (auto &s : argvv)
-        argv.push_back(&*s.begin());
-      argv.push_back(nullptr);
-      bed::Arguments parsed_args(argvv.size(), argv.data());
-      bed::command::execute(parsed_args);
+      run_bed(argvv);
       BOOST_TEST_CHECKPOINT("Checking output: " << out);
       ixxx::util::Mapped_File f(out.generic_string());
       BOOST_REQUIRE(bf::file_size(out));

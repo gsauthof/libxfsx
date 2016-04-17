@@ -4,6 +4,8 @@
 #include <string>
 #include <vector>
 
+    void run_bed(const std::vector<std::string> &argvv);
+
     void compare_bed_output(
         const std::string &asn1_filename,
         const std::string &input_filename,

@@ -26,6 +26,7 @@
 #include <vector>
 #include <stdexcept>
 #include <memory>
+#include <iostream>
 
 namespace bed {
 
@@ -41,7 +42,8 @@ namespace bed {
     VALIDATE_XSD,
     EDIT,
     COMPUTE_ACI,
-    WRITE_ACI
+    WRITE_ACI,
+    MK_BASH_COMP
   };
 
   class Arguments;
@@ -50,6 +52,7 @@ namespace bed {
 
     struct Base {
         Base(const Arguments &args);
+        virtual ~Base();
         virtual void execute() = 0;
       protected:
         const Arguments &args_;
@@ -66,6 +69,7 @@ namespace bed {
     struct Edit : Base { using Base::Base; void execute() override; };
     struct Compute_ACI : Base { using Base::Base; void execute() override; };
     struct Write_ACI : Base { using Base::Base; void execute() override; };
+    struct Mk_Bash_Comp : Base { using Base::Base; void execute() override; };
 
     namespace edit_op {
 

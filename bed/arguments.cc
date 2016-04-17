@@ -74,6 +74,10 @@ Commands:
                 memory usage, but otherwise yields the same result
                 as `edit -c write-aci`.
 
+  mk-bash-comp  Print Bash command completion
+                Activate it via: `. <(bed mk-bash-comp)`
+                (or create a file in your bash completion directory)
+
 Files:
 
   The OUTPUT argument is mandatory for most commands. For the xml command
@@ -214,6 +218,10 @@ Arguments:
                     (default: first detector.json in the asn search path)
     --no-detect     Disable autodetect
 
+  mk-bash-comp:
+
+    -o,--output     Output file (instead of stdout)
+
 
 BED stands for BER Editor, where the BER acronym means 'Basic Encoding Rules'.
 BER is a binary format (think: XML, but binary; Google Protocol Buffers, but
@@ -230,12 +238,15 @@ the encoding format) grammar.
 #include <set>
 #include <stdlib.h>
 #include <string.h>
+#include <fcntl.h>
 
 #include <boost/lexical_cast.hpp>
 #include <boost/filesystem.hpp>
 
 #include <xfsx/config.hh>
 #include <xfsx/detector.hh>
+#include <xfsx/byte.hh>
+#include <ixxx/util.hh>
 
 namespace bf = boost::filesystem;
 using namespace std;
@@ -276,6 +287,7 @@ namespace bed {
         args_(args)
     {
     }
+    Base::~Base() =default;
   }
 
   static map<string, Command> command_map = {
@@ -288,7 +300,8 @@ namespace bed {
     { "validate"   , Command::VALIDATE_XSD     },
     { "edit"       , Command::EDIT             },
     { "compute-aci", Command::COMPUTE_ACI      },
-    { "write-aci",   Command::WRITE_ACI        }
+    { "write-aci",   Command::WRITE_ACI        },
+    { "mk-bash-comp",Command::MK_BASH_COMP     }
   };
 
   static map<string, Edit_Command> edit_command_map = {
@@ -343,7 +356,9 @@ namespace bed {
     // --expr
     { "--xsd"       , Option::XSD       },
     { "-c"          , Option::COMMAND   },
-    { "--command"   , Option::COMMAND   } 
+    { "--command"   , Option::COMMAND   },
+    { "-o"          , Option::OUTPUT    },
+    { "--output"    , Option::OUTPUT    }
   };
 
   static map<Option, pair<unsigned, unsigned> > option_to_argc_map = {
@@ -371,7 +386,8 @@ namespace bed {
     { Option::COUNT     ,  { 1 , 1 }  },
     { Option::EXPR      ,  { 1 , 1 }  },
     { Option::XSD       ,  { 1 , 1 }  },
-    { Option::COMMAND   ,  { 1 , 4 }  }
+    { Option::COMMAND   ,  { 1 , 4 }  },
+    { Option::OUTPUT    ,  { 1 , 1 }  }
   };
 
   static map<Option, set<Command> > option_comp_map = {
@@ -406,7 +422,8 @@ namespace bed {
                              Command::SEARCH_XPATH }  },
     { Option::EXPR      ,  { Command::SEARCH_XPATH }  },
     { Option::XSD       ,  { Command::VALIDATE_XSD }  },
-    { Option::COMMAND   ,  { Command::EDIT }  }
+    { Option::COMMAND   ,  { Command::EDIT }  },
+    { Option::OUTPUT    ,  { Command::MK_BASH_COMP } }
   };
 
   static void print_help(const std::string &argv0);
@@ -571,6 +588,11 @@ namespace bed {
       throw Argument_Error("Unknown subcommand: " + command_str);
     }
   }
+  static void apply_output(Arguments &a, unsigned i, unsigned&,
+      unsigned, char **argv)
+  {
+    a.out_filename = argv[i];
+  }
 
   static map<Option,void (*)(Arguments &a, unsigned i, unsigned &j,
       unsigned argc, char **argv)> option_to_apply_map = {
@@ -598,10 +620,69 @@ namespace bed {
     { Option::COUNT     , apply_count  },
     { Option::EXPR      , apply_expr  },
     { Option::XSD       , apply_xsd  },
-    { Option::COMMAND   , apply_command  }
+    { Option::COMMAND   , apply_command  },
+    { Option::OUTPUT    , apply_output   }
   };
 
 
+  namespace command {
+
+    void Mk_Bash_Comp::execute()
+    {
+      string name(boost::filesystem::path(args_.argv0).stem().string());
+      ixxx::util::FD fd = args_.out_filename.empty()
+        ? ixxx::util::FD(1, true)
+        : ixxx::util::FD(args_.out_filename, O_CREAT|O_WRONLY|O_TRUNC, 0666);
+      xfsx::byte::writer::File w(fd);
+      w <<
+"function _" << name << R"(()
+{
+  local cmd cur prev sub_cmd
+  cmd="$1"
+  cur="$2"
+  prev="$3"
+
+  if [ $COMP_CWORD -eq 1 ] ; then
+    COMPREPLY=($(compgen -W ")";
+      for (auto &i : command_map)
+        w << i.first << ' ';
+      w << R"(" -- "$cur"))
+  else
+    sub_cmd="${COMP_WORDS[1]}"
+
+    if [[  "$cur" == -* ]]; then
+      local opts=""
+      case "$sub_cmd" in
+)";
+      for (auto &i : command_map) {
+        w << "        " << i.first << ")\n          opts=\"";
+        for (auto &j : option_map) {
+          auto &cs = option_comp_map.at(j.second);
+          if (cs.empty() || cs.count(i.second))
+            w << j.first << ' ';
+        }
+        w << "\"\n          ;;\n";
+      }
+      w << R"(        *)
+          ;;
+      esac
+      COMPREPLY=($(compgen -W "$opts" -- "$cur"))
+    else
+      if [[ "$sub_cmd" == "edit" && "$prev" == "-c" ]] ; then
+        COMPREPLY=($(compgen -W ")";
+      for (auto &i : edit_command_map)
+        w << i.first << ' ';
+      w << R"(" -- "$cur"))
+      else
+        COMPREPLY=($(compgen -f -- "$cur"))
+      fi
+    fi
+  fi
+}
+complete -F _)" << name << ' ' << name << '\n';
+      w.flush();
+    }
+  }
 
 
   static void print_version()
@@ -682,9 +763,10 @@ namespace bed {
       throw Argument_Error("Could not find any positional arguments");
     if (positional.size() > 3)
       throw Argument_Error("Too many positional arguments");
-    if (positional.size() < 2)
+    if (positional.size() < 2 && !(command == Command::MK_BASH_COMP))
       throw Argument_Error("No input filename given");
-    in_filename = positional.at(1);
+    if (positional.size() > 1)
+      in_filename = positional.at(1);
     if (positional.size() > 2)
       out_filename = positional.at(2);
 
@@ -713,7 +795,8 @@ namespace bed {
                   command::Validate_XSD,
                   command::Edit,
                   command::Compute_ACI,
-                  command::Write_ACI
+                  command::Write_ACI,
+                  command::Mk_Bash_Comp
         >().make(n, *this);
     if (autodetect && asn_filenames.empty()) {
       if (    command == Command::WRITE_XML

@@ -148,6 +148,7 @@ IF(${CMAKE_PROJECT_NAME} STREQUAL "xfsx")
     test/bed/command/search.cc
     test/bed/command/validate.cc
     test/bed/command/write_xml.cc
+    test/bed/command/mk_bash_comp.cc
     test/detector.cc
     test/character.cc
     test/xml2lxml.cc
@@ -233,6 +234,24 @@ target_link_libraries(bcd_speed
 # guard from super-projects, i.e. when it is added as subdirectory
 IF(CMAKE_CURRENT_SOURCE_DIR STREQUAL CMAKE_SOURCE_DIR)
   add_custom_target(check COMMAND ut)
+
+  # it is relative to build directory, by default
+  # add_custom_command(OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/bed.bash
+  add_custom_command(OUTPUT bed.bash
+    COMMAND bed
+    ARGS    mk-bash-comp -o ${CMAKE_CURRENT_BINARY_DIR}/bed.bash
+    # target-level dependency is automatically added, but
+    # file-level dependency is needed such that file is regenerated
+    # when bed is re-built
+    DEPENDS bed
+    COMMENT "generating bed bash completion file"
+    # we don't need a special wd
+    # WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+    )
+
+  add_custom_target(completion DEPENDS bed.bash)
+
+  add_custom_target(check-completion COMMAND bash bed.bash)
 endif()
 
 
