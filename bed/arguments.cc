@@ -391,15 +391,21 @@ namespace bed {
   };
 
   static map<Option, set<Command> > option_comp_map = {
-    { Option::VERBOSE   ,  { }  },
-    { Option::HELP      ,  { }  },
-    { Option::VERSION   ,  { }  },
+    // Constructing the empty set with { } works with gcc, but not with
+    // certain clang/stl combinations
+    // (e.g. Apple LLVM 6.0 (based on LLVM 3.5svn))
+    // thus we replace it with the equivalent set<Command>()
+    // cf. http://cplusplus.github.io/LWG/lwg-defects.html#2193
+    // { Option::VERBOSE   ,  { }  },
+    { Option::VERBOSE   ,  set<Command>() },
+    { Option::HELP      ,  set<Command>() },
+    { Option::VERSION   ,  set<Command>() },
     { Option::INDENT    ,  { Command::WRITE_XML, Command::PRETTY_WRITE_XML,
                              Command::COMPUTE_ACI }  },
-    { Option::ASN       ,  { }  },
-    { Option::ASN_PATH  ,  { }  },
-    { Option::ASN_CFG   ,  { }  },
-    { Option::NO_DETECT ,  { }  },
+    { Option::ASN       ,  set<Command>() },
+    { Option::ASN_PATH  ,  set<Command>() },
+    { Option::ASN_CFG   ,  set<Command>() },
+    { Option::NO_DETECT ,  set<Command>() },
     { Option::HEX       ,  { Command::WRITE_XML, Command::PRETTY_WRITE_XML,
                              Command::SEARCH_XPATH }  },
     { Option::TAG       ,  { Command::WRITE_XML, Command::PRETTY_WRITE_XML }  },
