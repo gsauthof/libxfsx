@@ -761,6 +761,7 @@ complete -F _)" << name << ' ' << name << '\n';
     }
     validate();
     autodetect_stuff();
+    create_cmd();
   }
 
   void Arguments::validate()
@@ -789,21 +790,6 @@ complete -F _)" << name << ' ' << name << '\n';
 
   void Arguments::autodetect_stuff()
   {
-    auto n = static_cast<unsigned>(command)-1;
-    cmd = New_Nth<command::Base,
-                  command::Write_Identity,
-                  command::Write_Definite,
-                  command::Write_Indefinite,
-                  command::Write_XML,
-                  command::Pretty_Write_XML,
-                  command::Write_BER,
-                  command::Search_XPath,
-                  command::Validate_XSD,
-                  command::Edit,
-                  command::Compute_ACI,
-                  command::Write_ACI,
-                  command::Mk_Bash_Comp
-        >().make(n, *this);
     if (autodetect && asn_filenames.empty()) {
       if (    command == Command::WRITE_XML
            || command == Command::EDIT
@@ -833,6 +819,24 @@ complete -F _)" << name << ' ' << name << '\n';
         }
       }
     }
+  }
+  void Arguments::create_cmd()
+  {
+    auto n = static_cast<unsigned>(command)-1;
+    cmd = New_Nth<command::Base,
+                  command::Write_Identity,
+                  command::Write_Definite,
+                  command::Write_Indefinite,
+                  command::Write_XML,
+                  command::Pretty_Write_XML,
+                  command::Write_BER,
+                  command::Search_XPath,
+                  command::Validate_XSD,
+                  command::Edit,
+                  command::Compute_ACI,
+                  command::Write_ACI,
+                  command::Mk_Bash_Comp
+        >().make(n, *this);
   }
 
 

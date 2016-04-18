@@ -1,0 +1,219 @@
+<TransferBatch class='APPLICATION' tag='1' tl='4' t='1' length='815' off='0'>
+    <BatchControlInfo class='APPLICATION' tag='4' tl='2' t='1' length='121' off='4'>
+        <Sender class='APPLICATION' tag='196' tl='4' t='3' length='5' off='6' hex='5745524644'>WERFD</Sender>
+        <Recipient class='APPLICATION' tag='182' tl='4' t='3' length='5' off='15' hex='584c4b4a45'>XLKJE</Recipient>
+        <FileSequenceNumber class='APPLICATION' tag='109' tl='3' t='2' length='5' off='24' hex='3331373037'>31707</FileSequenceNumber>
+        <FileCreationTimeStamp class='APPLICATION' tag='108' tl='3' t='2' length='25' off='32'>
+            <LocalTimeStamp class='APPLICATION' tag='16' tl='2' t='1' length='14' off='35' hex='3230303530343035303930353437'>20050405090547</LocalTimeStamp>
+            <UtcTimeOffset class='APPLICATION' tag='231' tl='4' t='3' length='5' off='51' hex='2b30323030'>+0200</UtcTimeOffset>
+        </FileCreationTimeStamp>
+        <TransferCutOffTimeStamp class='APPLICATION' tag='227' tl='4' t='3' length='25' off='60'>
+            <LocalTimeStamp class='APPLICATION' tag='16' tl='2' t='1' length='14' off='64' hex='3230303530343035303930353437'>20050405090547</LocalTimeStamp>
+            <UtcTimeOffset class='APPLICATION' tag='231' tl='4' t='3' length='5' off='80' hex='2b30323030'>+0200</UtcTimeOffset>
+        </TransferCutOffTimeStamp>
+        <FileAvailableTimeStamp class='APPLICATION' tag='107' tl='3' t='2' length='25' off='89'>
+            <LocalTimeStamp class='APPLICATION' tag='16' tl='2' t='1' length='14' off='92' hex='3230303530343035303930353437'>20050405090547</LocalTimeStamp>
+            <UtcTimeOffset class='APPLICATION' tag='231' tl='4' t='3' length='5' off='108' hex='2b30323030'>+0200</UtcTimeOffset>
+        </FileAvailableTimeStamp>
+        <SpecificationVersionNumber class='APPLICATION' tag='201' tl='4' t='3' length='1' off='117' hex='03'>3</SpecificationVersionNumber>
+        <ReleaseVersionNumber class='APPLICATION' tag='189' tl='4' t='3' length='1' off='122' hex='0c'>12</ReleaseVersionNumber>
+    </BatchControlInfo>
+    <AccountingInfo class='APPLICATION' tag='5' tl='2' t='1' length='33' off='127'>
+        <LocalCurrency class='APPLICATION' tag='135' tl='4' t='3' length='3' off='129' hex='455552'>EUR</LocalCurrency>
+        <CurrencyConversionList class='APPLICATION' tag='80' tl='3' t='2' length='18' off='136'>
+            <CurrencyConversion class='APPLICATION' tag='106' tl='3' t='2' length='15' off='139'>
+                <ExchangeRateCode class='APPLICATION' tag='105' tl='3' t='2' length='1' off='142' hex='01'>1</ExchangeRateCode>
+                <NumberOfDecimalPlaces class='APPLICATION' tag='159' tl='4' t='3' length='1' off='146' hex='05'>5</NumberOfDecimalPlaces>
+                <ExchangeRate class='APPLICATION' tag='104' tl='3' t='2' length='3' off='151' hex='01c5eb'>116203</ExchangeRate>
+            </CurrencyConversion>
+        </CurrencyConversionList>
+        <TapDecimalPlaces class='APPLICATION' tag='244' tl='4' t='3' length='1' off='157' hex='03'>3</TapDecimalPlaces>
+    </AccountingInfo>
+    <NetworkInfo class='APPLICATION' tag='6' tl='2' t='1' length='90' off='162'>
+        <UtcTimeOffsetInfoList class='APPLICATION' tag='234' tl='4' t='3' length='18' off='164'>
+            <UtcTimeOffsetInfo class='APPLICATION' tag='233' tl='4' t='3' length='14' off='168'>
+                <UtcTimeOffsetCode class='APPLICATION' tag='232' tl='4' t='3' length='1' off='172' hex='01'>1</UtcTimeOffsetCode>
+                <UtcTimeOffset class='APPLICATION' tag='231' tl='4' t='3' length='5' off='177' hex='2b30323030'>+0200</UtcTimeOffset>
+            </UtcTimeOffsetInfo>
+        </UtcTimeOffsetInfoList>
+        <RecEntityInfoList class='APPLICATION' tag='188' tl='4' t='3' length='64' off='186'>
+            <RecEntityInformation class='APPLICATION' tag='183' tl='4' t='3' length='17' off='190'>
+                <RecEntityCode class='APPLICATION' tag='184' tl='4' t='3' length='1' off='194' hex='01'>1</RecEntityCode>
+                <RecEntityType class='APPLICATION' tag='186' tl='4' t='3' length='1' off='199' hex='01'>1</RecEntityType>
+                <RecEntityId class='APPLICATION' tag='400' tl='4' t='3' length='3' off='204' hex='666f6f'>foo</RecEntityId>
+            </RecEntityInformation>
+            <RecEntityInformation class='APPLICATION' tag='183' tl='4' t='3' length='17' off='211'>
+                <RecEntityCode class='APPLICATION' tag='184' tl='4' t='3' length='1' off='215' hex='16'>22</RecEntityCode>
+                <RecEntityType class='APPLICATION' tag='186' tl='4' t='3' length='1' off='220' hex='01'>1</RecEntityType>
+                <RecEntityId class='APPLICATION' tag='400' tl='4' t='3' length='3' off='225' hex='626172'>bar</RecEntityId>
+            </RecEntityInformation>
+            <RecEntityInformation class='APPLICATION' tag='183' tl='4' t='3' length='18' off='232'>
+                <RecEntityCode class='APPLICATION' tag='184' tl='4' t='3' length='2' off='236' hex='008e'>142</RecEntityCode>
+                <RecEntityType class='APPLICATION' tag='186' tl='4' t='3' length='1' off='242' hex='04'>4</RecEntityType>
+                <RecEntityId class='APPLICATION' tag='400' tl='4' t='3' length='3' off='247' hex='62617a'>baz</RecEntityId>
+            </RecEntityInformation>
+        </RecEntityInfoList>
+    </NetworkInfo>
+    <CallEventDetailList class='APPLICATION' tag='3' tl='4' t='1' length='482' off='254'>
+        <MobileTerminatedCall class='APPLICATION' tag='10' tl='2' t='1' length='123' off='258'>
+            <MtBasicCallInformation class='APPLICATION' tag='153' tl='4' t='3' length='50' off='260'>
+                <ChargeableSubscriber class='APPLICATION' tag='427' tl='4' t='3' length='16' off='264'>
+                    <SimChargeableSubscriber class='APPLICATION' tag='199' tl='4' t='3' length='12' off='268'>
+                        <Imsi class='APPLICATION' tag='129' tl='4' t='3' length='8' off='272' hex='133713371337133f'>133713371337133</Imsi>
+                    </SimChargeableSubscriber>
+                </ChargeableSubscriber>
+                <CallEventStartTimeStamp class='APPLICATION' tag='44' tl='3' t='2' length='21' off='284'>
+                    <LocalTimeStamp class='APPLICATION' tag='16' tl='2' t='1' length='14' off='287' hex='3230313430333031313430333432'>20140301140342</LocalTimeStamp>
+                    <UtcTimeOffsetCode class='APPLICATION' tag='232' tl='4' t='3' length='1' off='303' hex='01'>1</UtcTimeOffsetCode>
+                </CallEventStartTimeStamp>
+                <TotalCallEventDuration class='APPLICATION' tag='223' tl='4' t='3' length='2' off='308' hex='0099'>153</TotalCallEventDuration>
+            </MtBasicCallInformation>
+            <LocationInformation class='APPLICATION' tag='138' tl='4' t='3' length='20' off='314'>
+                <NetworkLocation class='APPLICATION' tag='156' tl='4' t='3' length='16' off='318'>
+                    <RecEntityCode class='APPLICATION' tag='184' tl='4' t='3' length='1' off='322' hex='01'>1</RecEntityCode>
+                    <LocationArea class='APPLICATION' tag='136' tl='4' t='3' length='2' off='327' hex='0db1'>3505</LocationArea>
+                    <CellId class='APPLICATION' tag='59' tl='3' t='2' length='2' off='333' hex='1c0e'>7182</CellId>
+                </NetworkLocation>
+            </LocationInformation>
+            <BasicServiceUsedList class='APPLICATION' tag='38' tl='3' t='2' length='42' off='338'>
+                <BasicServiceUsed class='APPLICATION' tag='39' tl='3' t='2' length='39' off='341'>
+                    <BasicService class='APPLICATION' tag='36' tl='3' t='2' length='10' off='344'>
+                        <BasicServiceCode class='APPLICATION' tag='426' tl='4' t='3' length='6' off='347'>
+                            <TeleServiceCode class='APPLICATION' tag='218' tl='4' t='3' length='2' off='351' hex='3130'>10</TeleServiceCode>
+                        </BasicServiceCode>
+                    </BasicService>
+                    <ChargeInformationList class='APPLICATION' tag='70' tl='3' t='2' length='23' off='357'>
+                        <ChargeInformation class='APPLICATION' tag='69' tl='3' t='2' length='20' off='360'>
+                            <ChargedItem class='APPLICATION' tag='66' tl='3' t='2' length='1' off='363' hex='44'>D</ChargedItem>
+                            <ChargeDetailList class='APPLICATION' tag='64' tl='3' t='2' length='13' off='367'>
+                                <ChargeDetail class='APPLICATION' tag='63' tl='3' t='2' length='10' off='370'>
+                                    <ChargeType class='APPLICATION' tag='71' tl='3' t='2' length='2' off='373' hex='3030'>00</ChargeType>
+                                    <Charge class='APPLICATION' tag='62' tl='3' t='2' length='2' off='378' hex='08fc'>2300</Charge>
+                                </ChargeDetail>
+                            </ChargeDetailList>
+                        </ChargeInformation>
+                    </ChargeInformationList>
+                </BasicServiceUsed>
+            </BasicServiceUsedList>
+        </MobileTerminatedCall>
+        <MobileOriginatedCall class='APPLICATION' tag='9' tl='2' t='1' length='123' off='383'>
+            <MoBasicCallInformation class='APPLICATION' tag='147' tl='4' t='3' length='50' off='385'>
+                <ChargeableSubscriber class='APPLICATION' tag='427' tl='4' t='3' length='16' off='389'>
+                    <SimChargeableSubscriber class='APPLICATION' tag='199' tl='4' t='3' length='12' off='393'>
+                        <Imsi class='APPLICATION' tag='129' tl='4' t='3' length='8' off='397' hex='232323232323232f'>232323232323232</Imsi>
+                    </SimChargeableSubscriber>
+                </ChargeableSubscriber>
+                <CallEventStartTimeStamp class='APPLICATION' tag='44' tl='3' t='2' length='21' off='409'>
+                    <LocalTimeStamp class='APPLICATION' tag='16' tl='2' t='1' length='14' off='412' hex='3230313430333031313530323030'>20140301150200</LocalTimeStamp>
+                    <UtcTimeOffsetCode class='APPLICATION' tag='232' tl='4' t='3' length='1' off='428' hex='01'>1</UtcTimeOffsetCode>
+                </CallEventStartTimeStamp>
+                <TotalCallEventDuration class='APPLICATION' tag='223' tl='4' t='3' length='2' off='433' hex='00d5'>213</TotalCallEventDuration>
+            </MoBasicCallInformation>
+            <LocationInformation class='APPLICATION' tag='138' tl='4' t='3' length='20' off='439'>
+                <NetworkLocation class='APPLICATION' tag='156' tl='4' t='3' length='16' off='443'>
+                    <RecEntityCode class='APPLICATION' tag='184' tl='4' t='3' length='1' off='447' hex='01'>1</RecEntityCode>
+                    <LocationArea class='APPLICATION' tag='136' tl='4' t='3' length='2' off='452' hex='0db1'>3505</LocationArea>
+                    <CellId class='APPLICATION' tag='59' tl='3' t='2' length='2' off='458' hex='1c0e'>7182</CellId>
+                </NetworkLocation>
+            </LocationInformation>
+            <BasicServiceUsedList class='APPLICATION' tag='38' tl='3' t='2' length='42' off='463'>
+                <BasicServiceUsed class='APPLICATION' tag='39' tl='3' t='2' length='39' off='466'>
+                    <BasicService class='APPLICATION' tag='36' tl='3' t='2' length='10' off='469'>
+                        <BasicServiceCode class='APPLICATION' tag='426' tl='4' t='3' length='6' off='472'>
+                            <TeleServiceCode class='APPLICATION' tag='218' tl='4' t='3' length='2' off='476' hex='3130'>10</TeleServiceCode>
+                        </BasicServiceCode>
+                    </BasicService>
+                    <ChargeInformationList class='APPLICATION' tag='70' tl='3' t='2' length='23' off='482'>
+                        <ChargeInformation class='APPLICATION' tag='69' tl='3' t='2' length='20' off='485'>
+                            <ChargedItem class='APPLICATION' tag='66' tl='3' t='2' length='1' off='488' hex='44'>D</ChargedItem>
+                            <ChargeDetailList class='APPLICATION' tag='64' tl='3' t='2' length='13' off='492'>
+                                <ChargeDetail class='APPLICATION' tag='63' tl='3' t='2' length='10' off='495'>
+                                    <ChargeType class='APPLICATION' tag='71' tl='3' t='2' length='2' off='498' hex='3030'>00</ChargeType>
+                                    <Charge class='APPLICATION' tag='62' tl='3' t='2' length='2' off='503' hex='08fc'>2300</Charge>
+                                </ChargeDetail>
+                            </ChargeDetailList>
+                        </ChargeInformation>
+                    </ChargeInformationList>
+                </BasicServiceUsed>
+            </BasicServiceUsedList>
+        </MobileOriginatedCall>
+        <GprsCall class='APPLICATION' tag='14' tl='3' t='1' length='144' off='508'>
+            <GprsBasicCallInformation class='APPLICATION' tag='114' tl='3' t='2' length='79' off='511'>
+                <GprsChargeableSubscriber class='APPLICATION' tag='115' tl='3' t='2' length='20' off='514'>
+                    <ChargeableSubscriber class='APPLICATION' tag='427' tl='4' t='3' length='16' off='517'>
+                        <SimChargeableSubscriber class='APPLICATION' tag='199' tl='4' t='3' length='12' off='521'>
+                            <Imsi class='APPLICATION' tag='129' tl='4' t='3' length='8' off='525' hex='232323232323232f'>232323232323232</Imsi>
+                        </SimChargeableSubscriber>
+                    </ChargeableSubscriber>
+                </GprsChargeableSubscriber>
+                <GprsDestination class='APPLICATION' tag='116' tl='3' t='2' length='19' off='537'>
+                    <AccessPointNameNI class='APPLICATION' tag='261' tl='4' t='3' length='15' off='540' hex='666f6f2e6578616d706c652e6e6574'>foo.example.net</AccessPointNameNI>
+                </GprsDestination>
+                <CallEventStartTimeStamp class='APPLICATION' tag='44' tl='3' t='2' length='21' off='559'>
+                    <LocalTimeStamp class='APPLICATION' tag='16' tl='2' t='1' length='14' off='562' hex='3230313430333031313530383030'>20140301150800</LocalTimeStamp>
+                    <UtcTimeOffsetCode class='APPLICATION' tag='232' tl='4' t='3' length='1' off='578' hex='01'>1</UtcTimeOffsetCode>
+                </CallEventStartTimeStamp>
+                <TotalCallEventDuration class='APPLICATION' tag='223' tl='4' t='3' length='2' off='583' hex='01f4'>500</TotalCallEventDuration>
+                <ChargingId class='APPLICATION' tag='72' tl='3' t='2' length='1' off='589' hex='00'>0</ChargingId>
+            </GprsBasicCallInformation>
+            <GprsLocationInformation class='APPLICATION' tag='117' tl='3' t='2' length='12' off='593'>
+                <GprsNetworkLocation class='APPLICATION' tag='118' tl='3' t='2' length='9' off='596'>
+                    <RecEntityCodeList class='APPLICATION' tag='185' tl='4' t='3' length='5' off='599'>
+                        <RecEntityCode class='APPLICATION' tag='184' tl='4' t='3' length='1' off='603' hex='01'>1</RecEntityCode>
+                    </RecEntityCodeList>
+                </GprsNetworkLocation>
+            </GprsLocationInformation>
+            <GprsServiceUsed class='APPLICATION' tag='121' tl='3' t='2' length='44' off='608'>
+                <DataVolumeIncoming class='APPLICATION' tag='250' tl='4' t='3' length='4' off='611' hex='47868c00'>1200000000</DataVolumeIncoming>
+                <DataVolumeOutgoing class='APPLICATION' tag='251' tl='4' t='3' length='5' off='619' hex='0083215600'>2200000000</DataVolumeOutgoing>
+                <ChargeInformationList class='APPLICATION' tag='70' tl='3' t='2' length='24' off='628'>
+                    <ChargeInformation class='APPLICATION' tag='69' tl='3' t='2' length='21' off='631'>
+                        <ChargedItem class='APPLICATION' tag='66' tl='3' t='2' length='1' off='634' hex='58'>X</ChargedItem>
+                        <ChargeDetailList class='APPLICATION' tag='64' tl='3' t='2' length='14' off='638'>
+                            <ChargeDetail class='APPLICATION' tag='63' tl='3' t='2' length='11' off='641'>
+                                <ChargeType class='APPLICATION' tag='71' tl='3' t='2' length='2' off='644' hex='3030'>00</ChargeType>
+                                <Charge class='APPLICATION' tag='62' tl='3' t='2' length='3' off='649' hex='010428'>66600</Charge>
+                            </ChargeDetail>
+                        </ChargeDetailList>
+                    </ChargeInformation>
+                </ChargeInformationList>
+            </GprsServiceUsed>
+        </GprsCall>
+        <SupplServiceEvent class='APPLICATION' tag='11' tl='2' t='1' length='83' off='655'>
+            <ChargeableSubscriber class='APPLICATION' tag='427' tl='4' t='3' length='16' off='657'>
+                <SimChargeableSubscriber class='APPLICATION' tag='199' tl='4' t='3' length='12' off='661'>
+                    <Imsi class='APPLICATION' tag='129' tl='4' t='3' length='8' off='665' hex='133713371337133f'>133713371337133</Imsi>
+                </SimChargeableSubscriber>
+            </ChargeableSubscriber>
+            <LocationInformation class='APPLICATION' tag='138' tl='4' t='3' length='20' off='677'>
+                <NetworkLocation class='APPLICATION' tag='156' tl='4' t='3' length='16' off='681'>
+                    <RecEntityCode class='APPLICATION' tag='184' tl='4' t='3' length='1' off='685' hex='01'>1</RecEntityCode>
+                    <LocationArea class='APPLICATION' tag='136' tl='4' t='3' length='2' off='690' hex='0db1'>3505</LocationArea>
+                    <CellId class='APPLICATION' tag='59' tl='3' t='2' length='2' off='696' hex='1c0e'>7182</CellId>
+                </NetworkLocation>
+            </LocationInformation>
+            <SupplServiceUsed class='APPLICATION' tag='206' tl='4' t='3' length='35' off='701'>
+                <SupplServiceCode class='APPLICATION' tag='209' tl='4' t='3' length='2' off='705' hex='3242'>2B</SupplServiceCode>
+                <SupplServiceActionCode class='APPLICATION' tag='208' tl='4' t='3' length='1' off='711' hex='00'>0</SupplServiceActionCode>
+                <ChargingTimeStamp class='APPLICATION' tag='74' tl='3' t='2' length='21' off='716'>
+                    <LocalTimeStamp class='APPLICATION' tag='16' tl='2' t='1' length='14' off='719' hex='3230313430333032313530383030'>20140302150800</LocalTimeStamp>
+                    <UtcTimeOffsetCode class='APPLICATION' tag='232' tl='4' t='3' length='1' off='735' hex='01'>1</UtcTimeOffsetCode>
+                </ChargingTimeStamp>
+            </SupplServiceUsed>
+        </SupplServiceEvent>
+    </CallEventDetailList>
+    <AuditControlInfo class='APPLICATION' tag='15' tl='2' t='1' length='77' off='740'>
+        <EarliestCallTimeStamp class='APPLICATION' tag='101' tl='3' t='2' length='25' off='742'>
+            <LocalTimeStamp class='APPLICATION' tag='16' tl='2' t='1' length='14' off='745' hex='3230303530343034313632343533'>20050404162453</LocalTimeStamp>
+            <UtcTimeOffset class='APPLICATION' tag='231' tl='4' t='3' length='5' off='761' hex='2b30323030'>+0200</UtcTimeOffset>
+        </EarliestCallTimeStamp>
+        <LatestCallTimeStamp class='APPLICATION' tag='133' tl='4' t='3' length='25' off='770'>
+            <LocalTimeStamp class='APPLICATION' tag='16' tl='2' t='1' length='14' off='774' hex='3230303530343035303930303539'>20050405090059</LocalTimeStamp>
+            <UtcTimeOffset class='APPLICATION' tag='231' tl='4' t='3' length='5' off='790' hex='2b30323030'>+0200</UtcTimeOffset>
+        </LatestCallTimeStamp>
+        <TotalCharge class='APPLICATION' tag='415' tl='4' t='3' length='2' off='799' hex='08fc'>2300</TotalCharge>
+        <TotalTaxValue class='APPLICATION' tag='226' tl='4' t='3' length='1' off='805' hex='00'>0</TotalTaxValue>
+        <TotalDiscountValue class='APPLICATION' tag='225' tl='4' t='3' length='1' off='810' hex='00'>0</TotalDiscountValue>
+        <CallEventDetailsCount class='APPLICATION' tag='43' tl='3' t='2' length='1' off='815' hex='04'>4</CallEventDetailsCount>
+    </AuditControlInfo>
+</TransferBatch>

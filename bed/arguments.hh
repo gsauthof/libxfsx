@@ -101,6 +101,7 @@ namespace bed {
       void parse(unsigned argc, char **argv);
       void validate();
       void autodetect_stuff();
+      void create_cmd();
     public:
       Arguments();
       Arguments(unsigned argc, char **argv);

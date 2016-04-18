@@ -9,6 +9,9 @@
 #include <bed/arguments.hh>
 
 #include <ixxx/util.hh>
+#include <ixxx/ansi.hh>
+#include <ixxx/posix.hh>
+#include <ixxx/ixxx.hh>
 
 namespace bf = boost::filesystem;
 using namespace std;
@@ -260,6 +263,23 @@ BOOST_AUTO_TEST_SUITE(bed_)
         run_bed({"bed", "write-xml", input.generic_string(), "/dev/null"});
       }
 #endif
+
+      BOOST_AUTO_TEST_CASE(autodetect)
+      {
+        string old_asn1_path;
+        try { old_asn1_path = ixxx::ansi::getenv("ASN1_PATH"); }
+        catch (const ixxx::runtime_error &e) {}
+        string a {test::path::in() + "/../../libgrammar/test/in/asn1"};
+        string b {test::path::in() + "/../../config"};
+        string c {test::path::in() + "/../../libgrammar/grammar/xml"};
+        ixxx::posix::setenv("ASN1_PATH", a + ":" + b + ":" + c, true);
+
+        compare_bed_output("", "tap_3_12_valid.ber",
+            "write_xml_auto.xml", { "write-xml", "--hex", "--off", "--tag", "--class", "--tl", "--t_size", "--length" });
+
+        if (!old_asn1_path.empty())
+          ixxx::posix::setenv("ASN1_PATH", old_asn1_path, true);
+      }
 
     BOOST_AUTO_TEST_SUITE_END() // write_xml
 
