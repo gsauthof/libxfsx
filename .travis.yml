@@ -37,6 +37,9 @@ matrix:
       env: CMAKE_BUILD_TYPE=Debug    MY_CXX=clang++-3.7 MY_CC=clang-3.7
     - os: osx
       compiler: clang
+      env: CMAKE_BUILD_TYPE=Coverage MY_CXX=clang++-3.7 MY_CC=clang-3.7
+    - os: osx
+      compiler: clang
       env: CMAKE_BUILD_TYPE=Release  MY_CXX=clang++-3.7 MY_CC=clang-3.7
     - os: linux
       services: docker
@@ -58,7 +61,8 @@ before_script:
 script:
   - ./ci/travis/script.sh
 
-#after_success:
+after_success:
+  - ./ci/travis/after_success.sh
 
 #after_failure:
 
