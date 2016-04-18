@@ -195,12 +195,14 @@ namespace xfsx {
       resulting_grammars = resulting_grammars;
       result_.asn_filenames = resulting_grammars;
 
-      auto resulting_constraints = get_list(
-          definition.get_child(KEY::RESULTING_CONSTRAINTS));
-      resulting_constraints = replace_variables(resulting_constraints);
-      resulting_constraints = map_which(resulting_constraints);
-      resulting_constraints = resulting_constraints;
-      result_.constraint_filenames = resulting_constraints;
+      if (definition.count(KEY::RESULTING_CONSTRAINTS)) {
+        auto resulting_constraints = get_list(
+            definition.get_child(KEY::RESULTING_CONSTRAINTS));
+        resulting_constraints = replace_variables(resulting_constraints);
+        resulting_constraints = map_which(resulting_constraints);
+        resulting_constraints = resulting_constraints;
+        result_.constraint_filenames = resulting_constraints;
+      }
 
       result_.name = definition.get<string>(KEY::NAME);
       result_.long_name = definition.get<string>(KEY::LONG_NAME);
