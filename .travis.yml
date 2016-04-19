@@ -28,7 +28,8 @@ matrix:
       compiler: clang
       # Apple's clang 3.5 doesn't support sanitize options
       # although the upstream 3.5 does ...
-      env: CMAKE_BUILD_TYPE=Coverage    MY_CXX=clang++     MY_CC=clang
+      #env: CMAKE_BUILD_TYPE=Coverage    MY_CXX=clang++     MY_CC=clang
+      env: CMAKE_BUILD_TYPE=Debug    MY_CXX=clang++     MY_CC=clang
     - os: osx
       compiler: clang
       # clang 3.7 from Homebrew understands all sanitize flags
@@ -46,6 +47,9 @@ matrix:
     - os: linux
       services: docker
       env: docker_image=gsauthof/fedora-cxx-devel:23 build_tag=linux CMAKE_BUILD_TYPE=SanitizeO
+    - os: linux
+      services: docker
+      env: docker_image=gsauthof/fedora-cxx-devel:23 build_tag=linux CMAKE_BUILD_TYPE=Coverage
     - os: linux
       services: docker
       env: docker_image=gsauthof/fedora-mingw64-devel:23 docker_image_b=gsauthof/fedora-mingw64-runtime:23 build_tag=mingw64 CMAKE_BUILD_TYPE=Release

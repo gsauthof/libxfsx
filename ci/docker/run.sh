@@ -1,8 +1,6 @@
 #!/usr/bin/bash
 
-set -x
-set -e
-set -u
+set -eux
 
 # clean the environment, we don't want that stuff like DBUS*, XDG_*, DESKTOP_SESSION etc. is leaked
 [ -v HOME ] && exec -c "$0" "$@"

@@ -16,9 +16,11 @@ function run_osx()
 
 function run_linux()
 {
-  :
-  # run in docker ...
-  #bash <(curl -s https://codecov.io/bash) -p
+  docker exec cxx-devel \
+    /srv/src/libxfsx/ci/docker/upload_coverage.sh \
+    /srv/src/libxfsx \
+    /srv/build/libxfsx \
+    "$build_tag"
 }
 
 run_$TRAVIS_OS_NAME
