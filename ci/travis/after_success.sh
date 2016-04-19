@@ -10,7 +10,8 @@ fi
 
 function run_osx()
 {
-  bash <(curl -s https://codecov.io/bash) || echo "Codecov.io reporting failed"
+  cd build
+  bash -x <(curl -s https://codecov.io/bash) || echo "Codecov.io reporting failed"
 }
 
 function run_linux()
