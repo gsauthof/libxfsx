@@ -1,3 +1,5 @@
+[![C++](https://img.shields.io/badge/C++-14-blue.svg)](https://en.wikipedia.org/wiki/C++14) [![License](https://img.shields.io/badge/license-LGPL--3-blue.svg)][lgpl] [![Build Status](https://travis-ci.org/gsauthof/libxfsx.svg?branch=master)](https://travis-ci.org/gsauthof/libxfsx) [![Code Coverage](https://codecov.io/github/gsauthof/libxfsx/coverage.svg?branch=master)](https://codecov.io/github/gsauthof/libxfsx)
+
 C++ library for reading, writing and maninpulating [BER][ber] and
 XML encoded files.
 
@@ -38,7 +40,6 @@ Syntactically validate a TAP file (plus some constraints checking):
 
 2015, Georg Sauthoff <mail@georg.so>
 
-[![Build Status](https://travis-ci.org/gsauthof/libxfsx.svg?branch=master)](https://travis-ci.org/gsauthof/libxfsx)
 
 
 ## Examples
