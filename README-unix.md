@@ -9,7 +9,7 @@ installing dependencies and a uncommon environment.
 
 ## Solaris 10 Example
 
-In general, install as much dependencies via OpenCSW, as
+In general, install as much dependencies via [OpenCSW][csw], as
 possible - e.g. GCC 4.9. The Solaris Studio 12.3/12.4 compiler
 doesn't support enough C++11/14 to compile this project and Boost.
 
@@ -49,3 +49,5 @@ or:
    gmake
 
 to make sure that GNU make is used
+
+[csw]: https://en.wikipedia.org/wiki/OpenCSW
