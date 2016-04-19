@@ -281,6 +281,21 @@ BOOST_AUTO_TEST_SUITE(bed_)
           ixxx::posix::setenv("ASN1_PATH", old_asn1_path, true);
       }
 
+
+      BOOST_AUTO_TEST_CASE(autodetect_no_detect_raw)
+      {
+        string old_asn1_path;
+        try { old_asn1_path = ixxx::ansi::getenv("ASN1_PATH"); }
+        catch (const ixxx::runtime_error &e) {}
+        ixxx::posix::setenv("ASN1_PATH", "", true);
+
+        compare_bed_output("", "asn1c/examples/sample.source.LDAP3/sample-LDAPMessage-1.ber",
+            "write_xml_auto_not.xml", { "write-xml" });
+
+        if (!old_asn1_path.empty())
+          ixxx::posix::setenv("ASN1_PATH", old_asn1_path, true);
+      }
+
     BOOST_AUTO_TEST_SUITE_END() // write_xml
 
   BOOST_AUTO_TEST_SUITE_END() // command

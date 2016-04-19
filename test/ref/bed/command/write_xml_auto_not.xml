@@ -1,0 +1,8 @@
+<c tag='16' class='UNIVERSAL'>
+    <p tag='2' class='UNIVERSAL'>&#x01;</p>
+    <c tag='0' class='APPLICATION'>
+        <p tag='2' class='UNIVERSAL'>&#x03;</p>
+        <p tag='4' class='UNIVERSAL'>uid=a,dc=com</p>
+        <p tag='0' class='CONTEXT_SPECIFIC'>password</p>
+    </c>
+</c>
