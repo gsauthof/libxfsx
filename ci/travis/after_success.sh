@@ -11,7 +11,7 @@ fi
 function run_osx()
 {
   cd build
-  bash -x <(curl -s https://codecov.io/bash) || echo "Codecov.io reporting failed"
+  bash <(curl -s https://codecov.io/bash) || echo "Codecov.io reporting failed"
 }
 
 function run_linux()
