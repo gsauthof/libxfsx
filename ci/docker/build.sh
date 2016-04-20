@@ -5,7 +5,12 @@ set -eux
 : ${CMAKE_BUILD_TYPE:=Sanitize}
 # -j1 : be nice about CI environments with low memory ...
 : ${jobs:=3}
-: ${targets:=bed xfsx xfsx_static ut}
+if [[ $CMAKE_BUILD_TYPE =~ "Coverage" ]]; then
+  default_targets="ut"
+else
+  default_targets="bed xfsx xfsx_static ut"
+fi
+: ${targets:=$default_targets}
 
 
 src_dir="$1"
