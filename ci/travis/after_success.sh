@@ -12,6 +12,8 @@ function run_osx()
 {
   cd build
   bash <(curl -s https://codecov.io/bash) || echo "Codecov.io reporting failed"
+  ls -al
+  ls -al /srv/src/libxfsx
 }
 
 function run_linux()
