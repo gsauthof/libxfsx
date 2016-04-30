@@ -71,8 +71,11 @@ namespace xfsx {
       {
         if (!p_.first || p_.first == p_.second)
           p_.first = nullptr;
-        else
+        else {
           p_.first = t.skip_children(p_.first, p_.second);
+          if (p_.first == p_.second)
+            p_.first = nullptr;
+        }
       }
 
       bool eot(const Vertical_TLC &t) const

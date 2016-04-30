@@ -105,6 +105,37 @@ BOOST_AUTO_TEST_SUITE(xfsx_)
           BOOST_CHECK_EQUAL(f(), 4);
         }
 
+        BOOST_AUTO_TEST_CASE(skip_children)
+        {
+          using namespace xfsx;
+          boost::filesystem::path in(test::path::in());
+          in /= "tap_3_12_valid.ber";
+          ixxx::util::Mapped_File m(in.generic_string());
+          Vertical_TLC t;
+
+          using namespace xfsx::tap::traverser;
+          Vertical_TLC_Proxy p(m.begin(), m.end(), t);
+
+          BOOST_CHECK(!p.eot(t));
+          p.advance(t);
+          BOOST_CHECK_EQUAL(p.tag(t), 4); // BatchControlInfo
+          BOOST_CHECK(!p.eot(t));
+          p.skip_children(t);
+          BOOST_CHECK_EQUAL(p.tag(t), 5); // AccountingInfo
+          BOOST_CHECK(!p.eot(t));
+          p.skip_children(t);
+          BOOST_CHECK_EQUAL(p.tag(t), 6); // NetworkInfo
+          BOOST_CHECK(!p.eot(t));
+          p.skip_children(t);
+          BOOST_CHECK_EQUAL(p.tag(t), 3); // CallEventDetailList
+          BOOST_CHECK(!p.eot(t));
+          p.skip_children(t);
+          BOOST_CHECK_EQUAL(p.tag(t), 15); // AuditControlInfo
+          BOOST_CHECK(!p.eot(t));
+          p.skip_children(t);
+          BOOST_CHECK(p.eot(t));
+        }
+
         BOOST_AUTO_TEST_CASE(count)
         {
           using namespace xfsx;
