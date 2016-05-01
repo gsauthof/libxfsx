@@ -26,6 +26,8 @@
 #include "xfsx.hh"
 #include "byte.hh"
 #include "hex.hh"
+#include "traverser/matcher.hh"
+#include "traverser/tlc.hh"
 
 #include <ixxx/ixxx.h>
 
@@ -322,19 +324,22 @@ namespace xfsx {
       if (args_.search_path.empty()) {
         write_all();
       } else {
-        Path_Finder pf(begin_, end_,
+        using namespace xfsx::traverser;
+        Vertical_TLC t;
+        Vertical_TLC_Proxy p(begin_, end_, t);
+        Basic_Matcher<Vertical_TLC_Proxy, Vertical_TLC> pf(
             args_.search_path, args_.search_everywhere);
-        auto b = pf.begin();
-        auto e = pf.end();
+        auto ret = advance_first_match(p, t, pf);
 
         auto i = args_.search_ranges.begin();
         auto j = args_.search_ranges.end();
         if (i == j)
           return;
         size_t k = 0;
-        for (; b != e; ++b) {
+
+        while (!p.eot(t)) {
           if (k >= (*i).first) {
-            r = Skip_EOC_Reader(*b, end_);
+            r = Skip_EOC_Reader(t.begin, end_);
             write_all();
           }
           ++k;
@@ -343,6 +348,7 @@ namespace xfsx {
             if (i == j)
               break;
           }
+          ret = advance_next_match(ret, p, t, pf);
         }
       }
     }

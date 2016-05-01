@@ -38,6 +38,7 @@ namespace xfsx {
         : p_(begin, end) { advance(t); }
 
       Tag_Int tag(const Vertical_TLC &t) const { return t.tag; }
+      Klasse klasse(const Vertical_TLC &t) const { return t.klasse; }
       uint32_t height(const Vertical_TLC &t) const { return t.height; }
       void string(const Vertical_TLC &t, std::string &s) const
       {

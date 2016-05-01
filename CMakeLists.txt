@@ -88,6 +88,7 @@ set(LIB_SRC
   xfsx/character.cc
   xfsx/path.cc
   xfsx/tap/traverser.cc
+  xfsx/search.cc
   )
 add_library(xfsx SHARED
   ${LIB_SRC}
@@ -155,6 +156,8 @@ IF(${CMAKE_PROJECT_NAME} STREQUAL "xfsx")
     test/tap.cc
     test/path.cc
     test/xfsx/tap/traverser.cc
+    test/xfsx/traverser/matcher.cc
+    test/xfsx/search.cc
 
     ${BED_SRC}
 
