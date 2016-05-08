@@ -147,7 +147,7 @@ or just:
 ## Usage Notes
 
 The provided autodection run control file
-(`config/detector.json`) has rules for several formats (TAP, RAP,
+(`config/detector.json`) has rules for several formats ([TAP][tap], [RAP][rap],
 NRT, etc.). The referenced files are looked up via the ASN1
 search path (cf. the `bed` help screen).  A quite complete ASN1
 file collection (that can be used with the provided rc file)
@@ -295,7 +295,7 @@ BER tag that is hidden in the XML file.
 ## TAP 3.12 Test Scenarios
 
 The GSMA has published some TAP 3.12 test scenarios - they
-are described in TD.60 and the specified test call data records are also
+are described in [TD.60][td60] and the specified test call data records are also
 available as BER file (TD.62) and XML file (TD.61).
 
 The BER test file can also be converted to XML with `bed write-xml`.
@@ -382,6 +382,7 @@ available.
 [ber]: https://en.wikipedia.org/wiki/X.690#BER_encoding
 [asn1]: https://en.wikipedia.org/wiki/Abstract_Syntax_Notation_One
 [tap]: http://www.gsma.com/newsroom/wp-content/uploads/TD.57-v32.31.pdf
+[rap]: http://www.gsma.com/newsroom/wp-content/uploads/TD.32-v6.11.pdf
 [xpath]: https://en.wikipedia.org/wiki/XPath
 [libgrammar]: https://github.com/gsauthof/libgrammar
 [libxxxml]: https://github.com/gsauthof/libxxxml
