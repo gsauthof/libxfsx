@@ -43,7 +43,7 @@
     },
     {
       "name": "RAP",
-      "long_name": "Returned Accounts Procedure",
+      "long_name": "Returned Account Procedure",
       "comment": "TD.32",
       "count": 18,
       "variables":
@@ -70,7 +70,7 @@
     },
     {
       "name": "RAP",
-      "long_name": "Returned Accounts Procedure",
+      "long_name": "Returned Account Procedure",
       "comment": "TD.32",
       "count": 18,
       "variables":
@@ -97,7 +97,7 @@
     },
     {
       "name": "RAPACK",
-      "long_name": "Returned Accounts Procedure Acknowledgement",
+      "long_name": "Returned Account Procedure Acknowledgement",
       "comment": "TD.32",
       "count": 18,
       "variables":
