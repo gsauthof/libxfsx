@@ -103,11 +103,19 @@
       "variables":
         [
         {
+          "name": "major",
+          "path": "string(1)"
+        },
+        {
+          "name": "minor",
+          "path": "string(5)"
+        },
+        {
           "name": "sender",
           "path": "string(/Acknowledgement[1]/Sender)"
         },
         {
-          "name": "minor",
+          "name": "recipient",
           "path": "string(/Acknowledgement[1]/Recipient)"
         }
         ],
