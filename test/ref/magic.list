@@ -1,0 +1,6 @@
+test/in/nrt_2_1.ber
+test/in/tap_3_12_valid.ber
+test/in/rap_ack.ber
+test/in/asn1c/examples/sample.source.TAP3/sample-DataInterChange-1.ber
+test/in/rap_mini.ber
+test/in/tap_notification.ber

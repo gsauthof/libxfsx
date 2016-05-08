@@ -255,6 +255,8 @@ IF(CMAKE_CURRENT_SOURCE_DIR STREQUAL CMAKE_SOURCE_DIR)
   add_custom_target(completion DEPENDS bed.bash)
 
   add_custom_target(check-completion COMMAND bash bed.bash DEPENDS completion)
+
+  add_custom_target(check-magic COMMAND bash ${CMAKE_CURRENT_SOURCE_DIR}/test/magic.bash ${CMAKE_CURRENT_SOURCE_DIR})
 endif()
 
 

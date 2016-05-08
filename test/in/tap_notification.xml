@@ -1,0 +1,15 @@
+<Notification>
+    <Sender>ABC08</Sender>
+    <Recipient>XYZ15</Recipient>
+    <FileSequenceNumber>23023</FileSequenceNumber>
+    <FileAvailableTimeStamp>
+        <LocalTimeStamp>20160523110502</LocalTimeStamp>
+        <UtcTimeOffset>+0200</UtcTimeOffset>
+    </FileAvailableTimeStamp>
+    <TransferCutOffTimeStamp>
+        <LocalTimeStamp>20160523110502</LocalTimeStamp>
+        <UtcTimeOffset>+0200</UtcTimeOffset>
+    </TransferCutOffTimeStamp>
+    <SpecificationVersionNumber>3</SpecificationVersionNumber>
+    <ReleaseVersionNumber>9</ReleaseVersionNumber>
+</Notification>

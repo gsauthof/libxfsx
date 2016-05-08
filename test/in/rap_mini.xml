@@ -1,0 +1,20 @@
+<ReturnBatch>
+    <RapBatchControlInfo>
+        <Sender>ABC08</Sender>
+        <Recipient>DEF15</Recipient>
+        <RapFileSequenceNumber>00023</RapFileSequenceNumber>
+        <RapFileCreationTimeStamp>
+            <LocalTimeStamp>20160520101500</LocalTimeStamp>
+            <UtcTimeOffset>-0200</UtcTimeOffset>
+        </RapFileCreationTimeStamp>
+        <RapFileAvailableTimeStamp>
+            <LocalTimeStamp>20160520101600</LocalTimeStamp>
+            <UtcTimeOffset>-0200</UtcTimeOffset>
+        </RapFileAvailableTimeStamp>
+        <SpecificationVersionNumber>3</SpecificationVersionNumber>
+        <ReleaseVersionNumber>12</ReleaseVersionNumber>
+        <RapSpecificationVersionNumber>1</RapSpecificationVersionNumber>
+        <RapReleaseVersionNumber>5</RapReleaseVersionNumber>
+    </RapBatchControlInfo>
+</ReturnBatch>
+

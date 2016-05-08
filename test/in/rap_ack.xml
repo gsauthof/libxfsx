@@ -1,0 +1,13 @@
+<Acknowledgement>
+  <Sender>DGS01</Sender>
+  <Recipient>XYZ02</Recipient>
+  <RapFileSequenceNumber>123</RapFileSequenceNumber>
+  <AckFileCreationTimeStamp>
+    <LocalTimeStamp>20160501222324</LocalTimeStamp>
+    <UtcTimeOffset>+0002</UtcTimeOffset>
+  </AckFileCreationTimeStamp>
+  <AckFileAvailableTimeStamp>
+    <LocalTimeStamp>20160501232324</LocalTimeStamp>
+    <UtcTimeOffset>+0002</UtcTimeOffset>
+  </AckFileAvailableTimeStamp>
+</Acknowledgement>
