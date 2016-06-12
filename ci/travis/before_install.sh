@@ -2,6 +2,7 @@
 
 set -eux
 
+: ${build_tag:=none}
 
 function prepare_osx()
 {
@@ -35,6 +36,11 @@ function prepare_osx()
 
 function prepare_linux()
 {
+  # as of 2016-06, there is no fedora mingw lua package, yet
+  if [ "$build_tag" = mingw64 ] ; then
+    git clone https://github.com/LuaDist/lua.git
+  fi
+
   build="$HOME"/build/libxfsx
   src="$PWD"/..
 
