@@ -19,7 +19,7 @@
 
 }}} */
 
-#include <xfsx/config.hh>
+#include <xfsx_config.hh>
 
 
 namespace xfsx {

@@ -1,8 +1,11 @@
 cmake_minimum_required(VERSION 2.8)
 project(xfsx CXX)
 
-set(XFSX_VERSION "0.5.1" CACHE STRING "Library version")
-set(XFSX_DATE "2015-06-30" CACHE STRING "Date of last significant change")
+set(XFSX_VERSION "0.6.1" CACHE STRING "Library version")
+set(XFSX_DATE "2016-06-11" CACHE STRING "Date of last significant change")
+
+option(XFSX_USE_LUA  "Enable Lua based features like pretty printing" ON)
+option(XFSX_USE_LUAJIT "Use Luajit" OFF)
 
 # guard from super-projects, i.e. when it is added as subdirectory
 IF(CMAKE_CURRENT_SOURCE_DIR STREQUAL CMAKE_SOURCE_DIR)
@@ -60,7 +63,33 @@ IF(CMAKE_CURRENT_SOURCE_DIR STREQUAL CMAKE_SOURCE_DIR)
 endif()
 
 
-configure_file(config.cc.in ${CMAKE_BINARY_DIR}/config.cc)
+# output is relative to CMAKE_CURRENT_BINARY_DIR, by default
+configure_file(config.cc.in config.cc)
+configure_file(config.hh.in xfsx_config.hh)
+
+if (XFSX_USE_LUA)
+  if(XFSX_USE_LUAJIT)
+    find_library(LUA_LIB NAMES luajit-5.1)
+    # e.g. Fedora 23 luajit does not come with lua.hpp
+    #find_path(LUAXX_INCLUDE_DIR lua.hpp)
+    find_path(LUA_INCLUDE_DIR lua.h
+      PATHS /usr/include/luajit-2.0 NO_DEFAULT_PATH)
+    #message(${LUA_INCLUDE_DIR})
+  else() # XFSX_USE_LUAJIT
+    if(WIN32)
+      # on windows we use the lua included as submodule
+      add_subdirectory(lua)
+      set(LUA_LIB liblua)
+      set(LUAXX_INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/lua/etc)
+      set(LUA_INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/lua/src)
+      set(LUA_INCLUDE_DIR2 ${CMAKE_CURRENT_BINARY_DIR}/lua)
+    else()
+      find_library(LUA_LIB NAMES lua)
+      find_path(LUAXX_INCLUDE_DIR lua.hpp)
+      find_path(LUA_INCLUDE_DIR lua.h)
+    endif()
+  endif()
+endif()
 
 set(LIB_SRC 
   xfsx/xfsx.cc
@@ -167,6 +196,7 @@ IF(${CMAKE_PROJECT_NAME} STREQUAL "xfsx")
     ${XML2_INCLUDE_DIR}
     ${Boost_INCLUDE_DIRS}
     ${CMAKE_CURRENT_SOURCE_DIR}
+    ${CMAKE_CURRENT_BINARY_DIR}
     ${CMAKE_CURRENT_SOURCE_DIR}/libgrammar
     ${CMAKE_CURRENT_SOURCE_DIR}/libixxx
     ${CMAKE_CURRENT_SOURCE_DIR}/libixxxutil
@@ -185,6 +215,7 @@ IF(${CMAKE_PROJECT_NAME} STREQUAL "xfsx")
     ${Boost_SYSTEM_LIBRARY}
     ${Boost_REGEX_LIBRARY}
     ${XML2_LIB}
+    ${LUA_LIB}
   )
 
 endif() # CMAKE_PROJECT_NAME
@@ -195,16 +226,23 @@ add_executable(bed
   
   ${CMAKE_SOURCE_DIR}/cppformat/format.cc
   )
-
+target_compile_definitions(bed PRIVATE -DSOL_USE_BOOST=1)
+target_compile_definitions(xfsx PRIVATE -DSOL_USE_BOOST=1)
+target_compile_definitions(xfsx_static PRIVATE -DSOL_USE_BOOST=1)
 set_property(TARGET xfsx xfsx_static bed PROPERTY INCLUDE_DIRECTORIES
   ${XML2_INCLUDE_DIR}
   ${Boost_INCLUDE_DIRS}
+  ${LUAXX_INCLUDE_DIR}
+  ${LUA_INCLUDE_DIR}
+  ${LUA_INCLUDE_DIR2}
   ${CMAKE_CURRENT_SOURCE_DIR}
-  ${CMAKE_SOURCE_DIR}
+  #  ${CMAKE_SOURCE_DIR}
+  ${CMAKE_CURRENT_BINARY_DIR}
   ${CMAKE_SOURCE_DIR}/libixxx
   ${CMAKE_SOURCE_DIR}/libixxxutil
   ${CMAKE_SOURCE_DIR}/libxxxml
   ${CMAKE_SOURCE_DIR}/libgrammar
+  ${CMAKE_SOURCE_DIR}/sol2
 )
 
 target_link_libraries(bed
@@ -217,6 +255,7 @@ target_link_libraries(bed
   ${Boost_FILESYSTEM_LIBRARY}
   ${Boost_SYSTEM_LIBRARY}
   ${Boost_REGEX_LIBRARY}
+  ${LUA_LIB}
 )
 
 add_executable(bcd_speed

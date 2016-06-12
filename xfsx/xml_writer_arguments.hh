@@ -55,11 +55,15 @@ namespace xfsx {
     struct Pretty_Writer_Arguments : public Writer_Arguments {
       Pretty_Writer_Arguments();
       Pretty_Writer_Arguments(const std::deque<std::string> &asn_filenames);
-      Tag_Translator translator;
-      Tag_Dereferencer dereferencer;
-      Tag_Typifier typifier;
 
-      Name_Translator name_translator;
+      Tag_Translator   translator;
+      Tag_Dereferencer dereferencer;
+      Tag_Typifier     typifier;
+
+      Name_Translator  name_translator;
+
+      bool pretty_print {false};
+      std::string pp_filename;
     };
 
   }

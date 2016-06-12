@@ -35,7 +35,7 @@
 #include <xfsx/xml_writer_arguments.hh>
 #include <xfsx/ber2lxml.hh>
 #include <xfsx/xml2lxml.hh>
-#include <xfsx/config.hh>
+#include <xfsx_config.hh>
 #include <xfsx/character.hh>
 
 using namespace std;
@@ -49,6 +49,7 @@ namespace xfsx {
       const char INITIAL_GRAMMARS[]   = "initial_grammars";
       const char RESULTING_GRAMMARS[] = "resulting_grammars";
       const char RESULTING_CONSTRAINTS[] = "resulting_constraints";
+      const char RESULTING_PP[]       = "resulting_pp";
       const char NAME[]               = "name";
       const char PATH[]               = "path";
       const char LONG_NAME[]          = "long_name";
@@ -108,6 +109,7 @@ namespace xfsx {
         void assign_result(const boost::property_tree::ptree &definition);
         std::deque<std::string> map_which(const std::deque<std::string> &
             filenames);
+        std::string replace_variables(const std::string &x);
         std::deque<std::string> replace_variables(
             const std::deque<std::string> &l);
       public:
@@ -203,6 +205,10 @@ namespace xfsx {
         resulting_constraints = resulting_constraints;
         result_.constraint_filenames = resulting_constraints;
       }
+      if (definition.count(KEY::RESULTING_PP)) {
+        string f(replace_variables(definition.get<string>(KEY::RESULTING_PP)));
+        result_.pp_filename = ixxx::util::which(asn_search_path_, f);
+      }
 
       result_.name = definition.get<string>(KEY::NAME);
       result_.long_name = definition.get<string>(KEY::LONG_NAME);
@@ -210,20 +216,25 @@ namespace xfsx {
       result_.minor = boost::lexical_cast<size_t>(var_map_.at(KEY::MINOR));
     }
 
+    std::string Detector::replace_variables(const std::string &x)
+    {
+      string s(x);
+      for (auto &v : var_map_) {
+        string p;
+        p += '{';
+        p += v.first;
+        p += '}';
+        boost::algorithm::replace_all(s, p, v.second);
+      }
+      return s;
+    }
+
     std::deque<std::string> Detector::replace_variables(
         const std::deque<std::string> &l)
     {
       deque<string> r;
       for (auto &x : l) {
-        string s(x);
-        for (auto &v : var_map_) {
-          string p;
-          p += '{';
-          p += v.first;
-          p += '}';
-          boost::algorithm::replace_all(s, p, v.second);
-        }
-        r.push_back(std::move(s));
+        r.push_back(replace_variables(x));
       }
       return r;
     }

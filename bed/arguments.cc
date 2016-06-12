@@ -130,6 +130,8 @@ Arguments:
     --first         Stop reading at the end of the first element
                     (i.e. trailing garbage is ignored)
     --count N       Write only first N tags
+    --pp            Pretty print content using Lua module
+    --pp-file FILE  Lua filename (default: autodetect)
 
   write-ber:
 
@@ -233,6 +235,8 @@ the encoding format) grammar.
 
 )";
 
+#include <xfsx_config.hh>
+
 #include <iostream>
 #include <map>
 #include <set>
@@ -243,7 +247,7 @@ the encoding format) grammar.
 #include <boost/lexical_cast.hpp>
 #include <boost/filesystem.hpp>
 
-#include <xfsx/config.hh>
+#include <xfsx_config.hh>
 #include <xfsx/detector.hh>
 #include <xfsx/byte.hh>
 #include <ixxx/util.hh>
@@ -324,70 +328,74 @@ namespace bed {
   };
 
   static map<string, Option> option_map = {
-    { "-v"          , Option::VERBOSE   },
-    { "--verbose"   , Option::VERBOSE   },
-    { "-h"          , Option::HELP      },
-    { "--help"      , Option::HELP      },
-    { "--version"   , Option::VERSION   },
-    { "--indent"    , Option::INDENT    },
-    { "-a"          , Option::ASN       },
-    { "--asn"       , Option::ASN       },
-    { "--asn-path"  , Option::ASN_PATH  },
-    { "--asn-cfg"   , Option::ASN_CFG   },
-    { "--no-detect" , Option::NO_DETECT },
-    { "-x"          , Option::HEX       },
-    { "--hex"       , Option::HEX       },
-    { "--tag"       , Option::TAG       },
-    { "--class"     , Option::KLASSE    },
-    { "--tl"        , Option::TL        },
-    { "--t_size"    , Option::T_SIZE    },
-    { "--length"    , Option::LENGTH    },
-    { "--len"       , Option::LENGTH    },
-    { "--off"       , Option::OFFSET    },
-    { "--offset"    , Option::OFFSET    },
-    { "--skip"      , Option::SKIP      },
-    { "--bci"       , Option::BCI       },
-    { "--search"    , Option::SEARCH    },
-    { "--aci"       , Option::ACI       },
-    { "--cdr"       , Option::CDR       },
-    { "--first"     , Option::FIRST     },
-    { "--count"     , Option::COUNT     },
-    { "-e"          , Option::EXPR      },
+    { "-v"          , Option::VERBOSE      },
+    { "--verbose"   , Option::VERBOSE      },
+    { "-h"          , Option::HELP         },
+    { "--help"      , Option::HELP         },
+    { "--version"   , Option::VERSION      },
+    { "--indent"    , Option::INDENT       },
+    { "-a"          , Option::ASN          },
+    { "--asn"       , Option::ASN          },
+    { "--asn-path"  , Option::ASN_PATH     },
+    { "--asn-cfg"   , Option::ASN_CFG      },
+    { "--no-detect" , Option::NO_DETECT    },
+    { "-x"          , Option::HEX          },
+    { "--hex"       , Option::HEX          },
+    { "--tag"       , Option::TAG          },
+    { "--class"     , Option::KLASSE       },
+    { "--tl"        , Option::TL           },
+    { "--t_size"    , Option::T_SIZE       },
+    { "--length"    , Option::LENGTH       },
+    { "--len"       , Option::LENGTH       },
+    { "--off"       , Option::OFFSET       },
+    { "--offset"    , Option::OFFSET       },
+    { "--skip"      , Option::SKIP         },
+    { "--bci"       , Option::BCI          },
+    { "--search"    , Option::SEARCH       },
+    { "--aci"       , Option::ACI          },
+    { "--cdr"       , Option::CDR          },
+    { "--first"     , Option::FIRST        },
+    { "--count"     , Option::COUNT        },
+    { "-e"          , Option::EXPR         },
     // --expr
-    { "--xsd"       , Option::XSD       },
-    { "-c"          , Option::COMMAND   },
-    { "--command"   , Option::COMMAND   },
-    { "-o"          , Option::OUTPUT    },
-    { "--output"    , Option::OUTPUT    }
+    { "--xsd"       , Option::XSD          },
+    { "-c"          , Option::COMMAND      },
+    { "--command"   , Option::COMMAND      },
+    { "-o"          , Option::OUTPUT       },
+    { "--output"    , Option::OUTPUT       },
+    { "--pp"        , Option::PRETTY_PRINT },
+    { "--pp-file"   , Option::PP_FILE      }
   };
 
   static map<Option, pair<unsigned, unsigned> > option_to_argc_map = {
-    { Option::VERBOSE   ,  { 0 , 0 }  },
-    { Option::HELP      ,  { 0 , 1 }  },
-    { Option::VERSION   ,  { 0 , 0 }  },
-    { Option::INDENT    ,  { 1 , 1 }  },
-    { Option::ASN       ,  { 1 , 1 }  },
-    { Option::ASN_PATH  ,  { 1 , 1 }  },
-    { Option::ASN_CFG   ,  { 1 , 1 }  },
-    { Option::NO_DETECT ,  { 0 , 0 }  },
-    { Option::HEX       ,  { 0 , 0 }  },
-    { Option::TAG       ,  { 0 , 0 }  },
-    { Option::KLASSE    ,  { 0 , 0 }  },
-    { Option::TL        ,  { 0 , 0 }  },
-    { Option::T_SIZE    ,  { 0 , 0 }  },
-    { Option::LENGTH    ,  { 0 , 0 }  },
-    { Option::OFFSET    ,  { 0 , 0 }  },
-    { Option::SKIP      ,  { 1 , 1 }  },
-    { Option::BCI       ,  { 0 , 0 }  },
-    { Option::SEARCH    ,  { 1 , 1 }  },
-    { Option::ACI       ,  { 0 , 0 }  },
-    { Option::CDR       ,  { 1 , 1 }  },
-    { Option::FIRST     ,  { 0 , 0 }  },
-    { Option::COUNT     ,  { 1 , 1 }  },
-    { Option::EXPR      ,  { 1 , 1 }  },
-    { Option::XSD       ,  { 1 , 1 }  },
-    { Option::COMMAND   ,  { 1 , 4 }  },
-    { Option::OUTPUT    ,  { 1 , 1 }  }
+    { Option::VERBOSE      , { 0 , 0 }  } ,
+    { Option::HELP         , { 0 , 1 }  } ,
+    { Option::VERSION      , { 0 , 0 }  } ,
+    { Option::INDENT       , { 1 , 1 }  } ,
+    { Option::ASN          , { 1 , 1 }  } ,
+    { Option::ASN_PATH     , { 1 , 1 }  } ,
+    { Option::ASN_CFG      , { 1 , 1 }  } ,
+    { Option::NO_DETECT    , { 0 , 0 }  } ,
+    { Option::HEX          , { 0 , 0 }  } ,
+    { Option::TAG          , { 0 , 0 }  } ,
+    { Option::KLASSE       , { 0 , 0 }  } ,
+    { Option::TL           , { 0 , 0 }  } ,
+    { Option::T_SIZE       , { 0 , 0 }  } ,
+    { Option::LENGTH       , { 0 , 0 }  } ,
+    { Option::OFFSET       , { 0 , 0 }  } ,
+    { Option::SKIP         , { 1 , 1 }  } ,
+    { Option::BCI          , { 0 , 0 }  } ,
+    { Option::SEARCH       , { 1 , 1 }  } ,
+    { Option::ACI          , { 0 , 0 }  } ,
+    { Option::CDR          , { 1 , 1 }  } ,
+    { Option::FIRST        , { 0 , 0 }  } ,
+    { Option::COUNT        , { 1 , 1 }  } ,
+    { Option::EXPR         , { 1 , 1 }  } ,
+    { Option::XSD          , { 1 , 1 }  } ,
+    { Option::COMMAND      , { 1 , 4 }  } ,
+    { Option::OUTPUT       , { 1 , 1 }  } ,
+    { Option::PRETTY_PRINT , { 0 , 0 }  },
+    { Option::PP_FILE      , { 1 , 1 }  }
   };
 
   static map<Option, set<Command> > option_comp_map = {
@@ -429,7 +437,9 @@ namespace bed {
     { Option::EXPR      ,  { Command::SEARCH_XPATH }  },
     { Option::XSD       ,  { Command::VALIDATE_XSD }  },
     { Option::COMMAND   ,  { Command::EDIT }  },
-    { Option::OUTPUT    ,  { Command::MK_BASH_COMP } }
+    { Option::OUTPUT    ,  { Command::MK_BASH_COMP } },
+    { Option::PRETTY_PRINT,{ Command::WRITE_XML, Command::PRETTY_WRITE_XML } },
+    { Option::PP_FILE   ,  { Command::WRITE_XML, Command::PRETTY_WRITE_XML } }
   };
 
   static void print_help(const std::string &argv0);
@@ -600,34 +610,52 @@ namespace bed {
     a.out_filename = argv[i];
   }
 
+  static void apply_pretty_print(Arguments &a, unsigned i, unsigned&,
+      unsigned, char **argv)
+  {
+#ifdef XFSX_USE_LUA
+    a.pretty_print = true;
+#else
+    throw logic_error("not compiled with Lua support");
+#endif
+  }
+
+  static void apply_pp_file(Arguments &a, unsigned i, unsigned&,
+      unsigned, char **argv)
+  {
+    a.pp_filename = argv[i];
+  }
+
   static map<Option,void (*)(Arguments &a, unsigned i, unsigned &j,
       unsigned argc, char **argv)> option_to_apply_map = {
-    { Option::VERBOSE, apply_verbose },
-    { Option::HELP      , apply_help  },
-    { Option::VERSION   , apply_version  },
-    { Option::INDENT    , apply_indent  },
-    { Option::ASN       , apply_asn  },
-    { Option::ASN_PATH  , apply_asn_path  },
-    { Option::ASN_CFG   , apply_asn_cfg  },
-    { Option::NO_DETECT , apply_no_detect  },
-    { Option::HEX       , apply_hex  },
-    { Option::TAG       , apply_tag  },
-    { Option::KLASSE    , apply_klasse  },
-    { Option::TL        , apply_tl  },
-    { Option::T_SIZE    , apply_t_size  },
-    { Option::LENGTH    , apply_length  },
-    { Option::OFFSET    , apply_offset  },
-    { Option::SKIP      , apply_skip  },
-    { Option::BCI       , apply_bci  },
-    { Option::SEARCH    , apply_search  },
-    { Option::ACI       , apply_aci  },
-    { Option::CDR       , apply_cdr  },
-    { Option::FIRST     , apply_first  },
-    { Option::COUNT     , apply_count  },
-    { Option::EXPR      , apply_expr  },
-    { Option::XSD       , apply_xsd  },
-    { Option::COMMAND   , apply_command  },
-    { Option::OUTPUT    , apply_output   }
+    { Option::VERBOSE      , apply_verbose      },
+    { Option::HELP         , apply_help         },
+    { Option::VERSION      , apply_version      },
+    { Option::INDENT       , apply_indent       },
+    { Option::ASN          , apply_asn          },
+    { Option::ASN_PATH     , apply_asn_path     },
+    { Option::ASN_CFG      , apply_asn_cfg      },
+    { Option::NO_DETECT    , apply_no_detect    },
+    { Option::HEX          , apply_hex          },
+    { Option::TAG          , apply_tag          },
+    { Option::KLASSE       , apply_klasse       },
+    { Option::TL           , apply_tl           },
+    { Option::T_SIZE       , apply_t_size       },
+    { Option::LENGTH       , apply_length       },
+    { Option::OFFSET       , apply_offset       },
+    { Option::SKIP         , apply_skip         },
+    { Option::BCI          , apply_bci          },
+    { Option::SEARCH       , apply_search       },
+    { Option::ACI          , apply_aci          },
+    { Option::CDR          , apply_cdr          },
+    { Option::FIRST        , apply_first        },
+    { Option::COUNT        , apply_count        },
+    { Option::EXPR         , apply_expr         },
+    { Option::XSD          , apply_xsd          },
+    { Option::COMMAND      , apply_command      },
+    { Option::OUTPUT       , apply_output       },
+    { Option::PRETTY_PRINT , apply_pretty_print },
+    { Option::PP_FILE      , apply_pp_file }
   };
 
 
@@ -808,6 +836,8 @@ complete -F _)" << name << ' ' << name << '\n';
             xsd_filename = bf::path(asn_filenames.front())
               .replace_extension("xsd").generic_string();
           }
+          if (pp_filename.empty())
+            pp_filename = r.pp_filename;
         } catch (const range_error &e ) {
         }
       } else if (command == Command::WRITE_BER) {

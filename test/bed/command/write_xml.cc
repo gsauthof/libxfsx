@@ -296,6 +296,23 @@ BOOST_AUTO_TEST_SUITE(bed_)
           ixxx::posix::setenv("ASN1_PATH", old_asn1_path, true);
       }
 
+      BOOST_AUTO_TEST_CASE(pp)
+      {
+        string old_lua_path;
+        try { old_lua_path = ixxx::ansi::getenv("ASN1_PATH"); }
+        catch (const ixxx::runtime_error &e) {}
+        string a {test::path::in() + "/../../libgrammar/test/in/asn1"};
+        string b {test::path::in() + "/../../config"};
+        string c {test::path::in() + "/../../libgrammar/grammar/xml"};
+        ixxx::posix::setenv("ASN1_PATH", a + ":" + b + ":" + c, true);
+        compare_bed_output("", "tap_3_12_valid.ber",
+            "write_xml_pp.xml",
+            { "write-xml", "--pp" }
+           );
+        if (!old_lua_path.empty())
+          ixxx::posix::setenv("ASN1_PATH", old_lua_path, true);
+      }
+
     BOOST_AUTO_TEST_SUITE_END() // write_xml
 
   BOOST_AUTO_TEST_SUITE_END() // command

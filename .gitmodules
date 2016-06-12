@@ -19,3 +19,6 @@
 [submodule "libgrammar"]
 	path = libgrammar
 	url = https://github.com/gsauthof/libgrammar.git
+[submodule "sol2"]
+	path = sol2
+	url = https://github.com/gsauthof/sol2.git

@@ -60,7 +60,9 @@ namespace bed {
     EXPR,
     XSD,
     COMMAND,
-    OUTPUT
+    OUTPUT,
+    PRETTY_PRINT,
+    PP_FILE
   };
 
 } // bed

@@ -33,6 +33,10 @@ namespace xfsx {
         std::pair<const uint8_t *, const uint8_t *> p_;
 
       public:
+      Vertical_TLC_Proxy()
+        : p_(nullptr, nullptr)
+      {
+      }
       Vertical_TLC_Proxy(const uint8_t *begin, const uint8_t *end,
           Vertical_TLC &t )
         : p_(begin, end) { advance(t); }

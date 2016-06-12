@@ -20,14 +20,37 @@
 }}} */
 #include "ber2xml.hh"
 
+#include <xfsx_config.hh>
+
+
 #include <stack>
 #include <fcntl.h>
+// XXX remove
+#include <iostream>
+
+#include <boost/algorithm/string.hpp>
+
+#ifdef XFSX_USE_LUA
+  #ifdef XFSX_USE_LUAJIT
+    // since some luajit versions don't come with lua.hpp but sol2 does
+    // include it, we have to include the headers before such that
+    // not the ones _relative_ to lua.hpp are included
+    extern "C" {
+      #include <lua.h>
+      #include <lualib.h>
+      #include <lauxlib.h>
+    }
+    #define SOL_LUAJIT
+  #endif // XFSX_USE_LUAJIT
+  #include <sol.hpp>
+#endif // XFSX_USE_LUA
 
 #include "xfsx.hh"
 #include "byte.hh"
 #include "hex.hh"
 #include "traverser/matcher.hh"
 #include "traverser/tlc.hh"
+#include "path.hh"
 
 #include <ixxx/ixxx.h>
 
@@ -116,22 +139,23 @@ namespace xfsx {
       private:
         const Writer_Arguments &args_;
 
-        void write_all();
       protected:
         const uint8_t *begin_ {nullptr};
         const uint8_t *end_   {nullptr};
         Skip_EOC_Reader r;
         byte::writer::Base &w;
         stack<bool> indefinite_stack;
-        TLC *tlc {nullptr};
+        Vertical_TLC *tlc {nullptr};
 
-        void write_element();
+        virtual void write_all();
+        virtual void write_element_tail();
+        virtual void write_element();
         void write_primitive();
         virtual void write_primitive_tag_open();
         virtual void write_primitive_tag_close();
         virtual void write_content();
         void write_hex_dump();
-        void write_attributes();
+        virtual void write_attributes();
         virtual void write_class();
         virtual void write_tag();
         void write_tl();
@@ -163,13 +187,17 @@ namespace xfsx {
     {
     }
 
-    void Writer::write_element()
+    void Writer::write_element_tail()
     {
       if (tlc->shape == Shape::PRIMITIVE) {
         write_primitive();
       } else {
         write_constructed();
       }
+    }
+    void Writer::write_element()
+    {
+      write_element_tail();
     }
     void Writer::write_class()
     {
@@ -382,13 +410,17 @@ namespace xfsx {
 
 
     class Pretty_Writer : public Writer {
-      private:
+      protected:
         const Pretty_Writer_Arguments &args_;
+      private:
         stack<const std::string *> tag_stack_;
         const std::string *tag_str_ {nullptr};
         xfsx::BCD_String bcd_;
 
       protected:
+        Type type_ {Type::OCTET_STRING};
+
+        void write_element() override;
         void write_primitive_tag_open() override;
         void write_primitive_tag_close() override;
         void write_class() override;
@@ -410,6 +442,14 @@ namespace xfsx {
         Writer(begin, end, w, args),
         args_(args)
     {
+    }
+    void Pretty_Writer::write_element()
+    {
+      if (tlc->shape == Shape::PRIMITIVE) {
+	auto kt = args_.dereferencer.dereference(tlc->klasse, tlc->tag);
+	type_ = args_.typifier.typify(kt);
+      }
+      Writer::write_element();
     }
     void Pretty_Writer::write_class()
     {
@@ -440,9 +480,7 @@ namespace xfsx {
     }
     void Pretty_Writer::write_content()
     {
-      auto kt = args_.dereferencer.dereference(tlc->klasse, tlc->tag);
-      Type t = args_.typifier.typify(kt);
-      switch (t) {
+      switch (type_) {
         case Type::INT_64:
           {
             int64_t v {0};
@@ -498,13 +536,203 @@ namespace xfsx {
         Writer::write_constructed_tag_close();
     }
 
+#ifdef XFSX_USE_LUA
+
+    static void setup_lua_path()
+    {
+      string lua_path;
+      try {
+        string asn1_path(ixxx::ansi::getenv("ASN1_PATH"));
+
+        try {
+          lua_path = ixxx::ansi::getenv("LUA_PATH");
+        } catch (const ixxx::runtime_error &e) {
+        }
+        if (!lua_path.empty())
+          lua_path += ';';
+        using string_iterator = boost::algorithm::split_iterator<const char*>;
+        pair<const char *, const char*> inp(asn1_path.data(),
+            asn1_path.data() + asn1_path.size());
+        for (string_iterator i = boost::algorithm::make_split_iterator(inp,
+              boost::algorithm::token_finder([](auto c){return c==':';}));
+            i != string_iterator(); ++i) {
+          lua_path.append((*i).begin(), (*i).end());
+          lua_path += "/?.lua;";
+          lua_path.append((*i).begin(), (*i).end());
+          lua_path += "/?;";
+        }
+        if (!lua_path.empty())
+          lua_path.resize(lua_path.size());
+      } catch (const ixxx::runtime_error &e) {
+        return;
+      }
+      ixxx::posix::setenv("LUA_PATH", lua_path, true);
+    }
+
+    class Lua_Pretty_Writer : public Pretty_Writer {
+      private:
+        sol::state lua_;
+
+        traverser::Vertical_TLC_Proxy proxy_;
+
+        unordered_map<Tag_Int, sol::function> pp_fn_map_;
+        Klasse pp_klasse_ = Klasse::APPLICATION;
+        vector<pair<traverser::Basic_Matcher<
+                      traverser::Vertical_TLC_Proxy, Vertical_TLC>,
+                    pair<sol::function, sol::function> > >
+          matcher_;
+        bool matcher_finalized_ {false};
+
+        void read_functions();
+        void write_pp();
+      public:
+        Lua_Pretty_Writer(
+            const uint8_t *begin, const uint8_t *end,
+            byte::writer::Base &w, const Pretty_Writer_Arguments &args);
+
+        void write_attributes() override;
+        void write_element_tail() override;
+    };
+
+    Lua_Pretty_Writer::Lua_Pretty_Writer(
+        const uint8_t *begin, const uint8_t *end,
+        byte::writer::Base &w, const Pretty_Writer_Arguments &args)
+      :
+        Pretty_Writer(begin, end, w, args)
+    {
+      setup_lua_path();
+      lua_.open_libraries(sol::lib::string);
+      lua_.open_libraries(sol::lib::base);
+      // required for require()
+      lua_.open_libraries(sol::lib::package);
+      // required for math.floor() - not for //
+      lua_.open_libraries(sol::lib::math);
+      lua_.script_file(args_.pp_filename);
+      read_functions();
+    }
+
+
+    void Lua_Pretty_Writer::read_functions()
+    {
+      sol::table fns = lua_["tag_callback"];
+      for (auto &fn : fns) {
+        pp_fn_map_[fn.first.as<Tag_Int>()] = fn.second.as<sol::function>();
+      }
+
+      matcher_.reserve(10);
+      sol::table ps = lua_["xpath_callback"];
+      for (auto &p : ps) {
+        matcher_.push_back(make_pair(
+              traverser::Basic_Matcher<
+                  traverser::Vertical_TLC_Proxy, Vertical_TLC>(
+                    path::parse(p.second.as<sol::table>()["path"].get<string>(), args_.name_translator).first),
+              make_pair(p.second.as<sol::table>()["push"].get<sol::function>(), p.second.as<sol::table>()["store"].get<sol::function>())));
+      }
+    }
+
+    void Lua_Pretty_Writer::write_element_tail()
+    {
+      if (!matcher_finalized_) {
+        for (auto &m : matcher_) {
+          if (m.first.result_ == traverser::Matcher_Result::FINALIZE) {
+            matcher_finalized_ = true;
+            continue;
+          }
+          matcher_finalized_ = false;
+          m.first(proxy_, *tlc);
+          if (m.first.result_ == traverser::Matcher_Result::APPLY) {
+            if (tlc->shape != Shape::PRIMITIVE)
+              return;
+
+            switch (type_) {
+              case Type::INT_64:
+                m.second.first(tlc->tag, tlc->lexical_cast<int64_t>());
+                break;
+              case Type::STRING:
+              case Type::OCTET_STRING:
+                {
+                  Hex_String x;
+                  tlc->copy_content(x);
+                  m.second.first(tlc->tag, x.get());
+                }
+                break;
+              default:
+                break;
+            }
+
+          } else if (m.first.result_ == traverser::Matcher_Result::FINALIZE) {
+            if (m.second.second)
+              m.second.second();
+          }
+        }
+      }
+      Pretty_Writer::write_element_tail();
+    }
+    void Lua_Pretty_Writer::write_attributes()
+    {
+      Pretty_Writer::write_attributes();
+      write_pp();
+    }
+    void Lua_Pretty_Writer::write_pp()
+    {
+      if (tlc->klasse != pp_klasse_)
+        return;
+      // XXX  overwrite new write_primitive_attributes() instead
+      if (tlc->shape != Shape::PRIMITIVE)
+        return;
+
+      auto i = pp_fn_map_.find(tlc->tag);
+      if (i == pp_fn_map_.end())
+        return;
+
+      // XXX register C++ output function that is directly called
+      // from lua?
+      //string s;
+      const char *c_s = nullptr;
+      switch (type_) {
+        case Type::INT_64:
+          //s = i->second(tlc->lexical_cast<int64_t>());
+          c_s = i->second(tlc->lexical_cast<int64_t>()).get<const char*>();
+          break;
+        case Type::STRING:
+        case Type::OCTET_STRING:
+          {
+            Hex_String x;
+            tlc->copy_content(x);
+            //s = i->second(x.get());
+            c_s = i->second(x.get()).get<const char*>();
+          }
+          break;
+        case Type::BCD:
+          {
+            BCD_String x;
+            tlc->copy_content(x);
+            //s = i->second(x.get());
+            c_s = i->second(x.get()).get<const char*>();
+          }
+          break;
+      }
+      if (c_s)
+        w << " pp='" << c_s << '\'';
+    }
+#endif // XFSX_USE_LUA
+
     void pretty_write(
         const uint8_t *begin, const uint8_t *end,
         byte::writer::Base &w,
         const Pretty_Writer_Arguments &args)
     {
-      Pretty_Writer writer(begin, end, w, args);
-      writer.write();
+      if (args.pretty_print) {
+#ifdef XFSX_USE_LUA
+        Lua_Pretty_Writer writer(begin, end, w, args);
+        writer.write();
+#else
+        throw logic_error("not compiled with Lua support");
+#endif // XFSX_USE_LUA
+      } else {
+        Pretty_Writer writer(begin, end, w, args);
+        writer.write();
+      }
     }
 
     void pretty_write(

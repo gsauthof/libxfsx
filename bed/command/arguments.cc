@@ -74,6 +74,8 @@ namespace bed {
         xfsx::xml::Pretty_Writer_Arguments &b)
     {
       apply_search_args(a, b, b.translator, b.name_translator);
+      b.pretty_print     = a.pretty_print;
+      b.pp_filename      = a.pp_filename;
 
       apply_arguments(a, *static_cast<xfsx::xml::Writer_Arguments*>(&b));
     }
