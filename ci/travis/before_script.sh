@@ -11,7 +11,9 @@ function prepare_osx()
   mkdir build
   cd build
 
-  CXX=$MY_CXX CC=$MY_CC cmake -G Ninja -DCMAKE_BUILD_TYPE=$CMAKE_BUILD_TYPE ..
+  CXX=$MY_CXX CC=$MY_CC cmake -G Ninja -DCMAKE_BUILD_TYPE=$CMAKE_BUILD_TYPE \
+    -DCMAKE_PREFIX_PATH=/usr/local/lua/5.2.4_3 \
+    ..
 }
 
 function prepare_linux()

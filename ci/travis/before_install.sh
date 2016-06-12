@@ -15,6 +15,7 @@ function prepare_osx()
   brew install ninja
   brew install libxml2
   brew install lua
+  find /usr/local -name '*lua*'
 
   # brew complains:
   # Error: boost-1.55.0_2 already installed

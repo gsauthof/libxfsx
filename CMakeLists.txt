@@ -67,6 +67,8 @@ endif()
 configure_file(config.cc.in config.cc)
 configure_file(config.hh.in xfsx_config.hh)
 
+message("CMAKE_SYSTEM_PREFIX_PATH: ${CMAKE_SYSTEM_PREFIX_PATH}")
+message("CMAKE_PREFIX_PATH: ${CMAKE_PREFIX_PATH}")
 if (XFSX_USE_LUA)
   if(XFSX_USE_LUAJIT)
     find_library(LUA_LIB NAMES luajit-5.1)
@@ -84,12 +86,16 @@ if (XFSX_USE_LUA)
       set(LUA_INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/lua/src)
       set(LUA_INCLUDE_DIR2 ${CMAKE_CURRENT_BINARY_DIR}/lua)
     else()
+      # some hints for Mac OSX ...
       find_library(LUA_LIB NAMES lua)
       find_path(LUAXX_INCLUDE_DIR lua.hpp)
       find_path(LUA_INCLUDE_DIR lua.h)
     endif()
   endif()
 endif()
+message("LUA_LIB: ${LUA_LIB}")
+message("LUA_INCLUDE_DIR: ${LUA_INCLUDE_DIR}")
+message("LUAXX_INCLUDE_DIR: ${LUAXX_INCLUDE_DIR}")
 
 set(LIB_SRC 
   xfsx/xfsx.cc
