@@ -1,0 +1,219 @@
+<TransferBatch>
+    <BatchControlInfo>
+        <Sender pp='nil (WER), FD"'>WERFD</Sender>
+        <Recipient pp='nil (XLK), JE"'>XLKJE</Recipient>
+        <FileSequenceNumber>31707</FileSequenceNumber>
+        <FileCreationTimeStamp>
+            <LocalTimeStamp pp='2005-04-05 09:05:47'>20050405090547</LocalTimeStamp>
+            <UtcTimeOffset pp='+02:00'>+0200</UtcTimeOffset>
+        </FileCreationTimeStamp>
+        <TransferCutOffTimeStamp>
+            <LocalTimeStamp pp='2005-04-05 09:05:47'>20050405090547</LocalTimeStamp>
+            <UtcTimeOffset pp='+02:00'>+0200</UtcTimeOffset>
+        </TransferCutOffTimeStamp>
+        <FileAvailableTimeStamp>
+            <LocalTimeStamp pp='2005-04-05 09:05:47'>20050405090547</LocalTimeStamp>
+            <UtcTimeOffset pp='+02:00'>+0200</UtcTimeOffset>
+        </FileAvailableTimeStamp>
+        <SpecificationVersionNumber>3</SpecificationVersionNumber>
+        <ReleaseVersionNumber>12</ReleaseVersionNumber>
+    </BatchControlInfo>
+    <AccountingInfo>
+        <LocalCurrency pp='Euro'>EUR</LocalCurrency>
+        <CurrencyConversionList>
+            <CurrencyConversion>
+                <ExchangeRateCode>1</ExchangeRateCode>
+                <NumberOfDecimalPlaces>5</NumberOfDecimalPlaces>
+                <ExchangeRate pp='1.16203 EUR = 1 SDR'>116203</ExchangeRate>
+            </CurrencyConversion>
+        </CurrencyConversionList>
+        <TapDecimalPlaces>3</TapDecimalPlaces>
+    </AccountingInfo>
+    <NetworkInfo>
+        <UtcTimeOffsetInfoList>
+            <UtcTimeOffsetInfo>
+                <UtcTimeOffsetCode>1</UtcTimeOffsetCode>
+                <UtcTimeOffset pp='+02:00'>+0200</UtcTimeOffset>
+            </UtcTimeOffsetInfo>
+        </UtcTimeOffsetInfoList>
+        <RecEntityInfoList>
+            <RecEntityInformation>
+                <RecEntityCode>1</RecEntityCode>
+                <RecEntityType pp='Mobile Services Switching Centre (MSC)'>1</RecEntityType>
+                <RecEntityId>foo</RecEntityId>
+            </RecEntityInformation>
+            <RecEntityInformation>
+                <RecEntityCode>22</RecEntityCode>
+                <RecEntityType pp='Mobile Services Switching Centre (MSC)'>1</RecEntityType>
+                <RecEntityId>bar</RecEntityId>
+            </RecEntityInformation>
+            <RecEntityInformation>
+                <RecEntityCode>142</RecEntityCode>
+                <RecEntityType pp='Serving GPRS Support Node (SGSN)'>4</RecEntityType>
+                <RecEntityId>baz</RecEntityId>
+            </RecEntityInformation>
+        </RecEntityInfoList>
+    </NetworkInfo>
+    <CallEventDetailList>
+        <MobileTerminatedCall>
+            <MtBasicCallInformation>
+                <ChargeableSubscriber>
+                    <SimChargeableSubscriber>
+                        <Imsi pp='MCC="nil (133)", region="nil (1)", MNC="unk (unk)"'>133713371337133</Imsi>
+                    </SimChargeableSubscriber>
+                </ChargeableSubscriber>
+                <CallEventStartTimeStamp>
+                    <LocalTimeStamp pp='2014-03-01 14:03:42'>20140301140342</LocalTimeStamp>
+                    <UtcTimeOffsetCode pp='+02:00'>1</UtcTimeOffsetCode>
+                </CallEventStartTimeStamp>
+                <TotalCallEventDuration pp='2m33s'>153</TotalCallEventDuration>
+            </MtBasicCallInformation>
+            <LocationInformation>
+                <NetworkLocation>
+                    <RecEntityCode>1</RecEntityCode>
+                    <LocationArea>3505</LocationArea>
+                    <CellId>7182</CellId>
+                </NetworkLocation>
+            </LocationInformation>
+            <BasicServiceUsedList>
+                <BasicServiceUsed>
+                    <BasicService>
+                        <BasicServiceCode>
+                            <TeleServiceCode pp='all speech'>10</TeleServiceCode>
+                        </BasicServiceCode>
+                    </BasicService>
+                    <ChargeInformationList>
+                        <ChargeInformation>
+                            <ChargedItem pp='duration'>D</ChargedItem>
+                            <ChargeDetailList>
+                                <ChargeDetail>
+                                    <ChargeType pp='total'>00</ChargeType>
+                                    <Charge pp='2.300 SDR'>2300</Charge>
+                                </ChargeDetail>
+                            </ChargeDetailList>
+                        </ChargeInformation>
+                    </ChargeInformationList>
+                </BasicServiceUsed>
+            </BasicServiceUsedList>
+        </MobileTerminatedCall>
+        <MobileOriginatedCall>
+            <MoBasicCallInformation>
+                <ChargeableSubscriber>
+                    <SimChargeableSubscriber>
+                        <Imsi pp='MCC="Austria (232)", region="Europe (2)", MNC="unk (unk)"'>232323232323232</Imsi>
+                    </SimChargeableSubscriber>
+                </ChargeableSubscriber>
+                <CallEventStartTimeStamp>
+                    <LocalTimeStamp pp='2014-03-01 15:02:00'>20140301150200</LocalTimeStamp>
+                    <UtcTimeOffsetCode pp='+02:00'>1</UtcTimeOffsetCode>
+                </CallEventStartTimeStamp>
+                <TotalCallEventDuration pp='3m33s'>213</TotalCallEventDuration>
+            </MoBasicCallInformation>
+            <LocationInformation>
+                <NetworkLocation>
+                    <RecEntityCode>1</RecEntityCode>
+                    <LocationArea>3505</LocationArea>
+                    <CellId>7182</CellId>
+                </NetworkLocation>
+            </LocationInformation>
+            <BasicServiceUsedList>
+                <BasicServiceUsed>
+                    <BasicService>
+                        <BasicServiceCode>
+                            <TeleServiceCode pp='all speech'>10</TeleServiceCode>
+                        </BasicServiceCode>
+                    </BasicService>
+                    <ChargeInformationList>
+                        <ChargeInformation>
+                            <ChargedItem pp='duration'>D</ChargedItem>
+                            <ChargeDetailList>
+                                <ChargeDetail>
+                                    <ChargeType pp='total'>00</ChargeType>
+                                    <Charge pp='2.300 SDR'>2300</Charge>
+                                </ChargeDetail>
+                            </ChargeDetailList>
+                        </ChargeInformation>
+                    </ChargeInformationList>
+                </BasicServiceUsed>
+            </BasicServiceUsedList>
+        </MobileOriginatedCall>
+        <GprsCall>
+            <GprsBasicCallInformation>
+                <GprsChargeableSubscriber>
+                    <ChargeableSubscriber>
+                        <SimChargeableSubscriber>
+                            <Imsi pp='MCC="Austria (232)", region="Europe (2)", MNC="unk (unk)"'>232323232323232</Imsi>
+                        </SimChargeableSubscriber>
+                    </ChargeableSubscriber>
+                </GprsChargeableSubscriber>
+                <GprsDestination>
+                    <AccessPointNameNI>foo.example.net</AccessPointNameNI>
+                </GprsDestination>
+                <CallEventStartTimeStamp>
+                    <LocalTimeStamp pp='2014-03-01 15:08:00'>20140301150800</LocalTimeStamp>
+                    <UtcTimeOffsetCode pp='+02:00'>1</UtcTimeOffsetCode>
+                </CallEventStartTimeStamp>
+                <TotalCallEventDuration pp='8m20s'>500</TotalCallEventDuration>
+                <ChargingId>0</ChargingId>
+            </GprsBasicCallInformation>
+            <GprsLocationInformation>
+                <GprsNetworkLocation>
+                    <RecEntityCodeList>
+                        <RecEntityCode>1</RecEntityCode>
+                    </RecEntityCodeList>
+                </GprsNetworkLocation>
+            </GprsLocationInformation>
+            <GprsServiceUsed>
+                <DataVolumeIncoming pp='1.118 GiB'>1200000000</DataVolumeIncoming>
+                <DataVolumeOutgoing pp='2.049 GiB'>2200000000</DataVolumeOutgoing>
+                <ChargeInformationList>
+                    <ChargeInformation>
+                        <ChargedItem pp='total volume'>X</ChargedItem>
+                        <ChargeDetailList>
+                            <ChargeDetail>
+                                <ChargeType pp='total'>00</ChargeType>
+                                <Charge pp='66.600 SDR'>66600</Charge>
+                            </ChargeDetail>
+                        </ChargeDetailList>
+                    </ChargeInformation>
+                </ChargeInformationList>
+            </GprsServiceUsed>
+        </GprsCall>
+        <SupplServiceEvent>
+            <ChargeableSubscriber>
+                <SimChargeableSubscriber>
+                    <Imsi pp='MCC="nil (133)", region="nil (1)", MNC="unk (unk)"'>133713371337133</Imsi>
+                </SimChargeableSubscriber>
+            </ChargeableSubscriber>
+            <LocationInformation>
+                <NetworkLocation>
+                    <RecEntityCode>1</RecEntityCode>
+                    <LocationArea>3505</LocationArea>
+                    <CellId>7182</CellId>
+                </NetworkLocation>
+            </LocationInformation>
+            <SupplServiceUsed>
+                <SupplServiceCode pp='Call forwarding on subscriber not reachable'>2B</SupplServiceCode>
+                <SupplServiceActionCode pp='registration'>0</SupplServiceActionCode>
+                <ChargingTimeStamp>
+                    <LocalTimeStamp pp='2014-03-02 15:08:00'>20140302150800</LocalTimeStamp>
+                    <UtcTimeOffsetCode pp='+02:00'>1</UtcTimeOffsetCode>
+                </ChargingTimeStamp>
+            </SupplServiceUsed>
+        </SupplServiceEvent>
+    </CallEventDetailList>
+    <AuditControlInfo>
+        <EarliestCallTimeStamp>
+            <LocalTimeStamp pp='2005-04-04 16:24:53'>20050404162453</LocalTimeStamp>
+            <UtcTimeOffset pp='+02:00'>+0200</UtcTimeOffset>
+        </EarliestCallTimeStamp>
+        <LatestCallTimeStamp>
+            <LocalTimeStamp pp='2005-04-05 09:00:59'>20050405090059</LocalTimeStamp>
+            <UtcTimeOffset pp='+02:00'>+0200</UtcTimeOffset>
+        </LatestCallTimeStamp>
+        <TotalCharge pp='2.300 SDR'>2300</TotalCharge>
+        <TotalTaxValue pp='0.000 SDR'>0</TotalTaxValue>
+        <TotalDiscountValue pp='0.000 SDR'>0</TotalDiscountValue>
+        <CallEventDetailsCount>4</CallEventDetailsCount>
+    </AuditControlInfo>
+</TransferBatch>
