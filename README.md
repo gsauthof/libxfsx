@@ -18,6 +18,10 @@ Pretty print a BER file into XML:
 
     $ bed write-xml CDxyz.ber CDxyz.xml
 
+Pretty print not only the tags but also the values, to stdout:
+
+    $ bed write-xml --pp CDxyz.ber
+
 The other way around:
 
     $ bed write-ber CDxyz.xml CDxyz.ber
