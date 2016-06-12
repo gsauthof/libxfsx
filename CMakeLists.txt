@@ -132,6 +132,7 @@ target_link_libraries(xfsx
   ixxxutil
   ixxx
   xxxml
+  ${LUA_LIB}
   )
 add_library(xfsx_static STATIC
   ${LIB_SRC}
