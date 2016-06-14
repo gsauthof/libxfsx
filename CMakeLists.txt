@@ -18,6 +18,13 @@ if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU"
   message(FATAL_ERROR "You need at least version 4.9 when compiling with GCC")
 endif()
 
+# Tested with 3.7, which is enough
+# perhaps even 3.6 is enough, 3.5 defintely not
+if(CMAKE_CXX_COMPILER_ID STREQUAL "Clang"
+    AND CMAKE_CXX_COMPILER_VERSION VERSION_LESS "3.6")
+  message(FATAL_ERROR "You need at least version 3.6 when compiling with Clang")
+endif()
+
 # guard from super-projects, i.e. when it is added as subdirectory
 IF(CMAKE_CURRENT_SOURCE_DIR STREQUAL CMAKE_SOURCE_DIR)
   # Remove existing -Wall in debug flags because we unconditionally supply
