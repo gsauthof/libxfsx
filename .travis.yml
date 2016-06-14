@@ -24,12 +24,8 @@ language: cpp
 
 matrix:
   include:
-    - os: osx
-      compiler: clang
-      # Apple's clang 3.5 doesn't support sanitize options
-      # although the upstream 3.5 does ...
-      #env: CMAKE_BUILD_TYPE=Coverage    MY_CXX=clang++     MY_CC=clang
-      env: CMAKE_BUILD_TYPE=Debug    MY_CXX=clang++     MY_CC=clang
+    # Mac OS X comes with `clang++` 3.5, which is too old, thus
+    # using the clang 3.7 from homebrew as minimum
     - os: osx
       compiler: clang
       # clang 3.7 from Homebrew understands all sanitize flags
