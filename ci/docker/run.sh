@@ -40,6 +40,7 @@ function run_mingw64()
   sleep 3
   sed 's/^\("PATH".*\)"$/\1;Z:\\\\usr\\\\x86_64-w64-mingw32\\\\sys-root\\\\mingw\\\\bin"/' -i $HOME/.wine/system.reg
 
+  ln -s lua/liblua.dll
   TERM=vt100 wineconsole --backend=curses ./ut && true
   : $((r+=$?))
 }
