@@ -59,6 +59,9 @@ BOOST_AUTO_TEST_SUITE(xfsx_)
       bf::path zsv_link(odir);
       zsv_link /= "tap_3_10_constraints.zsv";
       bf::remove(zsv_link);
+      bf::path pp_link(odir);
+      pp_link /= "pretty_tap.lua";
+      bf::remove(pp_link);
 #if (defined(__MINGW32__) || defined(__MINGW64__))
       bf::copy_file(
           bf::absolute(test::path::in()
@@ -77,6 +80,11 @@ BOOST_AUTO_TEST_SUITE(xfsx_)
             + "/../../libgrammar/grammar/xml").generic_string()
           + "/tap_3_12_constraints.zsv",
           zsv_link);
+      bf::copy_file(
+          bf::absolute(test::path::in()
+            + "/../../config").generic_string()
+          + "/pretty_tap.lua",
+          pp_link);
 
       deque<string> asn_search_path = {
         test::path::in() + "/../../libgrammar/test/in/asn1",
