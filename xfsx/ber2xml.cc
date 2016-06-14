@@ -633,16 +633,15 @@ namespace xfsx {
     void Lua_Pretty_Writer::write_element_tail()
     {
       if (!matcher_finalized_) {
+        matcher_finalized_ = true;
         for (auto &m : matcher_) {
-          if (m.first.result_ == traverser::Matcher_Result::FINALIZE) {
-            matcher_finalized_ = true;
+          if (m.first.result_ == traverser::Matcher_Result::FINALIZE)
             continue;
-          }
           matcher_finalized_ = false;
           m.first(proxy_, *tlc);
           if (m.first.result_ == traverser::Matcher_Result::APPLY) {
             if (tlc->shape != Shape::PRIMITIVE)
-              return;
+              continue;
 
             switch (type_) {
               case Type::INT_64:

@@ -70,7 +70,7 @@
             </MtBasicCallInformation>
             <LocationInformation>
                 <NetworkLocation>
-                    <RecEntityCode>1</RecEntityCode>
+                    <RecEntityCode pp='foo (Mobile Services Switching Centre (MSC))'>1</RecEntityCode>
                     <LocationArea>3505</LocationArea>
                     <CellId>7182</CellId>
                 </NetworkLocation>
@@ -111,7 +111,7 @@
             </MoBasicCallInformation>
             <LocationInformation>
                 <NetworkLocation>
-                    <RecEntityCode>1</RecEntityCode>
+                    <RecEntityCode pp='foo (Mobile Services Switching Centre (MSC))'>1</RecEntityCode>
                     <LocationArea>3505</LocationArea>
                     <CellId>7182</CellId>
                 </NetworkLocation>
@@ -159,7 +159,7 @@
             <GprsLocationInformation>
                 <GprsNetworkLocation>
                     <RecEntityCodeList>
-                        <RecEntityCode>1</RecEntityCode>
+                        <RecEntityCode pp='foo (Mobile Services Switching Centre (MSC))'>1</RecEntityCode>
                     </RecEntityCodeList>
                 </GprsNetworkLocation>
             </GprsLocationInformation>
@@ -187,7 +187,7 @@
             </ChargeableSubscriber>
             <LocationInformation>
                 <NetworkLocation>
-                    <RecEntityCode>1</RecEntityCode>
+                    <RecEntityCode pp='foo (Mobile Services Switching Centre (MSC))'>1</RecEntityCode>
                     <LocationArea>3505</LocationArea>
                     <CellId>7182</CellId>
                 </NetworkLocation>

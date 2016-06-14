@@ -53,7 +53,7 @@ namespace xfsx {
       uint32_t off_ {0};
       uint32_t mis_off_ {0};
       uint32_t mat_off_ {0};
-      Matcher_Result result_;
+      Matcher_Result result_ {Matcher_Result::NONE};
       std::function<xfsx::traverser::Hint(xfsx::traverser::Hint r,
             Matcher_Result res, const Proxy &p, const T &t)> callback_;
 
