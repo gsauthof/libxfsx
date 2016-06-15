@@ -4,6 +4,7 @@ set -eux
 
 function run_osx()
 {
+  :
 }
 
 function run_linux()
