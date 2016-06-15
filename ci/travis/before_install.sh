@@ -40,7 +40,7 @@ function prepare_linux()
 {
   # as of 2016-06, there is no fedora mingw lua package, yet
   if [ "$build_tag" = mingw64 ] ; then
-    git clone https://github.com/LuaDist/lua.git
+    git clone --branch lua-5.3 https://github.com/LuaDist/lua.git
   fi
 
   build="$HOME"/build/libxfsx
