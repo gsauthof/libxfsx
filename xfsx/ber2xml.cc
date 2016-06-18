@@ -557,12 +557,12 @@ namespace xfsx {
               boost::algorithm::token_finder([](auto c){return c==':';}));
             i != string_iterator(); ++i) {
           lua_path.append((*i).begin(), (*i).end());
-          lua_path += "/?.lua;";
+          lua_path += "/?.luac;";
           lua_path.append((*i).begin(), (*i).end());
-          lua_path += "/?;";
+          lua_path += "/?.lua;";
         }
         if (!lua_path.empty())
-          lua_path.resize(lua_path.size());
+          lua_path.resize(lua_path.size()-1);
       } catch (const ixxx::runtime_error &e) {
         return;
       }
