@@ -818,36 +818,34 @@ complete -F _)" << name << ' ' << name << '\n';
 
   void Arguments::autodetect_stuff()
   {
-    if (autodetect && asn_filenames.empty()) {
+    if (!(autodetect && asn_filenames.empty()))
+      return;
+
+    try {
       if (    command == Command::WRITE_XML
            || command == Command::EDIT
            || command == Command::SEARCH_XPATH
            || command == Command::VALIDATE_XSD
            || command == Command::WRITE_ACI
            ) {
-        try {
-          auto r = xfsx::detector::detect_ber(in_filename, asn_config_filename,
-              asn_search_path);
-          asn_filenames = r.asn_filenames;
-          if (command == Command::WRITE_XML && !asn_filenames.empty())
-            command = Command::PRETTY_WRITE_XML;
-          if (command == Command::VALIDATE_XSD && xsd_filename.empty()
-              && !asn_filenames.empty()) {
-            xsd_filename = bf::path(asn_filenames.front())
-              .replace_extension("xsd").generic_string();
-          }
-          if (pp_filename.empty())
-            pp_filename = r.pp_filename;
-        } catch (const range_error &e ) {
+        auto r = xfsx::detector::detect_ber(in_filename, asn_config_filename,
+            asn_search_path);
+        asn_filenames = r.asn_filenames;
+        if (command == Command::WRITE_XML && !asn_filenames.empty())
+          command = Command::PRETTY_WRITE_XML;
+        if (command == Command::VALIDATE_XSD && xsd_filename.empty()
+            && !asn_filenames.empty()) {
+          xsd_filename = bf::path(asn_filenames.front())
+            .replace_extension("xsd").generic_string();
         }
+        if (pp_filename.empty())
+          pp_filename = r.pp_filename;
       } else if (command == Command::WRITE_BER) {
-        try {
-          auto r = xfsx::detector::detect_xml(in_filename, asn_config_filename,
-              asn_search_path);
-          asn_filenames = r.asn_filenames;
-        } catch (const range_error &e ) {
-        }
+        auto r = xfsx::detector::detect_xml(in_filename, asn_config_filename,
+            asn_search_path);
+        asn_filenames = r.asn_filenames;
       }
+    } catch (const range_error &e ) {
     }
   }
   void Arguments::create_cmd()
