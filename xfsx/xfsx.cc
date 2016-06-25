@@ -30,8 +30,6 @@
 #include <algorithm>
 #include <string.h>
 
-#include <boost/lexical_cast.hpp>
-
 
 #define USE_BOOST_ENDIAN_FOR_INTEGER 1
 #define USE_BOOST_ENDIAN_FOR_INTEGER_WRITE 1
@@ -1286,7 +1284,7 @@ namespace xfsx {
       return k_trans_.at(klasse_to_index(klasse)).at(tag);
     } catch (const std::out_of_range &e) {
       throw range_error("Incomplete ASN.1 file - can't translate tag: "
-          + boost::lexical_cast<string>(tag));
+          + std::to_string(tag));
     }
   }
 
