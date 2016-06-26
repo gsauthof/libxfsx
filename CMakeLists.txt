@@ -280,24 +280,51 @@ target_link_libraries(bed
   ${Boost_REGEX_LIBRARY}
   ${LUA_LIB}
 )
-
-add_executable(bcd_speed
-  test/bcd_speed.cc
-)
-set_property(TARGET bcd_speed PROPERTY INCLUDE_DIRECTORIES
-  ${Boost_INCLUDE_DIRS}
-  ${CMAKE_CURRENT_SOURCE_DIR}
-  ${CMAKE_CURRENT_SOURCE_DIR}/libixxx
-  ${CMAKE_CURRENT_SOURCE_DIR}/libixxxutil
-)
-target_link_libraries(bcd_speed
-  ixxxutil_static
-  ixxx_static
-  xfsx_static
-)
-
 # guard from super-projects, i.e. when it is added as subdirectory
 IF(CMAKE_CURRENT_SOURCE_DIR STREQUAL CMAKE_SOURCE_DIR)
+
+  add_executable(bcd_speed
+    test/bcd_speed.cc
+  )
+  set_property(TARGET bcd_speed PROPERTY INCLUDE_DIRECTORIES
+    ${Boost_INCLUDE_DIRS}
+    ${CMAKE_CURRENT_SOURCE_DIR}
+    ${CMAKE_CURRENT_SOURCE_DIR}/libixxx
+    ${CMAKE_CURRENT_SOURCE_DIR}/libixxxutil
+  )
+  target_link_libraries(bcd_speed
+    xfsx_static
+    ixxxutil_static
+    ixxx_static
+  )
+
+  add_executable(ber2xml_fuzzer
+    tool/ber2xml_fuzzer.cc
+    test/test.cc
+    ${CMAKE_SOURCE_DIR}/cppformat/format.cc
+  )
+  set_property(TARGET ber2xml_fuzzer PROPERTY INCLUDE_DIRECTORIES
+    ${Boost_INCLUDE_DIRS}
+    ${CMAKE_CURRENT_SOURCE_DIR}
+    ${CMAKE_CURRENT_SOURCE_DIR}/libixxx
+    ${CMAKE_CURRENT_SOURCE_DIR}/libixxxutil
+  )
+  target_link_libraries(ber2xml_fuzzer
+    xfsx_static
+    grammar_static
+    ixxxutil_static
+    ixxx_static
+
+    Fuzzer
+
+    ${XML2_LIB}
+    ${Boost_FILESYSTEM_LIBRARY}
+    ${Boost_SYSTEM_LIBRARY}
+    ${Boost_REGEX_LIBRARY}
+    ${LUA_LIB}
+  )
+
+
   add_custom_target(check COMMAND ut)
 
   # it is relative to build directory, by default
@@ -319,6 +346,8 @@ IF(CMAKE_CURRENT_SOURCE_DIR STREQUAL CMAKE_SOURCE_DIR)
   add_custom_target(check-completion COMMAND bash bed.bash DEPENDS completion)
 
   add_custom_target(check-magic COMMAND bash ${CMAKE_CURRENT_SOURCE_DIR}/test/magic.bash ${CMAKE_CURRENT_SOURCE_DIR})
+
+
 endif()
 
 
