@@ -138,11 +138,12 @@ namespace xfsx {
         const std::pair<const char*, const char*>
         &element, const std::pair<const char*, const char*> &element_name)
     {
+      assert(element.first <= element.second);
       assert(element.first <= element_name.first);
       assert(element.second >= element_name.second);
 
       end_ = element.second;
-      if (end_[-1] == '/')
+      if (element.first < end_ && end_[-1] == '/')
         --end_;
       assert(element_name.second <= end_);
       name_ = attribute_name(element_name.second, end_);
@@ -226,7 +227,7 @@ namespace xfsx {
           throw runtime_error("attribute quote is not closed");
       } else {
         throw runtime_error("Could not find an attribute value");
-        y = end;
+        // y = end;
       }
       return make_pair(x, y);
     }
