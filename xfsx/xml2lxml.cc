@@ -52,7 +52,7 @@ namespace xfsx {
           count_(count)
       {
         xxxml::dict::Ptr dictionary = xxxml::dict::create();
-        doc_.get()->dict = dictionary.release();
+        doc_->dict = dictionary.release();
       }
       void Reader::ignore_xml_decl()
       {

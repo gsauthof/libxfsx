@@ -132,23 +132,23 @@ namespace bed {
       for (auto &xpath : args_.xpaths) {
         xxxml::xpath::Context_Ptr c = xxxml::xpath::new_context(doc);
         xxxml::xpath::Object_Ptr o = xxxml::xpath::eval(xpath, c);
-        switch (o.get()->type) {
+        switch (o->type) {
           case XPATH_NODESET:
-            if (!o.get()->nodesetval)
+            if (!o->nodesetval)
               throw runtime_error("XPath expression did not match any node");
-            for (unsigned i = 0; i < unsigned(o.get()->nodesetval->nodeNr); ++i) {
-              xmlNode *node = o.get()->nodesetval->nodeTab[i];
+            for (unsigned i = 0; i < unsigned(o->nodesetval->nodeNr); ++i) {
+              xmlNode *node = o->nodesetval->nodeTab[i];
               xxxml::elem_dump(out, doc, node);
             }
             break;
           case XPATH_BOOLEAN:
-            fputs((o.get()->boolval ? "true" : "false"), out);
+            fputs((o->boolval ? "true" : "false"), out);
             break;
           case XPATH_NUMBER:
-            fprintf(out, "%f", o.get()->floatval);
+            fprintf(out, "%f", o->floatval);
             break;
           case XPATH_STRING:
-            fputs(reinterpret_cast<const char*>(o.get()->stringval), out);
+            fputs(reinterpret_cast<const char*>(o->stringval), out);
             break;
           default:
             throw runtime_error("Unknown xpath object type");

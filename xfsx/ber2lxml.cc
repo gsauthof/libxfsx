@@ -219,7 +219,7 @@ namespace xfsx {
       {
         xxxml::doc::Ptr doc = xxxml::new_doc();
         xxxml::dict::Ptr dictionary = xxxml::dict::create();
-        doc.get()->dict = dictionary.release();
+        doc->dict = dictionary.release();
 
         Tree_Generator g(begin, end, std::move(doc), args);
         return g.generate();
