@@ -59,7 +59,7 @@ namespace xfsx {
     Result detect(
         const std::string &filename,
         const std::string &config_filename,
-        Read_Function read_fn,
+        const Read_Function &read_fn,
         const std::deque<std::string> &asn_search_path
         );
 

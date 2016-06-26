@@ -96,7 +96,7 @@ namespace xfsx {
     class Detector {
       private:
         const std::string &filename_;
-        Read_Function read_fn_;
+        const Read_Function &read_fn_;
         const std::deque<std::string> &asn_search_path_;
         boost::property_tree::ptree root_;
         std::map<std::string, std::string> var_map_;
@@ -116,14 +116,14 @@ namespace xfsx {
         Detector(
           const std::string &filename,
           const std::string &config_filename,
-          Read_Function read_fn,
+          const Read_Function &read_fn,
           const std::deque<std::string> &asn_search_path);
         Result test();
     };
     Detector::Detector(
       const std::string &filename,
       const std::string &config_filename,
-      Read_Function read_fn,
+      const Read_Function &read_fn,
       const std::deque<std::string> &asn_search_path)
       :
         filename_(filename),
@@ -280,7 +280,7 @@ namespace xfsx {
     Result detect(
         const std::string &filename,
         const std::string &config_filename,
-        Read_Function read_fn,
+        const Read_Function &read_fn,
         const std::deque<std::string> &asn_search_path
         )
     {
