@@ -114,7 +114,7 @@ namespace xfsx {
       Vertical_Reader r(begin, end);
       for (auto &tlc : r) {
         const Unit &u = tlc;
-        w.fill(tlc.height * 4);
+        w.fill(size_t(tlc.height) * 4);
         write_unber_tl(w, u, tlc.begin - begin);
       }
     }
@@ -338,7 +338,7 @@ namespace xfsx {
           break;
         this->tlc = &tlc;
         write_closing(tlc.height);
-        w.fill(tlc.height * args_.indent_size);
+        w.fill(size_t(tlc.height) * args_.indent_size);
         write_element();
         if ((args_.skip || args_.stop_after_first) && !tlc.depth_)
           break;

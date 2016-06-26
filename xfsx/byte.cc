@@ -47,7 +47,7 @@ namespace xfsx {
         typename fmt::internal::IntTraits<T>::MainType unsigned_v = v;
         if (fmt::internal::is_negative(v)) {
           unsigned_v = 0 - unsigned_v;
-          return 1 + fmt::internal::count_digits(unsigned_v);
+          return 1 + size_t(fmt::internal::count_digits(unsigned_v));
         } else
           return fmt::internal::count_digits(unsigned_v);
       }
