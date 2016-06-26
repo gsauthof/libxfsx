@@ -254,6 +254,15 @@ BOOST_AUTO_TEST_SUITE(bed_)
              ), bed::Argument_Error);
       }
 
+      BOOST_AUTO_TEST_CASE(stack_resize_vs_overflow)
+      {
+        const char ref[] = "";
+        BOOST_CHECK_THROW(
+          compare_bed_output("tap_3_12_strip.asn1", "deep_invalid.ber",
+              "deep_invalid.xml", { "write-xml" }, ref, ref
+             ), std::overflow_error);
+      }
+
 #if (defined(__MINGW32__) || defined(__MINGW64__))
 #else
       BOOST_AUTO_TEST_CASE(open_with_o_trunc)

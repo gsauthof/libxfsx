@@ -647,9 +647,9 @@ namespace xfsx {
   }
   void Vertical_TLC::push()
   {
-    if (size_t(depth_) + 1 > stack_.size())
-      stack_.resize(stack_.size() + 1);
     ++depth_;
+    if (size_t(depth_) + 1 > stack_.size())
+      stack_.resize(depth_ + 32);
   }
   void Vertical_TLC::pop()
   {
