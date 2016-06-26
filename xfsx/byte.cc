@@ -279,7 +279,11 @@ namespace xfsx {
       File::~File()
       {
         try {
-          flush();
+          // we explicitly call this object's flush_it() because
+          // otherwise we could end up call the version from a
+          // derived class, which already is destructed, thus
+          // would be undefined
+          File::flush_it();
         } catch (...) {
         }
       }
