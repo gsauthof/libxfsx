@@ -244,10 +244,7 @@ namespace xfsx {
   }
 
 
-  template <typename Tag>
-  Tagged_String<Tag>::Tagged_String()
-  {
-  }
+  template <typename Tag> Tagged_String<Tag>::Tagged_String() =default;
   template <typename Tag>
   Tagged_String<Tag>::Tagged_String(const std::string &s)
     :

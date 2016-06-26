@@ -190,12 +190,8 @@ namespace xfsx {
         o.cur_ = nullptr;
       }
 
-      Base::Base()
-      {
-      }
-      Base::~Base()
-      {
-      }
+      Base::Base()  =default;
+      Base::~Base() =default;
 
       size_t Base::written() const
       {
