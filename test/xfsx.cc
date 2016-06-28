@@ -354,10 +354,39 @@ BOOST_AUTO_TEST_SUITE(xfsx_)
         0u,
         0u
       };
+      BOOST_CHECK_THROW(u.read(a.begin(), a.end()), std::overflow_error);
+      /*
       const uint8_t *r = u.read(a.begin(), a.end());
       BOOST_CHECK_EQUAL(u.t_size, 13);
       BOOST_CHECK_EQUAL(u.tl_size, 14);
       BOOST_CHECK(r == a.end());
+      */
+    }
+
+    BOOST_AUTO_TEST_CASE(tag_overflow_max_u32_plus_1)
+    {
+      using namespace xfsx;
+      Unit u;
+      const array<uint8_t, 9> a = {
+        0b01'0'11111u, // first byte
+        0b10'01'0000u, // long tag, max_uint32 + 1
+        0b10'00'0000u,
+        0b10'00'0000u,
+        0b10'00'0000u,
+        0b00'00'0000u,
+        0b0'000'0010u, // length
+        0u,
+        0u
+      };
+      BOOST_CHECK_THROW(u.read(a.begin(), a.end()), std::overflow_error);
+    }
+
+    BOOST_AUTO_TEST_CASE(truncated_tag)
+    {
+      using namespace xfsx;
+      Unit u;
+      const array<uint8_t, 2> a = { 0x7fu, 0x85u };
+      BOOST_CHECK_THROW(u.read(a.begin(), a.end()), std::overflow_error);
     }
 
     BOOST_AUTO_TEST_CASE(indefinite_tl_size)

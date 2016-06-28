@@ -450,29 +450,38 @@ namespace xfsx {
       throw overflow_error("TL must be at least 2 bytes long");
     const uint8_t *p = begin;
     klasse = static_cast<Klasse>((*p) & 0b11'000'000u);
-    shape = static_cast<Shape>((*p) & 0b00'1'00000u);
+    shape  = static_cast<Shape>((*p) & 0b00'1'00000u);
     is_long_tag = ((*p) & 0b1'11'11u) == 0b1'11'11u;
     tag = 0;
     if (is_long_tag) {
-      ++p;
-      for (; (*p) & 0b1'000'0000u; ++p) {
-        if (p == end)
-          throw overflow_error("tag too long");
+      auto start = p+1;
+      for (++p; p < end; ++p) {
         tag <<= 7;
-        tag |= (*p) & 0b0'111'1111u;
+        if ((*p) & 0b1'000'0000u) {
+          tag |= (*p) & 0b0'111'1111u;
+        } else {
+          tag |= (*p);
+          ++p;
+          break;
+        }
       }
-      if (p == end)
-        throw overflow_error("last tag byte too long");
-      tag <<= 7;
-      tag |= (*p) & 0b0'111'1111u;
+      if ((*(p-1)) & 0b1'000'0000u)
+        throw overflow_error("truncated long tag");
+      // if ( ((p-start)*7 > ssize_t(sizeof(tag))*8)
+      static_assert(sizeof(tag) == 4, "assuming 4 byte tags");
+      if ( !(    ((p-start) < 5)
+               /* allow for some leading zero bits ... */
+              || ((p-start) == 5 && ((*start) & 0b0'111'1111u)<16) ) ) {
+        throw overflow_error("tag overflow");
+      }
     } else {
       tag = (*p) & 0b1'11'11u;
+      ++p;
     }
-    ++p;
     t_size = p-begin;
     if (end-p < 1)
       throw overflow_error("L must be at least 1 bytes long");
-    is_indefinite = (*p) ==  0b1'000'0000u;
+    is_indefinite    = (*p) ==  0b1'000'0000u;
     is_long_definite = !is_indefinite && ((*p) & 0b1'000'0000u);
     length = 0;
     if (is_indefinite) {
@@ -480,7 +489,7 @@ namespace xfsx {
     } else {
       if (is_long_definite) {
         uint8_t n = (*p) & 0b0'111'1111;
-        if (n > 8)
+        if (n > sizeof(length))
           throw overflow_error("length is unreastically long");
         ++p;
         if (end-p < n)
@@ -504,11 +513,10 @@ namespace xfsx {
     if (end-p < ssize_t(length))
       throw overflow_error("content overflows");
     tl_size = p-begin;
-    if (shape == Shape::PRIMITIVE) {
+    if (shape == Shape::PRIMITIVE)
       return p + length;
-    } else {
+    else
       return p;
-    }
   }
 
   uint8_t *Unit::write(uint8_t *begin, uint8_t *end) const
