@@ -321,6 +321,21 @@ BOOST_AUTO_TEST_SUITE(xfsx_)
         BOOST_CHECK(m < n);
       }
 
+      BOOST_AUTO_TEST_CASE(content_overflow)
+      {
+        using namespace xfsx;
+        Unit u;
+        u.init_tag(23);
+        u.init_length(16258469694287840439lu);
+        array<uint8_t, 16> a;
+        auto r = u.write(a.begin(), a.end());
+        BOOST_CHECK_EQUAL(r-a.begin(), 10);
+
+        xfsx::byte::writer::Memory w;
+        BOOST_CHECK_THROW(xfsx::xml::write(a.begin(), a.end(), w),
+            std::range_error);
+      }
+
   BOOST_AUTO_TEST_SUITE_END()
 
 BOOST_AUTO_TEST_SUITE_END()

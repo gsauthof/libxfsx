@@ -510,9 +510,9 @@ namespace xfsx {
         ++p;
       }
     }
-    if (end-p < ssize_t(length))
-      throw overflow_error("content overflows");
     tl_size = p-begin;
+    if (size_t(end-p) < length)
+      throw range_error("content overflows");
     if (shape == Shape::PRIMITIVE)
       return p + length;
     else

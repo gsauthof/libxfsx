@@ -97,7 +97,9 @@ BOOST_AUTO_TEST_SUITE(xfsx_)
         0b0'000'0010u,
         0u,
       };
-      BOOST_CHECK_THROW(u.read(a.begin(), a.end()), std::overflow_error);
+      BOOST_CHECK_THROW(u.read(a.begin(), a.end()), std::range_error);
+      BOOST_CHECK_EQUAL(u.tl_size, 2);
+      BOOST_CHECK_EQUAL(u.length, 2);
     }
 
     BOOST_AUTO_TEST_CASE(klassen)
