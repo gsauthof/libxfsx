@@ -303,17 +303,40 @@ IF(CMAKE_CURRENT_SOURCE_DIR STREQUAL CMAKE_SOURCE_DIR)
     test/test.cc
     ${CMAKE_SOURCE_DIR}/cppformat/format.cc
   )
-  set_property(TARGET ber2xml_fuzzer PROPERTY INCLUDE_DIRECTORIES
+  add_executable(ber2lxml_fuzzer
+    tool/ber2lxml_fuzzer.cc
+    test/test.cc
+    ${CMAKE_SOURCE_DIR}/cppformat/format.cc
+  )
+  set_property(TARGET ber2xml_fuzzer ber2lxml_fuzzer
+    PROPERTY INCLUDE_DIRECTORIES
     ${Boost_INCLUDE_DIRS}
     ${CMAKE_CURRENT_SOURCE_DIR}
     ${CMAKE_CURRENT_SOURCE_DIR}/libixxx
     ${CMAKE_CURRENT_SOURCE_DIR}/libixxxutil
+    ${CMAKE_CURRENT_SOURCE_DIR}/libxxxml
+    ${XML2_INCLUDE_DIR}
   )
   target_link_libraries(ber2xml_fuzzer
     xfsx_static
     grammar_static
     ixxxutil_static
     ixxx_static
+
+    Fuzzer
+
+    ${XML2_LIB}
+    ${Boost_FILESYSTEM_LIBRARY}
+    ${Boost_SYSTEM_LIBRARY}
+    ${Boost_REGEX_LIBRARY}
+    ${LUA_LIB}
+  )
+  target_link_libraries(ber2lxml_fuzzer
+    xfsx_static
+    grammar_static
+    ixxxutil_static
+    ixxx_static
+    xxxml
 
     Fuzzer
 
