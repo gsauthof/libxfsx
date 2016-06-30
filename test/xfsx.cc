@@ -559,6 +559,44 @@ BOOST_AUTO_TEST_SUITE(xfsx_)
       BOOST_CHECK_EQUAL(u.tl_size, 3u);
     }
 
+    BOOST_AUTO_TEST_CASE(long_length_const)
+    {
+      using namespace xfsx;
+      array<uint8_t, 30> a;
+      uint8_t *end = nullptr;
+      {
+        Unit u(Klasse::APPLICATION, 23, 16258469694287840439lu);
+        end = u.write(a.begin(), a.end());
+      }
+      {
+        Unit u;
+        BOOST_CHECK_THROW(u.read(a.begin(), end), std::range_error);
+        BOOST_CHECK_EQUAL(u.length, 16258469694287840439lu);
+        BOOST_CHECK_EQUAL(u.is_long_definite, true);
+        BOOST_CHECK_EQUAL(u.shape, Shape::CONSTRUCTED);
+      }
+    }
+
+    BOOST_AUTO_TEST_CASE(long_length_primi)
+    {
+      using namespace xfsx;
+      array<uint8_t, 30> a;
+      uint8_t *end = nullptr;
+      {
+        Unit u;
+        u.init_tag(23);
+        u.init_length(16258469694287840439lu);
+        end = u.write(a.begin(), a.end());
+      }
+      {
+        Unit u;
+        BOOST_CHECK_THROW(u.read(a.begin(), end), std::range_error);
+        BOOST_CHECK_EQUAL(u.length, 16258469694287840439lu);
+        BOOST_CHECK_EQUAL(u.is_long_definite, true);
+        BOOST_CHECK_EQUAL(u.shape, Shape::PRIMITIVE);
+      }
+    }
+
     // }}}
    BOOST_AUTO_TEST_SUITE_END() // write
 
