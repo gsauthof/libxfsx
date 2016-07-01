@@ -328,21 +328,7 @@ IF(CMAKE_CURRENT_SOURCE_DIR STREQUAL CMAKE_SOURCE_DIR)
     ${CMAKE_CURRENT_SOURCE_DIR}/libxxxml
     ${XML2_INCLUDE_DIR}
   )
-  target_link_libraries(ber2xml_fuzzer
-    xfsx_static
-    grammar_static
-    ixxxutil_static
-    ixxx_static
-
-    Fuzzer
-
-    ${XML2_LIB}
-    ${Boost_FILESYSTEM_LIBRARY}
-    ${Boost_SYSTEM_LIBRARY}
-    ${Boost_REGEX_LIBRARY}
-    ${LUA_LIB}
-  )
-  target_link_libraries(ber2lxml_fuzzer
+  set(FUZZER_LIBS
     xfsx_static
     grammar_static
     ixxxutil_static
@@ -356,37 +342,11 @@ IF(CMAKE_CURRENT_SOURCE_DIR STREQUAL CMAKE_SOURCE_DIR)
     ${Boost_SYSTEM_LIBRARY}
     ${Boost_REGEX_LIBRARY}
     ${LUA_LIB}
-  )
-  target_link_libraries(ber2lxml_back_fuzzer
-    xfsx_static
-    grammar_static
-    ixxxutil_static
-    ixxx_static
-    xxxml
-
-    Fuzzer
-
-    ${XML2_LIB}
-    ${Boost_FILESYSTEM_LIBRARY}
-    ${Boost_SYSTEM_LIBRARY}
-    ${Boost_REGEX_LIBRARY}
-    ${LUA_LIB}
-  )
-  target_link_libraries(xml2ber_fuzzer
-    xfsx_static
-    grammar_static
-    ixxxutil_static
-    ixxx_static
-    xxxml
-
-    Fuzzer
-
-    ${XML2_LIB}
-    ${Boost_FILESYSTEM_LIBRARY}
-    ${Boost_SYSTEM_LIBRARY}
-    ${Boost_REGEX_LIBRARY}
-    ${LUA_LIB}
-  )
+    )
+  target_link_libraries(ber2xml_fuzzer ${FUZZER_LIBS})
+  target_link_libraries(ber2lxml_fuzzer ${FUZZER_LIBS})
+  target_link_libraries(ber2lxml_back_fuzzer ${FUZZER_LIBS})
+  target_link_libraries(xml2ber_fuzzer ${FUZZER_LIBS})
 
 
   add_custom_target(check COMMAND ut)
