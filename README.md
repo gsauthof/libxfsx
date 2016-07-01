@@ -148,6 +148,11 @@ or just:
 - [libxxxml][libxxxml] (C++ wrapper around libxml2)
 - [cppformat][cppformat] (for converting integers to strings; its integer conversion function is very efficient)
 
+Optional:
+
+- [Lua][lua] - for content pretty printing support (cf. `--pp` and `config/*.lua`)
+- [libFuzzer][fuzz] - for fuzzing different parts of the library (cf. `tool/*fuzzer.cc`)
+
 ## Usage Notes
 
 The provided autodection run control file
@@ -357,6 +362,11 @@ When installing `bed` and the library, don't forget to install
 the needed XSD/ASN.1 files. See also `libgrammar` for
 examples.
 
+The config files from `config/` and the files referenced in `detector.json`
+should be placed in the default config directory or be reachable via
+`ASN1_PATH`.
+
+
 ## Platforms
 
 Tested on:
@@ -400,3 +410,5 @@ available.
 [mingw64]: http://mingw-w64.org/doku.php
 [wine]: https://www.winehq.org/
 [winest]: https://www.wine-staging.com/
+[lua]: https://www.lua.org/
+[fuzz]: http://llvm.org/docs/LibFuzzer.html

@@ -46,7 +46,7 @@ The actual compile:
 
 or:
 
-   gmake
+    gmake
 
 to make sure that GNU make is used
 
