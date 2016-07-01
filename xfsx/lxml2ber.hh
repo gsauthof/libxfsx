@@ -22,6 +22,7 @@
 #define XFSX_LXML2BER_HH
 
 #include <string>
+#include <vector>
 
 #include "ber_writer_arguments.hh"
 #include <xxxml/xxxml.hh>
@@ -44,11 +45,15 @@ namespace xfsx {
               const BER_Writer_Arguments &args
               );
           void write(const std::string &filename);
+          void write(std::vector<uint8_t> &v);
           void write();
       };
 
       void write_ber(const xxxml::doc::Ptr &doc,
           const std::string &filename,
+          const BER_Writer_Arguments &args = default_ber_writer_arguments);
+      void write_ber(const xxxml::doc::Ptr &doc,
+          std::vector<uint8_t> &v,
           const BER_Writer_Arguments &args = default_ber_writer_arguments);
 
     } // l2

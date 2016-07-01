@@ -72,6 +72,11 @@ namespace xfsx {
         write();
         store(filename);
       }
+      void BER_Writer::write(std::vector<uint8_t> &v)
+      {
+        write();
+        store(v);
+      }
       void BER_Writer::write_element(const xmlNode *element)
       {
         pair<const char*, const char*> name(
@@ -115,6 +120,13 @@ namespace xfsx {
       {
         BER_Writer w(doc, args);
         w.write(filename);
+      }
+      void write_ber(const xxxml::doc::Ptr &doc,
+          std::vector<uint8_t> &v,
+          const BER_Writer_Arguments &args)
+      {
+        BER_Writer w(doc, args);
+        w.write(v);
       }
 
     }
