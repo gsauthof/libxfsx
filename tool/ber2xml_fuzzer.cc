@@ -36,12 +36,12 @@ Notes:
 using namespace std;
 
 extern "C" int LLVMFuzzerTestOneInput(const uint8_t *d, size_t n) {
+  string tap_filename(test::path::in()
+      + "/../../libgrammar/test/in/asn1/tap_3_12_strip.asn1");
+  deque<string> asn_filenames = {tap_filename};
+  xfsx::xml::Pretty_Writer_Arguments args(asn_filenames);
+  xfsx::byte::writer::Memory w;
   try {
-    string tap_filename(test::path::in()
-	+ "/../../libgrammar/test/in/asn1/tap_3_12_strip.asn1");
-    deque<string> asn_filenames = {tap_filename};
-    xfsx::xml::Pretty_Writer_Arguments args(asn_filenames);
-    xfsx::byte::writer::Memory w;
     xfsx::xml::pretty_write(d, d+n, w, args);
   } catch (std::exception &e) {
     // as long it is erroring out in a controlled fashion it is fine
