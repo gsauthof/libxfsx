@@ -56,6 +56,7 @@ namespace xfsx {
         BER_Writer_Base(const BER_Writer_Arguments &args);
         size_t size() const;
         void store(uint8_t *begin, uint8_t *end);
+        void store(std::vector<uint8_t> &v);
     };
 
 }

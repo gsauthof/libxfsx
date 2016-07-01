@@ -53,7 +53,9 @@ namespace xfsx {
         BER_Writer(const char *begin, const char *end,
             const BER_Writer_Arguments &args
             );
+        void write();
         void write(const string &filename);
+        void write(std::vector<uint8_t> &v);
     };
 
     BER_Writer::BER_Writer(const char *begin, const char *end,
@@ -73,7 +75,7 @@ namespace xfsx {
       }
     }
 
-    void BER_Writer::write(const std::string &filename)
+    void BER_Writer::write()
     {
       ignore_xml_decl();
       for (; t.has_more(); ++t) {
@@ -94,7 +96,18 @@ namespace xfsx {
             break;
         }
       }
+    }
+
+    void BER_Writer::write(const std::string &filename)
+    {
+      write();
       store(filename);
+    }
+
+    void BER_Writer::write(std::vector<uint8_t> &v)
+    {
+      write();
+      store(v);
     }
 
 
@@ -141,6 +154,15 @@ namespace xfsx {
     {
       BER_Writer w(begin, end, args);
       w.write(filename);
+    }
+
+    void write_ber(const char *begin, const char *end,
+        vector<uint8_t> &v,
+        const BER_Writer_Arguments &args
+        )
+    {
+      BER_Writer w(begin, end, args);
+      w.write(v);
     }
 
 

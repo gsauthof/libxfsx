@@ -193,6 +193,14 @@ namespace xfsx {
       store(f.begin(), f.end());
       f.close();
     }
+    void BER_Writer_Base::store(std::vector<uint8_t> &v)
+    {
+      if (node_stack.size() > 1)
+        throw runtime_error("some tags still open at the end of the document");
+
+      v.resize(root.length());
+      store(v.data(), v.data()+v.size());
+    }
 
     void BER_Writer_Base::store(uint8_t *begin, uint8_t *end)
     {
