@@ -165,7 +165,7 @@ add_library(xfsx_static STATIC
   )
 
 # under windows shared/static libraries have the same extension ...
-if(${UNIX})
+if(UNIX)
   set_target_properties(xfsx_static PROPERTIES OUTPUT_NAME xfsx)
 endif()
 
@@ -179,7 +179,7 @@ set(BED_SRC
     bed/command/write_aci.cc
   )
 
-IF(${CMAKE_PROJECT_NAME} STREQUAL "xfsx")
+IF(CMAKE_PROJECT_NAME STREQUAL "xfsx")
 
   add_executable(ut
     test/main.cc
