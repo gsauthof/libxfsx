@@ -11,6 +11,7 @@ function prepare_osx()
   brew update
   brew tap homebrew/versions
 
+  brew unlink cmake
   brew install cmake
   brew info cmake
 
