@@ -11,6 +11,9 @@ function prepare_osx()
   brew update
   brew tap homebrew/versions
 
+  brew install cmake
+  brew info cmake
+
   brew install ragel
   brew install ninja
   brew install libxml2
