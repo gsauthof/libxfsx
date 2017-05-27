@@ -490,7 +490,7 @@ namespace xfsx {
       if (is_long_definite) {
         uint8_t n = (*p) & 0b0'111'1111;
         if (n > sizeof(length))
-          throw overflow_error("length is unreastically long");
+          throw overflow_error("length is unrealistically long");
         ++p;
         if (end-p < n)
           throw overflow_error("length - not enough bytes");
