@@ -51,6 +51,8 @@ namespace bed {
     LENGTH,
     OFFSET,
     SKIP,
+    SKIP_ZERO,
+    BLOCK,
     BCI,
     SEARCH,
     ACI,

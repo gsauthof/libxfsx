@@ -396,6 +396,25 @@ namespace xfsx {
     }
   };
 
+  struct Parse_Error : public std::exception {
+    using std::exception::exception;
+  };
+
+  struct TL_Too_Small : public Parse_Error {
+    using std::exception::exception;
+    const char *what() const noexcept override;
+  };
+
+  struct Unexpected_EOC : public Parse_Error {
+    using std::exception::exception;
+    const char *what() const noexcept override;
+  };
+
+  struct Tag_Too_Long : public Parse_Error {
+    using std::exception::exception;
+    const char *what() const noexcept override;
+  };
+
   struct Vertical_TLC : public TLC {
     public:
       struct Frame {
@@ -413,8 +432,8 @@ namespace xfsx {
       const uint8_t *skip_children(const uint8_t *begin, const uint8_t *end);
 
       uint32_t depth_ {0};
-    private:
 
+    private:
       void push();
       void pop();
       void conditional_pop();
@@ -489,27 +508,33 @@ namespace xfsx {
     protected:
       const uint8_t *begin_;
       const uint8_t *end_;
+      uint32_t skip_zero_ {0};
     public:
       Basic_Reader(const uint8_t *begin, const uint8_t *end);
 
       class iterator {
         protected:
+          const uint8_t *first_;
           const uint8_t *current_;
           const uint8_t *begin_;
           const uint8_t *end_;
           T tlc_;
         public:
-          iterator(const uint8_t *begin, const uint8_t *end);
+          iterator(const uint8_t *begin, const uint8_t *end, uint32_t skip_zero_);
 
           const T &operator*() const;
           T &operator*();
           iterator &operator++();
           bool operator==(const iterator &other) const;
           bool operator!=(const iterator &other) const;
+        private:
+          uint32_t skip_zero_ {0};
       };
 
       iterator begin();
       iterator end();
+
+      void set_skip_zero(uint32_t b) { skip_zero_ = b; }
   };
 
   using Reader = Basic_Reader<TLC>;

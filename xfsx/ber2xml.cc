@@ -139,6 +139,7 @@ namespace xfsx {
       private:
         const Writer_Arguments &args_;
 
+        void write_blocks();
       protected:
         const uint8_t *begin_ {nullptr};
         const uint8_t *end_   {nullptr};
@@ -185,6 +186,8 @@ namespace xfsx {
         r(begin_ + args.skip, end),
         w(w)
     {
+      if (args_.skip_zero)
+        r.set_skip_zero(args_.skip_zero);
     }
 
     void Writer::write_element_tail()
@@ -334,22 +337,47 @@ namespace xfsx {
     {
       size_t i = 0;
       for (auto &tlc : r) {
-        if (args_.count && !(i<args_.count))
+        if (args_.stop_after_first && i
+            && (tlc.depth_ == 1 && !tlc.height)
+               )
+          break;
+        if (args_.count && !(i < args_.count))
           break;
         this->tlc = &tlc;
         write_closing(tlc.height);
         w.fill(size_t(tlc.height) * args_.indent_size);
         write_element();
-        if ((args_.skip || args_.stop_after_first) && !tlc.depth_)
+        if (args_.stop_after_first && !tlc.depth_)
           break;
         ++i;
       }
       write_closing(0);
     }
 
+    void Writer::write_blocks()
+    {
+      auto i   = begin_;
+      for (; i + args_.block_size < end_; i += args_.block_size) {
+        r = Skip_EOC_Reader(i, i + args_.block_size);
+        try {
+          write_all();
+        } catch (const Parse_Error &) {
+          write_closing(0);
+        }
+      }
+      r = Skip_EOC_Reader(i, end_);
+      try {
+        write_all();
+      } catch (const Parse_Error &) {
+        write_closing(0);
+      }
+    }
+
     void Writer::write()
     {
-      if (args_.search_path.empty()) {
+      if (args_.block_size) {
+        write_blocks();
+      } else if (args_.search_path.empty()) {
         write_all();
       } else {
         using namespace xfsx::traverser;

@@ -111,6 +111,10 @@ Arguments:
     --length        Include length of the content
     --off           Include byte offset of the tag
     --skip BYTES    Skip BYTES of input file
+    -0,--skip0 [BYTES] Skip trailing zero bytes
+                    If BYTES are specified it is skipped to the next block boundary.
+    --block BYTES   Read the files in blocks of BYTES size (e.g. 2048)
+                    That means traling bytes (e.g. 0x00 or 0xff) at each block end are ignored
     --bci           Alias for --count 18, where 18 enough to
                     display the BatchControlInfo, Nrtrde header, RapControlInfo,
                     Notication header etc.
@@ -350,6 +354,9 @@ namespace bed {
     { "--off"       , Option::OFFSET       },
     { "--offset"    , Option::OFFSET       },
     { "--skip"      , Option::SKIP         },
+    { "--skip0"     , Option::SKIP_ZERO    },
+    { "-0"          , Option::SKIP_ZERO    },
+    { "--block"     , Option::BLOCK        },
     { "--bci"       , Option::BCI          },
     { "--search"    , Option::SEARCH       },
     { "--aci"       , Option::ACI          },
@@ -368,34 +375,36 @@ namespace bed {
   };
 
   static map<Option, pair<unsigned, unsigned> > option_to_argc_map = {
-    { Option::VERBOSE      , { 0 , 0 }  } ,
-    { Option::HELP         , { 0 , 1 }  } ,
-    { Option::VERSION      , { 0 , 0 }  } ,
-    { Option::INDENT       , { 1 , 1 }  } ,
-    { Option::ASN          , { 1 , 1 }  } ,
-    { Option::ASN_PATH     , { 1 , 1 }  } ,
-    { Option::ASN_CFG      , { 1 , 1 }  } ,
-    { Option::NO_DETECT    , { 0 , 0 }  } ,
-    { Option::HEX          , { 0 , 0 }  } ,
-    { Option::TAG          , { 0 , 0 }  } ,
-    { Option::KLASSE       , { 0 , 0 }  } ,
-    { Option::TL           , { 0 , 0 }  } ,
-    { Option::T_SIZE       , { 0 , 0 }  } ,
-    { Option::LENGTH       , { 0 , 0 }  } ,
-    { Option::OFFSET       , { 0 , 0 }  } ,
-    { Option::SKIP         , { 1 , 1 }  } ,
-    { Option::BCI          , { 0 , 0 }  } ,
-    { Option::SEARCH       , { 1 , 1 }  } ,
-    { Option::ACI          , { 0 , 0 }  } ,
-    { Option::CDR          , { 1 , 1 }  } ,
-    { Option::FIRST        , { 0 , 0 }  } ,
-    { Option::COUNT        , { 1 , 1 }  } ,
-    { Option::EXPR         , { 1 , 1 }  } ,
-    { Option::XSD          , { 1 , 1 }  } ,
-    { Option::COMMAND      , { 1 , 4 }  } ,
-    { Option::OUTPUT       , { 1 , 1 }  } ,
-    { Option::PRETTY_PRINT , { 0 , 0 }  },
-    { Option::PP_FILE      , { 1 , 1 }  }
+     { Option::VERBOSE      , { 0, 0 }  },
+     { Option::HELP         , { 0, 1 }  },
+     { Option::VERSION      , { 0, 0 }  },
+     { Option::INDENT       , { 1, 1 }  },
+     { Option::ASN          , { 1, 1 }  },
+     { Option::ASN_PATH     , { 1, 1 }  },
+     { Option::ASN_CFG      , { 1, 1 }  },
+     { Option::NO_DETECT    , { 0, 0 }  },
+     { Option::HEX          , { 0, 0 }  },
+     { Option::TAG          , { 0, 0 }  },
+     { Option::KLASSE       , { 0, 0 }  },
+     { Option::TL           , { 0, 0 }  },
+     { Option::T_SIZE       , { 0, 0 }  },
+     { Option::LENGTH       , { 0, 0 }  },
+     { Option::OFFSET       , { 0, 0 }  },
+     { Option::SKIP         , { 1, 1 }  },
+     { Option::SKIP_ZERO    , { 0, 1 }  },
+     { Option::BLOCK        , { 1, 1 }  },
+     { Option::BCI          , { 0, 0 }  },
+     { Option::SEARCH       , { 1, 1 }  },
+     { Option::ACI          , { 0, 0 }  },
+     { Option::CDR          , { 1, 1 }  },
+     { Option::FIRST        , { 0, 0 }  },
+     { Option::COUNT        , { 1, 1 }  },
+     { Option::EXPR         , { 1, 1 }  },
+     { Option::XSD          , { 1, 1 }  },
+     { Option::COMMAND      , { 1, 4 }  },
+     { Option::OUTPUT       , { 1, 1 }  },
+     { Option::PRETTY_PRINT , { 0, 0 }  },
+     { Option::PP_FILE      , { 1, 1 }  }
   };
 
   static map<Option, set<Command> > option_comp_map = {
@@ -425,6 +434,8 @@ namespace bed {
     { Option::SKIP      ,  { Command::WRITE_XML, Command::PRETTY_WRITE_XML,
                              Command::SEARCH_XPATH,
                              Command::VALIDATE_XSD, Command::EDIT }  },
+    { Option::SKIP_ZERO ,  { Command::WRITE_XML, Command::PRETTY_WRITE_XML }  },
+    { Option::BLOCK     ,  { Command::WRITE_XML, Command::PRETTY_WRITE_XML }  },
     { Option::BCI       ,  { Command::WRITE_XML, Command::PRETTY_WRITE_XML }  },
     { Option::SEARCH    ,  { Command::WRITE_XML, Command::PRETTY_WRITE_XML }  },
     { Option::ACI       ,  { Command::WRITE_XML, Command::PRETTY_WRITE_XML }  },
@@ -528,6 +539,21 @@ namespace bed {
   {
     a.skip = boost::lexical_cast<size_t>(argv[i]);
   }
+  static void apply_skip_zero(Arguments &a, unsigned i, unsigned &j,
+      unsigned argc, char **argv)
+  {
+    if (i < argc && *argv[i] != '-') {
+      a.skip_zero = boost::lexical_cast<size_t>(argv[i]);
+      ++j;
+    } else {
+      a.skip_zero = 1;
+    }
+  }
+  static void apply_block(Arguments &a, unsigned i, unsigned&,
+      unsigned, char **argv)
+  {
+    a.block_size = boost::lexical_cast<size_t>(argv[i]);
+  }
   static void apply_bci(Arguments &a, unsigned, unsigned&,
       unsigned, char **)
   {
@@ -628,34 +654,36 @@ namespace bed {
 
   static map<Option,void (*)(Arguments &a, unsigned i, unsigned &j,
       unsigned argc, char **argv)> option_to_apply_map = {
-    { Option::VERBOSE      , apply_verbose      },
-    { Option::HELP         , apply_help         },
-    { Option::VERSION      , apply_version      },
-    { Option::INDENT       , apply_indent       },
-    { Option::ASN          , apply_asn          },
-    { Option::ASN_PATH     , apply_asn_path     },
-    { Option::ASN_CFG      , apply_asn_cfg      },
-    { Option::NO_DETECT    , apply_no_detect    },
-    { Option::HEX          , apply_hex          },
-    { Option::TAG          , apply_tag          },
-    { Option::KLASSE       , apply_klasse       },
-    { Option::TL           , apply_tl           },
-    { Option::T_SIZE       , apply_t_size       },
-    { Option::LENGTH       , apply_length       },
-    { Option::OFFSET       , apply_offset       },
-    { Option::SKIP         , apply_skip         },
-    { Option::BCI          , apply_bci          },
-    { Option::SEARCH       , apply_search       },
-    { Option::ACI          , apply_aci          },
-    { Option::CDR          , apply_cdr          },
-    { Option::FIRST        , apply_first        },
-    { Option::COUNT        , apply_count        },
-    { Option::EXPR         , apply_expr         },
-    { Option::XSD          , apply_xsd          },
-    { Option::COMMAND      , apply_command      },
-    { Option::OUTPUT       , apply_output       },
-    { Option::PRETTY_PRINT , apply_pretty_print },
-    { Option::PP_FILE      , apply_pp_file }
+    { Option::VERBOSE      ,  apply_verbose      },
+    { Option::HELP         ,  apply_help         },
+    { Option::VERSION      ,  apply_version      },
+    { Option::INDENT       ,  apply_indent       },
+    { Option::ASN          ,  apply_asn          },
+    { Option::ASN_PATH     ,  apply_asn_path     },
+    { Option::ASN_CFG      ,  apply_asn_cfg      },
+    { Option::NO_DETECT    ,  apply_no_detect    },
+    { Option::HEX          ,  apply_hex          },
+    { Option::TAG          ,  apply_tag          },
+    { Option::KLASSE       ,  apply_klasse       },
+    { Option::TL           ,  apply_tl           },
+    { Option::T_SIZE       ,  apply_t_size       },
+    { Option::LENGTH       ,  apply_length       },
+    { Option::OFFSET       ,  apply_offset       },
+    { Option::SKIP         ,  apply_skip         },
+    { Option::SKIP_ZERO    ,  apply_skip_zero    },
+    { Option::BLOCK        ,  apply_block        },
+    { Option::BCI          ,  apply_bci          },
+    { Option::SEARCH       ,  apply_search       },
+    { Option::ACI          ,  apply_aci          },
+    { Option::CDR          ,  apply_cdr          },
+    { Option::FIRST        ,  apply_first        },
+    { Option::COUNT        ,  apply_count        },
+    { Option::EXPR         ,  apply_expr         },
+    { Option::XSD          ,  apply_xsd          },
+    { Option::COMMAND      ,  apply_command      },
+    { Option::OUTPUT       ,  apply_output       },
+    { Option::PRETTY_PRINT ,  apply_pretty_print },
+    { Option::PP_FILE      ,  apply_pp_file      }
   };
 
 

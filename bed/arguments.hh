@@ -125,6 +125,8 @@ namespace bed {
       bool dump_length {false};
       bool dump_offset {false};
       size_t skip  {0};
+      uint32_t skip_zero {0};
+      uint32_t block_size {0};
       bool stop_after_first {false};
       size_t count {0};
       bool pretty_print {false};

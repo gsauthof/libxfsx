@@ -1987,7 +1987,7 @@ BOOST_AUTO_TEST_SUITE(xfsx_)
       using namespace xfsx;
       array<uint8_t, 8> a { 0u, 0u };
       Vertical_TLC t;
-      BOOST_CHECK_THROW(t.read(a.begin(), a.end()), std::range_error);
+      BOOST_CHECK_THROW(t.read(a.begin(), a.end()), xfsx::Unexpected_EOC);
     }
     BOOST_AUTO_TEST_CASE(throw_unmatched_eoc2)
     {
@@ -2001,7 +2001,7 @@ BOOST_AUTO_TEST_SUITE(xfsx_)
       Vertical_TLC t;
       auto p = t.read(a.begin(), a.end());
       p = t.read(p, a.end());
-      BOOST_CHECK_THROW(t.read(p, a.end()), std::range_error);
+      BOOST_CHECK_THROW(t.read(p, a.end()), xfsx::Unexpected_EOC);
     }
     BOOST_AUTO_TEST_CASE(throw_cut_tag)
     {

@@ -48,6 +48,8 @@ namespace xfsx {
       std::vector<Tag_Int> search_path;
       bool     search_everywhere {false};
       std::vector<std::pair<size_t, size_t> > search_ranges;
+      uint32_t skip_zero        {0};
+      uint32_t block_size       {0};
     };
 
     extern Writer_Arguments default_writer_arguments;

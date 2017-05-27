@@ -8,6 +8,8 @@
 #include <bed/command.hh>
 #include <bed/arguments.hh>
 
+#include <xfsx/xfsx.hh>
+
 #include <ixxx/util.hh>
 #include <ixxx/ansi.hh>
 #include <ixxx/posix.hh>
@@ -37,7 +39,7 @@ BOOST_AUTO_TEST_SUITE(bed_)
 )";
         compare_bed_output("tap_3_12_strip.asn1", "tap_3_12_valid.ber",
             "skip_off.xml", { "write-xml",
-            "--skip", "268", "--off" },
+            "--skip", "268", "--off", "--first" },
             ref, ref + sizeof(ref) - 1);
       }
 
@@ -45,7 +47,7 @@ BOOST_AUTO_TEST_SUITE(bed_)
       {
         compare_bed_output("tap_3_12_strip.asn1", "tap_3_12_valid_att.ber",
             "aci_not_last.xml",
-            "aci.xml", { "write-xml", "--skip", "741" });
+            "aci.xml", { "write-xml", "--skip", "741", "--first" });
       }
 
       BOOST_AUTO_TEST_CASE(write_xml_stop_first)
@@ -128,7 +130,7 @@ BOOST_AUTO_TEST_SUITE(bed_)
           argv.push_back(&*s.begin());
         argv.push_back(nullptr);
         bed::Arguments args(argvv.size(), argv.data());
-        BOOST_CHECK_THROW(bed::command::execute(args), std::runtime_error);
+        BOOST_CHECK_THROW(bed::command::execute(args), xfsx::Unexpected_EOC);
       }
 
 
@@ -182,7 +184,7 @@ BOOST_AUTO_TEST_SUITE(bed_)
 )";
         compare_bed_output("tap_3_12_strip.asn1", "tap_3_12_valid.ber",
             "write_xml_tag.xml", { "write-xml",
-            "--skip", "92", "--off", "--tag"},
+            "--skip", "92", "--off", "--tag", "--first"},
             ref, ref + sizeof(ref) - 1);
       }
 
@@ -193,7 +195,7 @@ BOOST_AUTO_TEST_SUITE(bed_)
 )";
         compare_bed_output("tap_3_12_strip.asn1", "tap_3_12_valid.ber",
             "write_xml_class.xml", { "write-xml",
-            "--skip", "92", "--off", "--tag", "--class" },
+            "--skip", "92", "--off", "--tag", "--class", "--first" },
             ref, ref + sizeof(ref) - 1);
       }
 
@@ -321,6 +323,79 @@ BOOST_AUTO_TEST_SUITE(bed_)
         if (!old_lua_path.empty())
           ixxx::posix::setenv("ASN1_PATH", old_lua_path, true);
       }
+
+      BOOST_AUTO_TEST_CASE(stop_after_first_indef)
+      {
+        const char ref[] =
+          R"(<i tag='0' class='CONTEXT_SPECIFIC'>
+    <i tag='1' class='CONTEXT_SPECIFIC'>
+        <p tag='0' class='CONTEXT_SPECIFIC'>skip</p>
+        <p tag='1' class='CONTEXT_SPECIFIC'>this</p>
+        <p tag='2' class='CONTEXT_SPECIFIC'>.</p>
+        <p tag='3' class='CONTEXT_SPECIFIC'>23</p>
+    </i>
+</i>
+)";
+        compare_bed_output("", "skip_test.ber",
+            "stop_after_first_indef.xml", { "write-xml","--first" },
+            ref, ref + sizeof(ref) - 1);
+      }
+
+      BOOST_AUTO_TEST_CASE(stop_after_double_def)
+      {
+        const char ref[] =
+          R"(<c tag='0' class='CONTEXT_SPECIFIC'>
+    <c tag='3' class='CONTEXT_SPECIFIC'>
+        <p tag='0' class='PRIVATE'>Hello</p>
+        <p tag='1' class='CONTEXT_SPECIFIC'>World</p>
+    </c>
+</c>
+)";
+        compare_bed_output("", "skip_test.ber",
+            "stop_after_double_def.xml", { "write-xml","--first", "--skip", "27" },
+            ref, ref + sizeof(ref) - 1);
+      }
+
+      BOOST_AUTO_TEST_CASE(stop_after_def)
+      {
+        const char ref[] =
+          R"(<c tag='2' class='PRIVATE'>
+    <p tag='2' class='PRIVATE'>dead</p>
+    <p tag='3' class='PRIVATE'>beef</p>
+    <p tag='4' class='PRIVATE'>1</p>
+</c>
+)";
+        compare_bed_output("", "skip_test.ber",
+            "stop_after_def.xml", { "write-xml","--first", "--skip", "45" },
+            ref, ref + sizeof(ref) - 1);
+      }
+
+      BOOST_AUTO_TEST_CASE(skip_zero)
+      {
+        compare_bed_output("", "zero_test0.ber",
+            "skip_zero.xml", { "write-xml","--skip0", "--off" });
+      }
+
+      BOOST_AUTO_TEST_CASE(zero_throw)
+      {
+        BOOST_CHECK_THROW(
+          compare_bed_output("", "zero_test0.ber",
+              "skip_zero.xml", { "write-xml", "--off" })
+          , xfsx::Unexpected_EOC);
+      }
+
+      BOOST_AUTO_TEST_CASE(skip_block)
+      {
+        compare_bed_output("", "block_test0.ber",
+              "block_zero.xml", { "write-xml", "-0", "2048", "--off" });
+      }
+
+      BOOST_AUTO_TEST_CASE(read_block)
+      {
+        compare_bed_output("", "block_test0.ber",
+              "block_zero.xml", { "write-xml", "--block", "2048", "--off" });
+      }
+
 
     BOOST_AUTO_TEST_SUITE_END() // write_xml
 

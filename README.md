@@ -1,6 +1,6 @@
 [![C++](https://img.shields.io/badge/C++-14-blue.svg)](https://en.wikipedia.org/wiki/C++14) [![License](https://img.shields.io/badge/license-LGPL--3-blue.svg)][lgpl] [![Build Status](https://travis-ci.org/gsauthof/libxfsx.svg?branch=master)](https://travis-ci.org/gsauthof/libxfsx) [![Code Coverage](https://codecov.io/github/gsauthof/libxfsx/coverage.svg?branch=master)](https://codecov.io/github/gsauthof/libxfsx)
 
-C++ library for reading, writing and maninpulating [BER][ber] and
+C++ library for reading, writing and manipulating [BER][ber] and
 XML encoded files.
 
 It supports the [BER][ber] (basic encoding rules) and
@@ -42,7 +42,7 @@ Syntactically validate a TAP file (plus some constraints checking):
 
     $ bed validate --xsd tap_3_12_incl_const.xsd CDxyz.ber
 
-2015, Georg Sauthoff <mail@georg.so>
+2015-2017, Georg Sauthoff <mail@georg.so>
 
 
 
@@ -155,7 +155,7 @@ Optional:
 
 ## Usage Notes
 
-The provided autodection run control file
+The provided autodetection run control file
 (`config/detector.json`) has rules for several formats ([TAP][tap], [RAP][rap],
 NRT, etc.). The referenced files are looked up via the ASN1
 search path (cf. the `bed` help screen).  A quite complete ASN1
@@ -355,6 +355,45 @@ then back to BER yields the original file:
 archive and has 'asn1' as extension even though it is a BER file;
 and not an abstract syntax notation schema)
 
+## Raw Input
+
+The basic encoding rules (BER) format is a relatively straight
+forward example of a TLV encoding. It's basically TLV unit after
+TLV unit without any padding in between. However, there are real
+world appliances that write a BER dialect where padding bytes are
+inserted between some top-level units. Obvious choices for
+padding bytes are 0x00 and 0xff and one motivation might be to be
+able to recover from bit-flips. Example: The appliance guarantees
+that at each block boundary (say 2 KiB) a top-level BER unit
+starts. Each block then contains a sequence of units without any
+padding in between - until no space is left in the block and the
+remaining bytes are thus filled with padding bytes and the next
+unit starts on the next block boundary.
+
+Advantage: if there is some bit-flip in the TL part of a unit you
+can skip to the next block and just lose parts of the current block.
+
+Disadvantage: many standard conforming off-the-shelf ASN.1/BER
+libraries/compilers can't deal with such files. That means they
+likely error out when they encounter the first unexpected padding
+bytes.  When 0-padding is used the decoder might even be able to
+skip some paddings - if and only if the padding contains an even
+number of 0-bytes and the decoder ignores unexpected EOC units
+(because EOC is encoded as two consecutive 0-bytes).
+
+The `bed write-xml` command has several options to deal with such
+files. With the `--block` option a block size can be specified
+such that padding bytes at the end of a block are automatically
+skipped.
+
+For even more esoteric streams there is `--skip0` (or `-0`) which
+can also deal with 0 byte padding regions that end before a block
+boundary.
+
+Examples:
+
+    $ bed write-xml --block 2048 input.ber
+    $ bed write-xml -0 input.ber
 
 ## Install
 

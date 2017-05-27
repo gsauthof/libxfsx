@@ -63,6 +63,8 @@ namespace bed {
       b.dump_length      = a.dump_length;
       b.dump_offset      = a.dump_offset;
       b.skip             = a.skip;
+      b.skip_zero        = a.skip_zero;
+      b.block_size       = a.block_size;
       b.stop_after_first = a.stop_after_first;
       b.count            = a.count;
 

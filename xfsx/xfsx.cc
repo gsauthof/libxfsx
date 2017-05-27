@@ -447,7 +447,7 @@ namespace xfsx {
       const uint8_t *end)
   {
     if (end-begin < 2)
-      throw overflow_error("TL must be at least 2 bytes long");
+      throw TL_Too_Small();
     const uint8_t *p = begin;
     klasse = static_cast<Klasse>((*p) & 0b11'000'000u);
     shape  = static_cast<Shape>((*p) & 0b00'1'00000u);
@@ -735,7 +735,7 @@ namespace xfsx {
       case Shape::PRIMITIVE:
         if (is_eoc()) {
           if (!stack_[depth_].indefinite)
-            throw range_error("got EOC without matching indefinite tag");
+            throw Unexpected_EOC();
           pop();
           height = depth_;
         }
@@ -757,6 +757,7 @@ namespace xfsx {
     }
     return r;
   }
+
   const uint8_t *Vertical_TLC::skip(const uint8_t *begin,
       const uint8_t *end)
   {
@@ -1196,20 +1197,23 @@ namespace xfsx {
   template <typename T>
   typename Basic_Reader<T>::iterator Basic_Reader<T>::begin()
   {
-    return iterator(begin_, end_);
+    return iterator(begin_, end_, skip_zero_);
   }
   template <typename T>
   typename Basic_Reader<T>::iterator Basic_Reader<T>::end()
   {
-    return iterator(end_, end_);
+    return iterator(end_, end_, skip_zero_);
   }
 
   template <typename T>
-  Basic_Reader<T>::iterator::iterator(const uint8_t *begin, const uint8_t *end)
+  Basic_Reader<T>::iterator::iterator(const uint8_t *begin, const uint8_t *end,
+      uint32_t skip_zero)
     :
+      first_(begin),
       current_(begin),
       begin_(begin),
-      end_(end)
+      end_(end),
+      skip_zero_(skip_zero)
   {
     if (begin < end)
       begin_ = tlc_.read(begin, end);
@@ -1225,12 +1229,49 @@ namespace xfsx {
   {
     return tlc_;
   }
+
+  const char *Unexpected_EOC::what() const noexcept
+  {
+    return "got EOC without matching indefinite tag";
+  }
+
+  const char *TL_Too_Small::what() const noexcept
+  {
+    return "TL must be at least 2 bytes long";
+  }
+  const char *Tag_Too_Long::what() const noexcept
+  {
+    return "tag too long";
+  }
+
   template <typename T>
   typename Basic_Reader<T>::iterator &Basic_Reader<T>::iterator::operator++()
   {
     current_ = begin_;
-    if (begin_ < end_)
-      begin_ = tlc_.read(begin_, end_);
+    if (begin_ < end_) {
+      for (;;) {
+        try {
+          begin_ = tlc_.read(begin_, end_);
+        } catch (const Unexpected_EOC &) {
+          if (!skip_zero_)
+            throw;
+          if (skip_zero_ == 1) {
+            begin_ = find_if(begin_, end_, [](uint8_t c){return !!c;});
+          } else {
+            size_t m = end_ - first_;
+            size_t skip_k = 1024;
+            size_t k = ((begin_ - first_) + skip_k) / skip_k * skip_k;
+            begin_ = first_ + min(m, k);
+          }
+          continue;
+        } catch (const TL_Too_Small &) {
+          if (!skip_zero_)
+            throw;
+          begin_ = end_;
+        }
+        break;
+      }
+    }
     return *this;
   }
   template <typename T>
@@ -1258,11 +1299,11 @@ namespace xfsx {
   }
   Skip_EOC_Reader::iterator Skip_EOC_Reader::begin()
   {
-    return iterator(begin_, end_);
+    return iterator(begin_, end_, skip_zero_);
   }
   Skip_EOC_Reader::iterator Skip_EOC_Reader::end()
   {
-    return iterator(end_, end_);
+    return iterator(end_, end_, skip_zero_);
   }
 
   Tag_Translator::Tag_Translator()
