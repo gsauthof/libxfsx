@@ -31,12 +31,20 @@
 #include <string.h>
 
 
-#define USE_BOOST_ENDIAN_FOR_INTEGER 1
-#define USE_BOOST_ENDIAN_FOR_INTEGER_WRITE 1
+#if !defined(USE_BOOST_ENDIAN_FOR_INTEGER)
+  #define USE_BOOST_ENDIAN_FOR_INTEGER 1
+#endif
+#if !defined(USE_BOOST_ENDIAN_FOR_INTEGER_WRITE)
+  #define USE_BOOST_ENDIAN_FOR_INTEGER_WRITE 1
+#endif
 // not using boost endian for length conversion
 // is slighty faster, thus, per default,
 // USE_BOOST_ENDIAN_FOR_LENGTH is not defined
-#if  defined(USE_BOOST_ENDIAN_FOR_LENGTH) \
+#if !defined(USE_BOOST_ENDIAN_FOR_LENGTH)
+  #define USE_BOOST_ENDIAN_FOR_LENGTH 0
+#endif
+
+#if USE_BOOST_ENDIAN_FOR_LENGTH == 1 \
   || defined(USE_BOOST_ENDIAN_FOR_LENGTH_WRITE) \
   || defined(USE_BOOST_ENDIAN_FOR_INTEGER) \
   || defined(USE_BOOST_ENDIAN_FOR_INTEGER_WRITE)
@@ -386,6 +394,26 @@ namespace xfsx {
       && !tag && !length;
   }
 
+  namespace {
+
+  template <bool b, typename T> inline void shift_into_int(const uint8_t *&p,
+      size_t n, T &r)
+  {
+    if (b) {
+      memcpy(reinterpret_cast<uint8_t*>(&r)+(sizeof(T)-n), p, n);
+      boost::endian::big_to_native_inplace(r);
+      p += n;
+    } else {
+      for (uint8_t i = 0; i < n; ++i) {
+        r <<= 8;
+        r |= *p;
+        ++p;
+      }
+    }
+  }
+
+  }
+
 
   /*
    * Tag-Length (TL) Unit - Basic Encoding Rules (BER)
@@ -494,17 +522,7 @@ namespace xfsx {
         ++p;
         if (end-p < n)
           throw overflow_error("length - not enough bytes");
-       #ifdef USE_BOOST_ENDIAN_FOR_LENGTH
-          memcpy(reinterpret_cast<uint8_t*>(&length)+(sizeof(size_t)-n), p, n);
-          boost::endian::big_to_native_inplace(length);
-          p += n;
-        #else
-            for (uint8_t i = 0; i < n; ++i) {
-              length <<= 8;
-              length |= *p;
-              ++p;
-            }
-        #endif
+        shift_into_int<USE_BOOST_ENDIAN_FOR_LENGTH>(p, n, length);
       } else {
         length = (*p) & 0b0'111'1111;
         ++p;
@@ -908,6 +926,7 @@ namespace xfsx {
     return minimally_encoded_length(v.value());
   }
 
+
   template <typename T> void decode_int(const uint8_t *begin, size_t length,
       T &r)
   {
@@ -924,18 +943,8 @@ namespace xfsx {
         r = ((*begin) & 0b1'000'0000) ? -1 : 0;
       else
         r = 0;
-#ifdef USE_BOOST_ENDIAN_FOR_INTEGER
-      memcpy(reinterpret_cast<uint8_t*>(&r)+(sizeof(T)-length),
-          begin, length);
-      boost::endian::big_to_native_inplace(r);
-#else
       const uint8_t *p = begin;
-      for (uint8_t i = 0; i < length; ++i) {
-        r <<= 8;
-        r |= *p;
-        ++p;
-      }
-#endif
+      shift_into_int<USE_BOOST_ENDIAN_FOR_INTEGER>(p, length, r);
     }
   }
 
