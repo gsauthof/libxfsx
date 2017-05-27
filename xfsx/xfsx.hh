@@ -401,17 +401,17 @@ namespace xfsx {
   };
 
   struct TL_Too_Small : public Parse_Error {
-    using std::exception::exception;
+    using Parse_Error::Parse_Error;
     const char *what() const noexcept override;
   };
 
   struct Unexpected_EOC : public Parse_Error {
-    using std::exception::exception;
+    using Parse_Error::Parse_Error;
     const char *what() const noexcept override;
   };
 
   struct Tag_Too_Long : public Parse_Error {
-    using std::exception::exception;
+    using Parse_Error::Parse_Error;
     const char *what() const noexcept override;
   };
 
