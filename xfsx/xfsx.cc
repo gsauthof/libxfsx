@@ -399,11 +399,22 @@ namespace xfsx {
   template <bool b, typename T> inline void shift_into_int(const uint8_t *&p,
       size_t n, T &r)
   {
+    // work around ambiguity issue with T=size_t and boost::endian on Mac OSX
+    // (where size_t neither matches uint32_t nor uint64_t
+    //  and boost endian only define overloads for *int*_t types)
+    // cf. https://stackoverflow.com/q/11603818/427158
+#if __APPLE__ && __MACH__
+    if (0) {
+      (void)0;
+    }
+#else
     if (b) {
       memcpy(reinterpret_cast<uint8_t*>(&r)+(sizeof(T)-n), p, n);
       boost::endian::big_to_native_inplace(r);
       p += n;
-    } else {
+    }
+#endif
+    else {
       for (uint8_t i = 0; i < n; ++i) {
         r <<= 8;
         r |= *p;
