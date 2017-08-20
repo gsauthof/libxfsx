@@ -69,7 +69,7 @@ IF(CMAKE_CURRENT_SOURCE_DIR STREQUAL CMAKE_SOURCE_DIR)
   add_subdirectory(libgrammar)
   set(OLD_BUILD_SHARED_LIBS ${BUILD_SHARED_LIBS})
   set(BUILD_SHARED_LIBS true)
-  add_subdirectory(cppformat)
+  add_subdirectory(fmt)
   set(BUILD_SHARED_LIBS ${OLD_BUILD_SHARED_LIBS})
 endif()
 
@@ -153,7 +153,7 @@ target_link_libraries(xfsx
   #${Boost_SYSTEM_LIBRARY}
   ${Boost_REGEX_LIBRARY}
   ${XML2_LIB}
-  cppformat
+  fmt
   grammar
   ixxxutil
   ixxx
@@ -217,7 +217,7 @@ IF(CMAKE_PROJECT_NAME STREQUAL "xfsx")
 
     ${BED_SRC}
 
-    ${CMAKE_SOURCE_DIR}/cppformat/format.cc
+    ${CMAKE_SOURCE_DIR}/fmt/format.cc
   )
   set_property(TARGET ut PROPERTY INCLUDE_DIRECTORIES
     ${XML2_INCLUDE_DIR}
@@ -251,7 +251,7 @@ add_executable(bed
   bed/main.cc
   ${BED_SRC}
   
-  ${CMAKE_SOURCE_DIR}/cppformat/format.cc
+  ${CMAKE_SOURCE_DIR}/fmt/format.cc
   )
 target_compile_definitions(bed PRIVATE -DSOL_USE_BOOST=1)
 target_compile_definitions(xfsx PRIVATE -DSOL_USE_BOOST=1)
@@ -305,22 +305,22 @@ IF(CMAKE_CURRENT_SOURCE_DIR STREQUAL CMAKE_SOURCE_DIR)
   add_executable(ber2xml_fuzzer
     tool/ber2xml_fuzzer.cc
     test/test.cc
-    ${CMAKE_SOURCE_DIR}/cppformat/format.cc
+    ${CMAKE_SOURCE_DIR}/fmt/format.cc
   )
   add_executable(ber2lxml_fuzzer
     tool/ber2lxml_fuzzer.cc
     test/test.cc
-    ${CMAKE_SOURCE_DIR}/cppformat/format.cc
+    ${CMAKE_SOURCE_DIR}/fmt/format.cc
   )
   add_executable(ber2lxml_back_fuzzer
     tool/ber2lxml_back_fuzzer.cc
     test/test.cc
-    ${CMAKE_SOURCE_DIR}/cppformat/format.cc
+    ${CMAKE_SOURCE_DIR}/fmt/format.cc
   )
   add_executable(xml2ber_fuzzer
     tool/xml2ber_fuzzer.cc
     test/test.cc
-    ${CMAKE_SOURCE_DIR}/cppformat/format.cc
+    ${CMAKE_SOURCE_DIR}/fmt/format.cc
   )
   set_property(TARGET ber2xml_fuzzer ber2lxml_back_fuzzer ber2lxml_fuzzer
     xml2ber_fuzzer

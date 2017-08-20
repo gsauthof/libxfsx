@@ -27,7 +27,7 @@
 
 #include <ixxx/ixxx.h>
 
-#include <cppformat/format.h>
+#include <fmt/format.h>
 
 using namespace std;
 
