@@ -28,6 +28,7 @@
 #include <stack>
 #include <unordered_map>
 #include <ostream>
+#include <functional>
 
 // #include <iostream>
 
