@@ -41,15 +41,32 @@ namespace xfsx {
       {
         return strlen(s);
       }
+
+      // copied and slightly adapted this length computing part from
+      // fmt/fmt/format/format.h:3425, format_decimal()
+      // https://github.com/fmtlib/fmt
+      // BSD 2-clause "Simplified" License
       template <typename T>
-      size_t encoded_length_int(T v)
+      size_t encoded_length_int(T value)
       {
-        typename fmt::internal::IntTraits<T>::MainType unsigned_v = v;
-        if (fmt::internal::is_negative(v)) {
-          unsigned_v = 0 - unsigned_v;
-          return 1 + size_t(fmt::internal::count_digits(unsigned_v));
-        } else
-          return fmt::internal::count_digits(unsigned_v);
+        size_t r = 0;
+        typedef typename fmt::internal::IntTraits<T>::MainType MainType;
+        MainType abs_value = static_cast<MainType>(value);
+        if (fmt::internal::is_negative(value)) {
+          ++r;
+          abs_value = 0 - abs_value;
+        }
+        if (abs_value < 100) {
+          if (abs_value < 10) {
+            ++r;
+            return r;
+          }
+          r += 2;
+          return r;
+        }
+        unsigned num_digits = fmt::internal::count_digits(abs_value);
+        r += num_digits;
+        return r;
       }
       template <> size_t encoded_length(uint32_t v)
       {
@@ -113,17 +130,35 @@ namespace xfsx {
       {
         return copy(s, s+n, o);
       }
+
+      // copied and slightly adapted this encoding part from
+      // fmt/fmt/format/format.h:3425, format_decimal()
+      // https://github.com/fmtlib/fmt
+      // BSD 2-clause "Simplified" License
       template <typename T>
-      char *encode_int(T v, char *o, size_t n)
+      char *encode_int(T value, char *buffer, size_t n)
       {
-        typename fmt::internal::IntTraits<T>::MainType unsigned_v = v;
-        if (fmt::internal::is_negative(v)) {
-          *o++ = '-';
+        typedef typename fmt::internal::IntTraits<T>::MainType MainType;
+        MainType abs_value = static_cast<MainType>(value);
+        if (fmt::internal::is_negative(value)) {
+          *buffer++ = '-';
           --n;
-          unsigned_v = 0 - unsigned_v;
+          abs_value = 0 - abs_value;
         }
-        fmt::internal::format_decimal(o, unsigned_v, n);
-        return o + n;
+        if (abs_value < 100) {
+          if (abs_value < 10) {
+            *buffer++ = static_cast<char>('0' + abs_value);
+            return buffer;
+          }
+          unsigned index = static_cast<unsigned>(abs_value * 2);
+          *buffer++ = fmt::internal::Data::DIGITS[index];
+          *buffer++ = fmt::internal::Data::DIGITS[index + 1];
+          return buffer;
+        }
+        unsigned num_digits = n;
+        fmt::internal::format_decimal(buffer, abs_value, num_digits);
+        buffer += num_digits;
+        return buffer;
       }
       template <> char *encode(uint32_t v, char *o, size_t n)
       {
