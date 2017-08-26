@@ -82,7 +82,7 @@ BOOST_AUTO_TEST_SUITE(xfsx_)
           zsv_link);
       bf::copy_file(
           bf::absolute(test::path::in()
-            + "/../../config").generic_string()
+            + "/../../telephone-code").generic_string()
           + "/pretty_tap.lua",
           pp_link);
 

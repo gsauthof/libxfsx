@@ -22,3 +22,6 @@
 [submodule "sol2"]
 	path = sol2
 	url = https://github.com/ThePhD/sol2.git
+[submodule "telephone-code"]
+	path = telephone-code
+	url = https://github.com/gsauthof/telephone-code.git

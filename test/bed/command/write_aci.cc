@@ -41,7 +41,8 @@ BOOST_AUTO_TEST_SUITE(bed_)
         string a {test::path::in() + "/../../libgrammar/test/in/asn1"};
         string b {test::path::in() + "/../../config"};
         string c {test::path::in() + "/../../libgrammar/grammar/xml"};
-        ixxx::posix::setenv("ASN1_PATH", a + ":" + b + ":" + c, true);
+        string d {test::path::in() + "/../../telephone-code"};
+        ixxx::posix::setenv("ASN1_PATH", a + ":" + b + ":" + c + ":" + d, true);
         compare_bed_output("",
             "tap_3_12_valid.ber", "write_aci_auto.ber",
             "edit_aci.ber",

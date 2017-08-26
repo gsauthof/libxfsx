@@ -313,7 +313,7 @@ BOOST_AUTO_TEST_SUITE(bed_)
         try { old_lua_path = ixxx::ansi::getenv("ASN1_PATH"); }
         catch (const ixxx::runtime_error &e) {}
         string a {test::path::in() + "/../../libgrammar/test/in/asn1"};
-        string b {test::path::in() + "/../../config"};
+        string b {test::path::in() + "/../../telephone-code"};
         string c {test::path::in() + "/../../libgrammar/grammar/xml"};
         ixxx::posix::setenv("ASN1_PATH", a + ":" + b + ":" + c, true);
         compare_bed_output("", "tap_3_12_valid.ber",
