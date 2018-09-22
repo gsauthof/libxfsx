@@ -20,8 +20,10 @@ function prepare_osx()
   # CMAKE_SYSTEM_PREFIX_PATH: /usr/local;/usr;/;/usr/local/Cellar/cmake/3.0.2;/usr/local;/sw;/opt/local
   #
   # Thus, cmake should find /usr/local/lib/liblua.dylib and /usr/local/include
-  CXX=/usr/local/opt/llvm/bin/clang++ CC=/usr/local/opt/llvm/bin/clang LDFLAGS='-L/usr/local/opt/llvm/lib -Wl,-rpath,/usr/local/opt/llvm/lib' \
-      cmake -G Ninja -DCMAKE_BUILD_TYPE=$CMAKE_BUILD_TYPE ..
+  #
+  # CXX=/usr/local/opt/llvm/bin/clang++ CC=/usr/local/opt/llvm/bin/clang LDFLAGS='-L/usr/local/opt/llvm/lib -Wl,-rpath,/usr/local/opt/llvm/lib'  cmake ...
+
+  CXX=clang++ CC=clang cmake -G Ninja -DCMAKE_BUILD_TYPE=$CMAKE_BUILD_TYPE ..
 }
 
 function prepare_linux()

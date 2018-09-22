@@ -35,8 +35,9 @@ function prepare_osx()
   # brew install gcc
 
   # cf. http://apple.stackexchange.com/questions/227026/how-to-install-recent-clang-with-homebrew
-  brew install --with-toolchain llvm
-  brew info llvm
+  # as of 2018-09, homebrew/versions isn't a thing, anymore
+  #brew install llvm
+  #brew info llvm
 }
 
 function prepare_linux()
