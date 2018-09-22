@@ -10,7 +10,8 @@ function prepare_osx()
   # thus, sudo can be omitted
   brew update
 
-  brew upgrade cmake
+  # as of 2018-09, cmake recent enough: 3.11.4
+  # brew upgrade cmake
   brew info cmake
 
   brew install ragel
@@ -20,11 +21,13 @@ function prepare_osx()
   #find /usr/local -name '*lua*'
   # i.e. is linked via /usr/local/{lib,include}
 
-  # brew complains:
-  # Error: boost-1.55.0_2 already installed
-  # To install this version, first `brew unlink boost`
-  # ( -> we need at least 1.58)
-  brew upgrade boost
+  # as of 2018-09, default boost is at 1.67
+  # note that brew upgrade exits with exit status != 0
+  # if the latest version is already installed ...
+  # (whereas brew install just issues a warning and does nothing
+  # if a package is already installed ...)
+  # brew upgrade boost
+  brew info boost
 
   # this would give us 5.3 (or higher)
   # but this gcc then doesn't link correctly with boost ...
