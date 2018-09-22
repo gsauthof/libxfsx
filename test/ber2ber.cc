@@ -4,9 +4,8 @@
 #include <boost/test/parameterized_test.hpp>
 #include <boost/filesystem.hpp>
 
-#include <ixxx/ixxx.h>
+#include <ixxx/ixxx.hh>
 #include <ixxx/util.hh>
-#include <ixxx/util/boost.hh>
 
 #include <array>
 #include <algorithm>
@@ -52,14 +51,14 @@ static void compare_identity(const char *rel_filename_str)
   bf::create_directories(out_path);
 
     BOOST_TEST_CHECKPOINT("map file" << in.generic_string());
-    ixxx::util::RO_Mapped_File f(in.generic_string());
+    auto f = ixxx::util::mmap_file(in.generic_string());
     BOOST_TEST_CHECKPOINT("create write file");
     {
       ixxx::util::FD fd(out.generic_string(), O_CREAT | O_WRONLY, 0666);
       ixxx::posix::ftruncate(fd, f.size());
     }
     BOOST_TEST_CHECKPOINT("open write file");
-    ixxx::util::RW_Mapped_File o(out.generic_string());
+    auto o = ixxx::util::mmap_file(out.generic_string(), true, true);
     BOOST_REQUIRE_EQUAL(f.size(), o.size());
     BOOST_TEST_CHECKPOINT("write file");
     xfsx::ber::write_identity(f.begin(), f.end(), o.begin(), o.end());
@@ -90,7 +89,7 @@ static void check_vert_read_throw(const char *rel_filename_str)
   in /= rel_filename;
 
   BOOST_TEST_CHECKPOINT("map file" << in.generic_string());
-  ixxx::util::RO_Mapped_File f(in.generic_string());
+  auto f = ixxx::util::mmap_file(in.generic_string());
 
   unsigned i = 0;
   BOOST_CHECK_THROW(i = read_for_throw(f.begin(), f.end()),
@@ -105,7 +104,7 @@ static void check_flat_no_throw(const char *rel_filename_str)
   in /= rel_filename;
 
   BOOST_TEST_CHECKPOINT("map file" << in.generic_string());
-  ixxx::util::RO_Mapped_File f(in.generic_string());
+  auto f = ixxx::util::mmap_file(in.generic_string());
 
   using namespace xfsx;
   Reader r(f.begin(), f.end());
@@ -144,7 +143,7 @@ static void check_reference(
   bf::create_directories(out.parent_path());
 
   BOOST_TEST_CHECKPOINT("map file: " << in.generic_string());
-  ixxx::util::RO_Mapped_File f(in.generic_string());
+  auto f = ixxx::util::mmap_file(in.generic_string());
 
   BOOST_TEST_CHECKPOINT("write to: " << in.generic_string());
   fn(f.begin(), f.end(), out.generic_string());
@@ -152,8 +151,8 @@ static void check_reference(
   BOOST_TEST_CHECKPOINT("comparing files: " << ref << " vs. " << out);
   if (bf::file_size(ref)) {
     // mmap of zero-length file fails as specified by POSIX ...
-    ixxx::util::RO_Mapped_File r(ref.generic_string());
-    ixxx::util::RO_Mapped_File o(out.generic_string());
+    auto r = ixxx::util::mmap_file(ref.generic_string());
+    auto o = ixxx::util::mmap_file(out.generic_string());
     bool are_equal = std::equal(r.begin(), r.end(), o.begin(), o.end());
     if (!are_equal) {
       cerr << "Files are not equal: " << ref << " vs. " << out << "\n";

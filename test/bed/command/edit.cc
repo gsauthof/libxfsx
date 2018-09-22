@@ -150,11 +150,11 @@ BOOST_AUTO_TEST_SUITE(bed_)
         bed::command::Edit c(args);
         c.execute();
         {
-          ixxx::util::Mapped_File f(out.generic_string());
+          auto f = ixxx::util::mmap_file(out.generic_string());
           BOOST_TEST_CHECKPOINT("Checking output: " << out);
           BOOST_REQUIRE(bf::file_size(out));
           BOOST_TEST_CHECKPOINT("Comparing: " << ref << " vs. " << out);
-          ixxx::util::Mapped_File g(ref.generic_string());
+          auto g = ixxx::util::mmap_file(ref.generic_string());
           BOOST_CHECK(std::equal(f.begin(), f.end(), g.begin(), g.end()));
         }
       }

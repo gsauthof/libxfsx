@@ -111,7 +111,7 @@ BOOST_AUTO_TEST_SUITE(xfsx_)
         vector<Matcher_Result> seen_results;
         boost::filesystem::path in(test::path::in());
         in /= "tap_3_12_valid.ber";
-        ixxx::util::Mapped_File m(in.generic_string());
+        auto m = ixxx::util::mmap_file(in.generic_string());
         Vertical_TLC t;
 
         Vertical_TLC_Proxy p(m.begin(), m.end(), t);
@@ -146,7 +146,7 @@ BOOST_AUTO_TEST_SUITE(xfsx_)
         using namespace xfsx;
         boost::filesystem::path in(test::path::in());
         in /= "tap_3_12_valid.ber";
-        ixxx::util::Mapped_File m(in.generic_string());
+        auto m = ixxx::util::mmap_file(in.generic_string());
         Vertical_TLC t;
 
         using namespace xfsx::tap::traverser;
@@ -190,7 +190,7 @@ BOOST_AUTO_TEST_SUITE(xfsx_)
         using namespace xfsx::traverser;
         boost::filesystem::path in(test::path::in());
         in /= "tap_3_12_valid.ber";
-        ixxx::util::Mapped_File f(in.generic_string());
+        auto f = ixxx::util::mmap_file(in.generic_string());
         vector<Tag_Int> tags = { 1, 3, 0 };
 
         Vertical_TLC t;
@@ -225,7 +225,7 @@ BOOST_AUTO_TEST_SUITE(xfsx_)
         using namespace xfsx::traverser;
         boost::filesystem::path in(test::path::in());
         in /= "tap_3_12_valid.ber";
-        ixxx::util::Mapped_File f(in.generic_string());
+        auto f = ixxx::util::mmap_file(in.generic_string());
         vector<Tag_Int> tags = { 427 };
 
         Vertical_TLC t;
@@ -254,7 +254,7 @@ BOOST_AUTO_TEST_SUITE(xfsx_)
         using namespace xfsx::traverser;
         boost::filesystem::path in(test::path::in());
         in /= "tap_3_12_valid.ber";
-        ixxx::util::Mapped_File f(in.generic_string());
+        auto f = ixxx::util::mmap_file(in.generic_string());
         vector<Tag_Int> tags = { 44, 16};
 
         Vertical_TLC t;

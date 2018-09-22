@@ -25,7 +25,7 @@
 #include <algorithm>
 #include <string.h>
 
-#include <ixxx/ixxx.h>
+#include <ixxx/ixxx.hh>
 
 #include <fmt/format.h>
 

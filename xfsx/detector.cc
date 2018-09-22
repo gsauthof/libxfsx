@@ -28,7 +28,7 @@
 #include <boost/algorithm/string/classification.hpp>
 #include <boost/algorithm/string/split.hpp>
 
-#include <ixxx/ixxx.h>
+#include <ixxx/ixxx.hh>
 #include <ixxx/util.hh>
 #include <xxxml/util.hh>
 
@@ -64,7 +64,7 @@ namespace xfsx {
         size_t count,
         const std::deque<std::string> &asn_filenames)
     {
-      ixxx::util::Mapped_File in(filename);
+      auto in = ixxx::util::mmap_file(filename);
       xfsx::xml::Pretty_Writer_Arguments args(asn_filenames);
       args.count = count;
       xxxml::doc::Ptr doc = xfsx::xml::l2::generate_tree(in.begin(), in.end(),
@@ -77,7 +77,7 @@ namespace xfsx {
         size_t count,
         const std::deque<std::string> &asn_filenames)
     {
-      ixxx::util::Mapped_File in(filename);
+      auto in = ixxx::util::mmap_file(filename);
       xfsx::xml::Pretty_Writer_Arguments args(asn_filenames);
       xxxml::doc::Ptr doc =
         xfsx::xml::l2::generate_tree(in.s_begin(), in.s_end(), count);
@@ -246,16 +246,16 @@ namespace xfsx {
         try {
           string v(ixxx::ansi::getenv("ASN1_PATH"));
           boost::algorithm::split(r, v, boost::algorithm::is_any_of(":"));
-        } catch (const runtime_error &e) {
+        } catch (const ixxx::getenv_error &e) {
         }
         try {
           string v(ixxx::ansi::getenv("XDG_CONFIG_HOME"));
           r.push_back(v + "/xfsx/asn1");
-        } catch (const runtime_error &e) {
+        } catch (const ixxx::getenv_error &e) {
           try {
             string v(ixxx::ansi::getenv("HOME"));
             r.push_back(v + "/xfsx/asn1");
-          } catch (const runtime_error &e) {
+          } catch (const ixxx::getenv_error &e) {
           }
         }
 #if (defined(__MINGW32__) || defined(__MINGW64__))

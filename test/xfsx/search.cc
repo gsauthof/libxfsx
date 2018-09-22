@@ -46,7 +46,7 @@ BOOST_AUTO_TEST_SUITE(xfsx_)
       using namespace xfsx;
       boost::filesystem::path in(test::path::in());
       in /= "tap_3_12_valid.ber";
-      ixxx::util::Mapped_File f(in.generic_string());
+      auto f = ixxx::util::mmap_file(in.generic_string());
       vector<Tag_Int> tags = { 1, 15};
       auto r = xfsx::search(f.begin(), f.end(), tags, false);
       ssize_t off = r - f.begin();
@@ -58,7 +58,7 @@ BOOST_AUTO_TEST_SUITE(xfsx_)
       using namespace xfsx;
       boost::filesystem::path in(test::path::in());
       in /= "tap_3_12_valid.ber";
-      ixxx::util::Mapped_File f(in.generic_string());
+      auto f = ixxx::util::mmap_file(in.generic_string());
       vector<Tag_Int> tags = { 0, 15};
       auto r = xfsx::search(f.begin(), f.end(), tags, false);
       ssize_t off = r - f.begin();
@@ -70,7 +70,7 @@ BOOST_AUTO_TEST_SUITE(xfsx_)
       using namespace xfsx;
       boost::filesystem::path in(test::path::in());
       in /= "tap_3_12_valid.ber";
-      ixxx::util::Mapped_File f(in.generic_string());
+      auto f = ixxx::util::mmap_file(in.generic_string());
       vector<Tag_Int> tags = { 15};
       auto r = xfsx::search(f.begin(), f.end(), tags, true);
       ssize_t off = r - f.begin();
@@ -82,7 +82,7 @@ BOOST_AUTO_TEST_SUITE(xfsx_)
       using namespace xfsx;
       boost::filesystem::path in(test::path::in());
       in /= "tap_3_12_valid.ber";
-      ixxx::util::Mapped_File f(in.generic_string());
+      auto f = ixxx::util::mmap_file(in.generic_string());
       // i.e. ChargeDetailList/ChargeDetail/Charge
       vector<Tag_Int> tags = { 64, 63, 62};
       auto r = xfsx::search(f.begin(), f.end(), tags, true);
@@ -95,7 +95,7 @@ BOOST_AUTO_TEST_SUITE(xfsx_)
       using namespace xfsx;
       boost::filesystem::path in(test::path::in());
       in /= "tap_3_12_valid.ber";
-      ixxx::util::Mapped_File f(in.generic_string());
+      auto f = ixxx::util::mmap_file(in.generic_string());
       // i.e. ChargeDetailList/ChargeDetail/Charge
       vector<Tag_Int> tags = { 64, 63, 1};
       auto r = xfsx::search(f.begin(), f.end(), tags, true);
@@ -107,7 +107,7 @@ BOOST_AUTO_TEST_SUITE(xfsx_)
       using namespace xfsx;
       boost::filesystem::path in(test::path::in());
       in /= "tap_3_12_valid.ber";
-      ixxx::util::Mapped_File f(in.generic_string());
+      auto f = ixxx::util::mmap_file(in.generic_string());
       vector<Tag_Int> tags = { 15};
       auto r = xfsx::search(f.begin(), f.end(), tags, false);
       BOOST_CHECK(r == f.end());

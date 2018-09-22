@@ -37,7 +37,7 @@ BOOST_AUTO_TEST_SUITE(bed_)
       {
         string old_asn1_path;
         try { old_asn1_path = ixxx::ansi::getenv("ASN1_PATH"); }
-        catch (const ixxx::runtime_error &e) {}
+        catch (const ixxx::getenv_error &e) {}
         string a {test::path::in() + "/../../libgrammar/test/in/asn1"};
         string b {test::path::in() + "/../../config"};
         string c {test::path::in() + "/../../libgrammar/grammar/xml"};

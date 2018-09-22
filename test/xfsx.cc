@@ -2083,7 +2083,7 @@ BOOST_AUTO_TEST_SUITE(xfsx_)
       using namespace xfsx;
       boost::filesystem::path in(test::path::in());
       in /= "tap_3_12_valid.ber";
-      ixxx::util::Mapped_File f(in.generic_string());
+      auto f = ixxx::util::mmap_file(in.generic_string());
       Vertical_TLC t;
       auto r = t.read(f.begin(), f.end());
       r = t.skip(r, f.end());
@@ -2095,7 +2095,7 @@ BOOST_AUTO_TEST_SUITE(xfsx_)
       using namespace xfsx;
       boost::filesystem::path in(test::path::in());
       in /= "tap_3_12_valid.ber";
-      ixxx::util::Mapped_File f(in.generic_string());
+      auto f = ixxx::util::mmap_file(in.generic_string());
       Vertical_TLC t;
       auto r = t.read(f.begin() + 254, f.end());
       r = t.skip(r, f.end());
@@ -2107,7 +2107,7 @@ BOOST_AUTO_TEST_SUITE(xfsx_)
       using namespace xfsx;
       boost::filesystem::path in(test::path::in());
       in /= "tap_3_12_valid_some_cdr_indefinite.ber";
-      ixxx::util::Mapped_File f(in.generic_string());
+      auto f = ixxx::util::mmap_file(in.generic_string());
       Vertical_TLC t;
       // CallEventDetailList and some CDRs inside of indefinite
       auto r = t.read(f.begin() + 254, f.end());

@@ -26,7 +26,6 @@
 #include <boost/filesystem.hpp>
 
 #include <ixxx/util.hh>
-#include <ixxx/util/boost.hh>
 
 #include <grammar/grammar.hh>
 #include <grammar/asn1/mini_parser.hh>
@@ -86,16 +85,16 @@ static void compare(
 
   {
     BOOST_TEST_CHECKPOINT("map file");
-    ixxx::util::RO_Mapped_File f(in.generic_string());
+    auto f = ixxx::util::mmap_file(in.generic_string());
     BOOST_TEST_CHECKPOINT("write file" << out.generic_string());
     write_fn(f.begin(), f.end(), out.generic_string().c_str());
   }
   {
     BOOST_TEST_CHECKPOINT("opening ref file: "
         << ref << " (out: " << out << ")");
-    ixxx::util::RO_Mapped_File r(ref.generic_string());
+    auto r = ixxx::util::mmap_file(ref.generic_string());
     BOOST_TEST_CHECKPOINT("opening written file");
-    ixxx::util::RO_Mapped_File o(out.generic_string());
+    auto o = ixxx::util::mmap_file(out.generic_string());
     bool are_equal = std::equal(r.begin(), r.end(), o.begin(), o.end());
     if (!are_equal) {
       cerr << "Files are not equal: " << ref << " vs. " << out << '\n';
@@ -140,7 +139,7 @@ static void write_pretty_xml(const uint8_t *begin, const uint8_t *end,
 {
   string tap_filename(test::path::in()
       + "/../../libgrammar/test/in/asn1/tap_3_12_strip.asn1");
-  ixxx::util::Mapped_File f(tap_filename);
+  auto f = ixxx::util::mmap_file(tap_filename);
   grammar::asn1::mini::Parser parser;
   parser.set_filename(tap_filename);
   parser.read(f.s_begin(), f.s_end());
@@ -180,7 +179,7 @@ static void write_pretty_xml_args(const uint8_t *begin, const uint8_t *end,
 {
   string tap_filename(test::path::in()
       + "/../../libgrammar/test/in/asn1/tap_3_12_strip.asn1");
-  ixxx::util::Mapped_File f(tap_filename);
+  auto f = ixxx::util::mmap_file(tap_filename);
   grammar::asn1::mini::Parser parser;
   parser.set_filename(tap_filename);
   parser.read(f.s_begin(), f.s_end());
@@ -307,13 +306,13 @@ BOOST_AUTO_TEST_SUITE(xfsx_)
 
         BOOST_TEST_CHECKPOINT("Writing Files: " << test::path::in());
         {
-          ixxx::util::Mapped_File f(test::path::in()
+          auto f = ixxx::util::mmap_file(test::path::in()
            + "/asn1c/examples/sample.source.PKIX1/sample-Certificate-1.der");
           xfsx::xml::write(f.begin(), f.end(), out.generic_string());
         }
         size_t n = bf::file_size(out);
         {
-          ixxx::util::Mapped_File f(test::path::in()
+          auto f = ixxx::util::mmap_file(test::path::in()
            + "/asn1c/examples/sample.source.TAP3/sample-DataInterChange-1.ber");
           xfsx::xml::write(f.begin(), f.end(), out.generic_string());
         }

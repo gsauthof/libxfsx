@@ -59,7 +59,7 @@ namespace bed {
 
     void Edit::execute()
     {
-      ixxx::util::Mapped_File in(args_.in_filename);
+      auto in = ixxx::util::mmap_file(args_.in_filename);
 
       xfsx::xml::Pretty_Writer_Arguments pretty_args(args_.asn_filenames);
       apply_arguments(args_, pretty_args);
@@ -100,7 +100,7 @@ namespace bed {
       void Insert::execute(Detail &d)
       {
         if (!argv.at(1).empty() && argv.at(1)[0] == '@') {
-          ixxx::util::Mapped_File m(argv.at(1).substr(1));
+          auto m = ixxx::util::mmap_file(argv.at(1).substr(1));
           xxxml::util::insert(d.doc, argv.at(0), m.s_begin(), m.s_end(),
               boost::lexical_cast<int>(argv.at(2)));
         } else {

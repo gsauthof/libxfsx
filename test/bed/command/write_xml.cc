@@ -65,10 +65,9 @@ BOOST_AUTO_TEST_SUITE(bed_)
         {
           size_t n = boost::filesystem::file_size(input);
           n += 2;
-          ixxx::util::Mapped_File f(input.generic_string());
-          ixxx::util::Mapped_File g(input_mod.generic_string(), true, true, n);
+          auto f = ixxx::util::mmap_file(input.generic_string());
+          auto g = ixxx::util::mmap_file(input_mod.generic_string(), true, true, n);
           std::copy(f.begin(), f.end(), g.begin());
-          g.close();
         }
         bf::path ref(test::path::ref());
         ref /= "ber_pretty_xml";
@@ -94,10 +93,10 @@ BOOST_AUTO_TEST_SUITE(bed_)
         bed::command::execute(args);
         {
           BOOST_TEST_CHECKPOINT("Checking output: " << out);
-          ixxx::util::Mapped_File f(out.generic_string());
+          auto f = ixxx::util::mmap_file(out.generic_string());
           BOOST_REQUIRE(bf::file_size(out));
           BOOST_TEST_CHECKPOINT("Comparing: " << ref << " vs. " << out);
-          ixxx::util::Mapped_File g(ref.generic_string());
+          auto g = ixxx::util::mmap_file(ref.generic_string());
           BOOST_CHECK(std::equal(f.begin(), f.end(), g.begin(), g.end()));
         }
       }
@@ -279,7 +278,7 @@ BOOST_AUTO_TEST_SUITE(bed_)
       {
         string old_asn1_path;
         try { old_asn1_path = ixxx::ansi::getenv("ASN1_PATH"); }
-        catch (const ixxx::runtime_error &e) {}
+        catch (const ixxx::getenv_error &e) {}
         string a {test::path::in() + "/../../libgrammar/test/in/asn1"};
         string b {test::path::in() + "/../../config"};
         string c {test::path::in() + "/../../libgrammar/grammar/xml"};
@@ -298,7 +297,7 @@ BOOST_AUTO_TEST_SUITE(bed_)
       {
         string old_asn1_path;
         try { old_asn1_path = ixxx::ansi::getenv("ASN1_PATH"); }
-        catch (const ixxx::runtime_error &e) {}
+        catch (const ixxx::getenv_error &e) {}
         ixxx::posix::setenv("ASN1_PATH", "", true);
 
         compare_bed_output("", "asn1c/examples/sample.source.LDAP3/sample-LDAPMessage-1.ber",
@@ -312,7 +311,7 @@ BOOST_AUTO_TEST_SUITE(bed_)
       {
         string old_lua_path;
         try { old_lua_path = ixxx::ansi::getenv("ASN1_PATH"); }
-        catch (const ixxx::runtime_error &e) {}
+        catch (const ixxx::getenv_error &e) {}
         string a {test::path::in() + "/../../libgrammar/test/in/asn1"};
         string b {test::path::in() + "/../../config"};
         string c {test::path::in() + "/../../libgrammar/grammar/xml"};

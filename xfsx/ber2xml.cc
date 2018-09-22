@@ -52,7 +52,7 @@
 #include "traverser/tlc.hh"
 #include "path.hh"
 
-#include <ixxx/ixxx.h>
+#include <ixxx/ixxx.hh>
 
 using namespace std;
 
@@ -574,7 +574,7 @@ namespace xfsx {
 
         try {
           lua_path = ixxx::ansi::getenv("LUA_PATH");
-        } catch (const ixxx::runtime_error &e) {
+        } catch (const ixxx::getenv_error &e) {
         }
         if (!lua_path.empty())
           lua_path += ';';
@@ -591,7 +591,7 @@ namespace xfsx {
         }
         if (!lua_path.empty())
           lua_path.resize(lua_path.size()-1);
-      } catch (const ixxx::runtime_error &e) {
+      } catch (const ixxx::sys_error &e) {
         return;
       }
       ixxx::posix::setenv("LUA_PATH", lua_path, true);

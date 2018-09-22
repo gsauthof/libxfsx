@@ -48,7 +48,7 @@ namespace bed {
     {
       using namespace xfsx::tap::traverser;
 
-      ixxx::util::Mapped_File m(args_.in_filename);
+      auto m = ixxx::util::mmap_file(args_.in_filename);
       xfsx::Vertical_TLC tlc;
 
       Vertical_TLC_Proxy p(m.begin(), m.end(), tlc);

@@ -93,7 +93,7 @@ BOOST_AUTO_TEST_SUITE(xfsx_)
           using namespace xfsx;
           boost::filesystem::path in(test::path::in());
           in /= "tap_3_12_valid.ber";
-          ixxx::util::Mapped_File m(in.generic_string());
+          auto m = ixxx::util::mmap_file(in.generic_string());
           Vertical_TLC t;
 
           using namespace xfsx::tap::traverser;
@@ -110,7 +110,7 @@ BOOST_AUTO_TEST_SUITE(xfsx_)
           using namespace xfsx;
           boost::filesystem::path in(test::path::in());
           in /= "tap_3_12_valid.ber";
-          ixxx::util::Mapped_File m(in.generic_string());
+          auto m = ixxx::util::mmap_file(in.generic_string());
           Vertical_TLC t;
 
           using namespace xfsx::tap::traverser;
@@ -141,7 +141,7 @@ BOOST_AUTO_TEST_SUITE(xfsx_)
           using namespace xfsx;
           boost::filesystem::path in(test::path::in());
           in /= "tap_3_12_valid.ber";
-          ixxx::util::Mapped_File m(in.generic_string());
+          auto m = ixxx::util::mmap_file(in.generic_string());
           Vertical_TLC t;
 
           using namespace xfsx::tap::traverser;
@@ -158,7 +158,7 @@ BOOST_AUTO_TEST_SUITE(xfsx_)
           using namespace xfsx;
           boost::filesystem::path in(test::path::in());
           in /= "tap_3_12_valid.ber";
-          ixxx::util::Mapped_File m(in.generic_string());
+          auto m = ixxx::util::mmap_file(in.generic_string());
           Vertical_TLC t;
 
           using namespace xfsx::tap::traverser;
@@ -175,7 +175,7 @@ BOOST_AUTO_TEST_SUITE(xfsx_)
           using namespace xfsx;
           boost::filesystem::path in(test::path::in());
           in /= "tap_3_12_valid.ber";
-          ixxx::util::Mapped_File m(in.generic_string());
+          auto m = ixxx::util::mmap_file(in.generic_string());
           Vertical_TLC t;
 
           using namespace xfsx::tap::traverser;
@@ -193,7 +193,7 @@ BOOST_AUTO_TEST_SUITE(xfsx_)
           using namespace xfsx;
           boost::filesystem::path in(test::path::in());
           in /= "tap_3_12_timestamps.ber";
-          ixxx::util::Mapped_File m(in.generic_string());
+          auto m = ixxx::util::mmap_file(in.generic_string());
           Vertical_TLC t;
 
           using namespace xfsx::tap::traverser;
@@ -211,7 +211,7 @@ BOOST_AUTO_TEST_SUITE(xfsx_)
           using namespace xfsx;
           boost::filesystem::path in(test::path::in());
           in /= "tap_3_12_timestamps.ber";
-          ixxx::util::Mapped_File m(in.generic_string());
+          auto m = ixxx::util::mmap_file(in.generic_string());
           Vertical_TLC t;
 
           using namespace xfsx::tap::traverser;
@@ -229,7 +229,7 @@ BOOST_AUTO_TEST_SUITE(xfsx_)
           using namespace xfsx;
           boost::filesystem::path in(test::path::in());
           in /= "tap_3_12_valid.ber";
-          ixxx::util::Mapped_File m(in.generic_string());
+          auto m = ixxx::util::mmap_file(in.generic_string());
           Vertical_TLC t;
 
           using namespace xfsx::tap::traverser;
@@ -258,7 +258,7 @@ BOOST_AUTO_TEST_SUITE(xfsx_)
           using namespace xfsx;
           boost::filesystem::path in(test::path::in());
           in /= "tap_3_12_valid.ber";
-          ixxx::util::Mapped_File m(in.generic_string());
+          auto m = ixxx::util::mmap_file(in.generic_string());
           deque<string> asn_filenames = { test::path::in()
             + "/../../libgrammar/test/in/asn1/tap_3_12_strip.asn1"  };
           xfsx::xml::Pretty_Writer_Arguments pargs(asn_filenames);

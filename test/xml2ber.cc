@@ -88,17 +88,17 @@ static void basic_check_xmlber_back(const xfsx::BER_Writer_Arguments &args,
 
   BOOST_TEST_CHECKPOINT("write: " << out_xml);
   {
-    ixxx::util::Mapped_File a(in.generic_string());
+    auto a = ixxx::util::mmap_file(in.generic_string());
     xfsx::xml::write(a.begin(), a.end(), out_xml.generic_string());
   }
   BOOST_TEST_CHECKPOINT("write: " << out_ber);
   {
-    ixxx::util::Mapped_File f(out_xml.generic_string());
+    auto f = ixxx::util::mmap_file(out_xml.generic_string());
     xfsx::xml::write_ber(f.s_begin(), f.s_end(), out_ber.generic_string(), args);
   }
   BOOST_TEST_CHECKPOINT("write: " << out_xml2);
   {
-    ixxx::util::Mapped_File in(out_ber.generic_string());
+    auto in = ixxx::util::mmap_file(out_ber.generic_string());
     xfsx::xml::write(in.begin(), in.end(), out_xml2.generic_string());
   }
 
@@ -106,8 +106,8 @@ static void basic_check_xmlber_back(const xfsx::BER_Writer_Arguments &args,
   BOOST_REQUIRE(bf::file_size(out_xml) && bf::file_size(out_xml2));
   {
     // mmap of zero-length file fails as specified by POSIX ...
-    ixxx::util::Mapped_File a(out_xml.generic_string());
-    ixxx::util::Mapped_File b(out_xml2.generic_string());
+    auto a = ixxx::util::mmap_file(out_xml.generic_string());
+    auto b = ixxx::util::mmap_file(out_xml2.generic_string());
     bool are_equal = std::equal(a.begin(), a.end(), b.begin(), b.end());
     if (!are_equal) {
       cerr << "Files are not equal: " << out_xml << " vs. " << out_xml2 << "\n";

@@ -23,7 +23,7 @@
 #include "xfsx.hh"
 #include "ber_node.hh"
 
-#include <ixxx/ixxx.h>
+#include <ixxx/ixxx.hh>
 #include <ixxx/util.hh>
 
 #include <algorithm>
@@ -118,13 +118,14 @@ namespace xfsx {
     void write_indefinite(const uint8_t *ibegin, const uint8_t *iend,
         const std::string &filename)
     {
-      ixxx::util::Mapped_File f(filename, false, true, (iend-ibegin)*2);
-      auto r = write_indefinite(ibegin, iend, f.begin(), f.end());
-      (void)r;
-      size_t n = r - f.begin();
-      auto fd = f.fd();
+      ixxx::util::FD fd(filename, O_CREAT | O_RDWR, 0666);
+      size_t n = (iend-ibegin)*2;
       ixxx::posix::ftruncate(fd, n);
-      f.close();
+      auto f = ixxx::util::mmap_file(fd, false, true, n);
+      auto r = write_indefinite(ibegin, iend, f.begin(), f.end());
+      n = r - f.begin();
+      ixxx::posix::ftruncate(fd, n);
+      fd.close();
     }
 
 
@@ -189,11 +190,12 @@ namespace xfsx {
     void write_definite(const uint8_t *ibegin, const uint8_t *iend,
         const std::string &filename)
     {
-      ixxx::util::Mapped_File f(filename, false, true, (iend-ibegin)*2);
+      ixxx::util::FD fd(filename, O_CREAT | O_RDWR, 0666);
+      size_t n = (iend-ibegin)*2;
+      ixxx::posix::ftruncate(fd, n);
+      auto f = ixxx::util::mmap_file(fd, false, true, n);
       auto r = write_definite(ibegin, iend, f.begin(), f.end());
-      (void)r;
-      size_t n = r - f.begin();
-      auto fd = f.fd();
+      n = r - f.begin();
       ixxx::posix::ftruncate(fd, n);
       fd.close();
     }

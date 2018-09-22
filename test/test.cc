@@ -21,7 +21,7 @@
 
 #include "test.hh"
 
-#include <ixxx/ixxx.h>
+#include <ixxx/ixxx.hh>
 
 using namespace std;
 
@@ -35,7 +35,7 @@ namespace test {
       if (p.empty()) {
         try {
           p = ixxx::ansi::getenv("TEST_IN_BASE");
-        } catch (...) {
+        } catch (const ixxx::getenv_error &) {
           p = "../test";
         }
         p += "/in";
@@ -48,7 +48,7 @@ namespace test {
       if (p.empty()) {
         try {
           p = ixxx::ansi::getenv("TEST_IN_BASE");
-        } catch (...) {
+        } catch (const ixxx::getenv_error &) {
           p = "../test";
         }
         p += "/ref";
@@ -61,7 +61,7 @@ namespace test {
       if (p.empty()) {
         try {
           p = ixxx::ansi::getenv("TEST_OUT");
-        } catch (...) {
+        } catch (const ixxx::getenv_error &) {
           p = "out";
         }
       }

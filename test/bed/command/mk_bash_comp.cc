@@ -29,7 +29,7 @@ BOOST_AUTO_TEST_SUITE(bed_)
 
         BOOST_TEST_CHECKPOINT("Checking output: " << out);
         BOOST_REQUIRE(bf::file_size(out));
-        ixxx::util::Mapped_File f(out.generic_string());
+        auto f = ixxx::util::mmap_file(out.generic_string());
         const char q[] = "complete -F _bed bed";
         BOOST_CHECK(search(f.s_begin(), f.s_end(), q, q+sizeof(q)-1) != f.s_end());
       }

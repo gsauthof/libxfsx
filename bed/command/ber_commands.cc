@@ -37,7 +37,7 @@
 #include <xfsx/tap.hh>
 #include <xfsx/path.hh>
 #include <ixxx/util.hh>
-#include <ixxx/ixxx.h>
+#include <ixxx/ixxx.hh>
 #include <xxxml/util.hh>
 #include <grammar/grammar.hh>
 #include <grammar/asn1/grammar.hh>
@@ -55,24 +55,23 @@ namespace bed {
 
     void Write_Identity::execute()
     {
-      ixxx::util::Mapped_File in(args_.in_filename);
-      ixxx::util::Mapped_File out(args_.out_filename, false, true, in.size());
+      auto in = ixxx::util::mmap_file(args_.in_filename);
+      auto out = ixxx::util::mmap_file(args_.out_filename, false, true, in.size());
 
       xfsx::ber::write_identity(in.begin(), in.end(), out.begin(), out.end());
 
-      out.close();
     }
 
     void Write_Definite::execute()
     {
-      ixxx::util::Mapped_File in(args_.in_filename);
+      auto in = ixxx::util::mmap_file(args_.in_filename);
 
       xfsx::ber::write_definite(in.begin(), in.end(), args_.out_filename);
     }
 
     void Write_Indefinite::execute()
     {
-      ixxx::util::Mapped_File in(args_.in_filename);
+      auto in = ixxx::util::mmap_file(args_.in_filename);
 
       xfsx::ber::write_indefinite(in.begin(), in.end(), args_.out_filename);
     }
@@ -82,7 +81,7 @@ namespace bed {
     {
       xfsx::xml::Writer_Arguments args;
       apply_arguments(args_, args);
-      ixxx::util::Mapped_File in(args_.in_filename);
+      auto in = ixxx::util::mmap_file(args_.in_filename);
       if (args_.out_filename.empty()) {
         ixxx::util::FD fd(1);
         fd.set_keep_open(true);
@@ -96,7 +95,7 @@ namespace bed {
 
     void Pretty_Write_XML::execute()
     {
-      ixxx::util::Mapped_File in(args_.in_filename);
+      auto in = ixxx::util::mmap_file(args_.in_filename);
 
       xfsx::xml::Pretty_Writer_Arguments args(args_.asn_filenames);
       apply_arguments(args_, args);
@@ -114,7 +113,7 @@ namespace bed {
 
     void Search_XPath::execute()
     {
-      ixxx::util::Mapped_File in(args_.in_filename);
+      auto in = ixxx::util::mmap_file(args_.in_filename);
 
       FILE *out = nullptr;
       ixxx::util::File out_file;
@@ -225,7 +224,7 @@ namespace bed {
 
     void Validate_XSD::execute()
     {
-      ixxx::util::Mapped_File in(args_.in_filename);
+      auto in = ixxx::util::mmap_file(args_.in_filename);
 
       if (args_.xsd_filename.empty())
         throw runtime_error("No XSD filename given");
@@ -260,7 +259,7 @@ namespace bed {
     {
       xfsx::BER_Writer_Arguments args;
       xfsx::tap::apply_grammar(args_.asn_filenames, args);
-      ixxx::util::Mapped_File f(args_.in_filename);
+      auto f = ixxx::util::mmap_file(args_.in_filename);
       xfsx::xml::write_ber(f.s_begin(), f.s_end(), args_.out_filename, args);
     }
 

@@ -107,7 +107,7 @@ BOOST_AUTO_TEST_SUITE(xfsx_)
         }
         BOOST_TEST_CHECKPOINT("Comparing: " << out);
         {
-          ixxx::util::Mapped_File f(out.generic_string());
+          auto f = ixxx::util::mmap_file(out.generic_string());
           BOOST_CHECK_EQUAL(string(f.s_begin(), f.s_end()), "HelloWorl 23");
         }
       }
@@ -183,7 +183,7 @@ BOOST_AUTO_TEST_SUITE(xfsx_)
         w.flush();
         }
         BOOST_CHECK_EQUAL(boost::filesystem::file_size(out), 19);
-        ixxx::util::Mapped_File f(out.generic_string());
+        auto f = ixxx::util::mmap_file(out.generic_string());
         BOOST_CHECK_EQUAL(string(f.s_begin(), f.s_end()), "Hello Worldfoobar23");
       }
 

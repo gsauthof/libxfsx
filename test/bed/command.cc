@@ -62,7 +62,7 @@ namespace bf = boost::filesystem;
       argvv.push_back(out.generic_string());
       run_bed(argvv);
       BOOST_TEST_CHECKPOINT("Checking output: " << out);
-      ixxx::util::Mapped_File f(out.generic_string());
+      auto f = ixxx::util::mmap_file(out.generic_string());
       BOOST_REQUIRE(bf::file_size(out));
 
       BOOST_TEST_CHECKPOINT("Comparing: " << out);
@@ -84,7 +84,7 @@ namespace bf = boost::filesystem;
       ref /= "bed/command";
       ref /= ref_filename;
       BOOST_TEST_CHECKPOINT("Opening reference: " << ref);
-      ixxx::util::Mapped_File g(ref.generic_string());
+      auto g = ixxx::util::mmap_file(ref.generic_string());
       compare_bed_output(asn1_filename, input_filename, output_filename,
           args, g.s_begin(), g.s_end());
     }
