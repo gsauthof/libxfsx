@@ -22,6 +22,9 @@ sudo: required
 
 language: cpp
 
+git:
+    submodules: false
+
 matrix:
   include:
     # Mac OS X comes with `clang++` 3.5, which is too old, thus
@@ -52,7 +55,8 @@ matrix:
 
 
 before_install:
-  - ./ci/travis/before_install.sh
+    - git submodule update --init
+    - ./ci/travis/before_install.sh
 
 install:
   - ./ci/travis/install.sh
