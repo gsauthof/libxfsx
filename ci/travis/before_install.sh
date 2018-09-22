@@ -9,10 +9,8 @@ function prepare_osx()
   # apparently there are sudo-wrappers for brew
   # thus, sudo can be omitted
   brew update
-  brew tap homebrew/versions
 
-  brew unlink cmake
-  brew install cmake
+  brew upgrade cmake
   brew info cmake
 
   brew install ragel
@@ -26,8 +24,7 @@ function prepare_osx()
   # Error: boost-1.55.0_2 already installed
   # To install this version, first `brew unlink boost`
   # ( -> we need at least 1.58)
-  brew unlink boost
-  brew install boost
+  brew upgrade boost
 
   # this would give us 5.3 (or higher)
   # but this gcc then doesn't link correctly with boost ...
@@ -35,9 +32,8 @@ function prepare_osx()
   # brew install gcc
 
   # cf. http://apple.stackexchange.com/questions/227026/how-to-install-recent-clang-with-homebrew
-  if [ "$MY_CXX" = clang++-3.7 ]; then
-    brew install llvm37
-  fi
+  brew install --with-toolchain llvm
+  brew info llvm
 }
 
 function prepare_linux()
