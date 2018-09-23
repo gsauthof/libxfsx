@@ -36,10 +36,10 @@ matrix:
     # not available ... thus linking fails - perhaps it works with xcode clang
     # - os: osx
     #  compiler: clang
-    #  env: CMAKE_BUILD_TYPE=Coverage MY_CXX=clang++-3.7 MY_CC=clang-3.7
+    #  env: CMAKE_BUILD_TYPE=Coverage MY_CXX=clang++ MY_CC=clang
     - os: osx
       compiler: clang
-      env: CMAKE_BUILD_TYPE=Release  MY_CXX=clang++-3.7 MY_CC=clang-3.7 MY_CXXFLAGS='-fsanitize=address'
+      env: CMAKE_BUILD_TYPE=Release MY_CXX=clang++ MY_CC=clang MY_CXXFLAGS='-fsanitize=address'
     - os: linux
       services: docker
       env: docker_image=gsauthof/fedora-cxx-devel:27 build_tag=linux CMAKE_BUILD_TYPE=SanitizeO
