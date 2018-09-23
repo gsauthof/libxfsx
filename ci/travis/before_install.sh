@@ -18,8 +18,16 @@ function prepare_osx()
   brew install ninja
   brew install libxml2
   brew install lua
-  #find /usr/local -name '*lua*'
+  # find /usr/local -name '*lua*'
   # i.e. is linked via /usr/local/{lib,include}
+  # ls -ld /usr/local/include/lua
+  # -> ../Cellar/lua/5.3.5_1/include/lua
+  # ls -ld /usr/local/include/lua5.3
+  # -> ../Cellar/lua/5.3.5_1/include/lua5.3
+  # ls -ld /usr/local/Cellar/lua/5.3.5_1/include/lua
+  # -> no symlink, perhaps hardlink?
+  # ls -ld /usr/local/Cellar/lua/5.3.5_1/include/lua5.3
+  # -> no symlink
 
   # as of 2018-09, default boost is at 1.67
   # note that brew upgrade exits with exit status != 0
@@ -30,14 +38,15 @@ function prepare_osx()
   brew info boost
 
   # this would give us 5.3 (or higher)
-  # but this gcc then doesn't link correctly with boost ...
+  # but this gcc then didn't link correctly with boost in ~ 2016
   # brew unlink gcc
   # brew install gcc
 
   # cf. http://apple.stackexchange.com/questions/227026/how-to-install-recent-clang-with-homebrew
   # as of 2018-09, homebrew/versions isn't a thing, anymore
-  #brew install llvm
-  #brew info llvm
+  # and the default xcode clang travis includes is recent enough
+  # brew install llvm
+  # brew info llvm
 }
 
 function prepare_linux()

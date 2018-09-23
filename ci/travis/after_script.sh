@@ -5,6 +5,12 @@ set -eux
 function run_osx()
 {
   :
+  # ls -l ~/Library/Logs/DiagnosticReports/
+  # -> doesn't exist
+  # ls -l ~/Library/Logs/
+  # -> exists
+  # ls -l /cores/
+  # -> XXX
 }
 
 function run_linux()

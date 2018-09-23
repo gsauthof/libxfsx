@@ -1,10 +1,8 @@
-# Mac OS X notes
+# Mac OS X notes (2018-09)
 #
-# - current Travis CI environment is Mac OS X 10.9.5 (Mavericks),
-#   released 2013
-# - current Boost from Homebrew is 1.60 - and produces link errors
-#   with gcc (when linking Boost Regex)
-# - as-is, travis has /usr/local/bin/g++-{4.2,4.6,4.8,4.9}
+# - current Travis CI environment is Mac OS X 10.13
+#   cf. https://docs.travis-ci.com/user/reference/osx/#os-x-version
+# - current Boost from Homebrew is 1.67 (available by default)
 
 # Ubuntu Trusty notes
 #
@@ -25,24 +23,23 @@ language: cpp
 git:
     submodules: false
 
+# as of 2018-09 - default is xcode9.4
+#osx_image: xcode10
+
 matrix:
   include:
-    # Mac OS X comes with `clang++` 3.5, which is too old, thus
-    # using the clang 3.7 from homebrew as minimum
+    # the default xcode clang is good enough as of 2018-09
     - os: osx
       compiler: clang
-      # clang 3.7 from Homebrew understands all sanitize flags
-      # but the runtime libraries aren't available
-      #- CMAKE_BUILD_TYPE=Sanitize MY_CXX=clang++-3.7 MY_CC=clang-3.7
-      env: CMAKE_BUILD_TYPE=Debug    MY_CXX=clang++-3.7 MY_CC=clang-3.7
+      env: CMAKE_BUILD_TYPE=Debug MY_CXX=clang++ MY_CC=clang MY_CXXFLAGS='-Og'
     # with clang 3.7 from Homebrew, the libclang_rt.profile_osx.a os
-    # not available ... thus linking fails
+    # not available ... thus linking fails - perhaps it works with xcode clang
     # - os: osx
     #  compiler: clang
     #  env: CMAKE_BUILD_TYPE=Coverage MY_CXX=clang++-3.7 MY_CC=clang-3.7
     - os: osx
       compiler: clang
-      env: CMAKE_BUILD_TYPE=Release  MY_CXX=clang++-3.7 MY_CC=clang-3.7
+      env: CMAKE_BUILD_TYPE=Release  MY_CXX=clang++-3.7 MY_CC=clang-3.7 MY_CXXFLAGS='-fsanitize=address'
     - os: linux
       services: docker
       env: docker_image=gsauthof/fedora-cxx-devel:27 build_tag=linux CMAKE_BUILD_TYPE=SanitizeO
