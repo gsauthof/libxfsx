@@ -173,6 +173,7 @@ namespace xfsx {
         Writer(
             const uint8_t *begin, const uint8_t *end,
             byte::writer::Base &w, const Writer_Arguments &args);
+        virtual ~Writer();
         void write();
 
     };
@@ -189,6 +190,7 @@ namespace xfsx {
       if (args_.skip_zero)
         r.set_skip_zero(args_.skip_zero);
     }
+    Writer::~Writer() =default;
 
     void Writer::write_element_tail()
     {

@@ -76,6 +76,7 @@ namespace bed {
       struct Detail;
 
       struct Base {
+        virtual ~Base();
         std::vector<std::string> argv;
         virtual void execute(Detail &d) = 0;
       };

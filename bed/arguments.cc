@@ -264,6 +264,7 @@ template <typename R, typename ...T>
 struct New_Nth {
   template <typename ...A>
   struct Maker_Base  {
+      virtual ~Maker_Base() {}
     virtual std::unique_ptr<R> make(const A&...) const = 0;
   };
 
@@ -296,6 +297,10 @@ namespace bed {
     {
     }
     Base::~Base() =default;
+
+    namespace edit_op {
+        Base::~Base() =default;
+    }
   }
 
   static map<string, Command> command_map = {
