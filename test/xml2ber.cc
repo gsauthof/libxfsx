@@ -165,8 +165,8 @@ boost::unit_test::test_suite *create_xml2ber_suite()
       "tap_3_12_valid.ber"
   };
 
-  auto xfsx_ = BOOST_TEST_SUITE("xfsx_");
-  auto xml2ber = BOOST_TEST_SUITE("xml2ber");
+  //auto xfsx_ = BOOST_TEST_SUITE("xfsx_");
+  auto xml2ber = BOOST_TEST_SUITE("xfsx_xml2ber");
   auto back = BOOST_TEST_SUITE("back");
   auto tap_back = BOOST_TEST_SUITE("tap_back");
 
@@ -177,8 +177,8 @@ boost::unit_test::test_suite *create_xml2ber_suite()
 
   xml2ber->add(back);
   xml2ber->add(tap_back);
-  xfsx_->add(xml2ber);
-  return xfsx_;
+  //xfsx_->add(xml2ber);
+  return xml2ber;
 }
 
 BOOST_AUTO_TEST_SUITE(xfsx_)

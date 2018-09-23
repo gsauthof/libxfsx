@@ -243,8 +243,9 @@ boost::unit_test::test_suite *create_ber2ber_suite()
     "asn1c/asn1c/tests/data-62/data-62-26-B.ber"
   };
 
-  auto xfsx_       = BOOST_TEST_SUITE("xfsx_");
+  auto xfsx_       = BOOST_TEST_SUITE("xfsx_b2b");
   auto ber2ber     = BOOST_TEST_SUITE("ber2ber");
+  auto ber2ber_flat= BOOST_TEST_SUITE("ber2ber_flat");
   auto ber_fail    = BOOST_TEST_SUITE("ber_fail");
   auto ber_no_fail = BOOST_TEST_SUITE("ber_no_fail");
   auto indef       = BOOST_TEST_SUITE("indef");
@@ -253,7 +254,7 @@ boost::unit_test::test_suite *create_ber2ber_suite()
   ber2ber->add(BOOST_PARAM_TEST_CASE(&compare_identity,
         filenames.begin(), filenames.end()));
 
-  ber2ber->add(BOOST_PARAM_TEST_CASE(&compare_identity,
+  ber2ber_flat->add(BOOST_PARAM_TEST_CASE(&compare_identity,
         bad_but_flat_ok_filenames.begin(), bad_but_flat_ok_filenames.end()));
 
   ber_fail->add(BOOST_PARAM_TEST_CASE(&check_vert_read_throw,
@@ -266,6 +267,7 @@ boost::unit_test::test_suite *create_ber2ber_suite()
   def->add(BOOST_PARAM_TEST_CASE(&compare_definite,
         filenames.begin(), filenames.end()));
   xfsx_->add(ber2ber);
+  xfsx_->add(ber2ber_flat);
   xfsx_->add(ber_fail);
   xfsx_->add(ber_no_fail);
   xfsx_->add(indef);

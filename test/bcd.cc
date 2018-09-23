@@ -155,8 +155,9 @@ BOOST_AUTO_TEST_SUITE(xfsx_)
           , Decode<char *, uint64_t, Scatter::Reverse, Convert::Bit_Parallel,
                    Gather::Reverse >
 #endif
-          , Decode<char *, uint64_t, Scatter::Shift, Convert::Bit_Parallel,
-                   Gather::Memcpy >
+          // already tested above due to template defaults
+          //, Decode<char *, uint64_t, Scatter::Shift, Convert::Bit_Parallel,
+          //         Gather::Memcpy >
           , Decode<char *, uint64_t, Scatter::Shift, Convert::Bit_Parallel,
                    Gather::Direct >
           , Decode<char *, uint64_t, Scatter::Shift, Convert::Bit_Parallel,

@@ -260,8 +260,8 @@ boost::unit_test::test_suite *create_ber2xml_suite()
       "tap_3_12_valid_replaced.ber"
   };
 
-  auto xfsx_ = BOOST_TEST_SUITE("xfsx_");
-  auto ber2xml = BOOST_TEST_SUITE("ber2xml");
+  //auto xfsx_ = BOOST_TEST_SUITE("xfsx_");
+  auto ber2xml = BOOST_TEST_SUITE("xfsx_ber2xml");
   auto tl_unber = BOOST_TEST_SUITE("tl_unber");
   auto indent_tl_unber = BOOST_TEST_SUITE("indent_tl_unber");
   auto xml = BOOST_TEST_SUITE("xml");
@@ -285,8 +285,8 @@ boost::unit_test::test_suite *create_ber2xml_suite()
   ber2xml->add(xml);
   ber2xml->add(pretty_xml);
   ber2xml->add(pretty_xml_args);
-  xfsx_->add(ber2xml);
-  return xfsx_;
+  //xfsx_->add(ber2xml);
+  return ber2xml;
 }
 
 BOOST_AUTO_TEST_SUITE(xfsx_)
