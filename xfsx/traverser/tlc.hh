@@ -30,14 +30,14 @@ namespace xfsx {
 
     class Vertical_TLC_Proxy {
       private:
-        std::pair<const uint8_t *, const uint8_t *> p_;
+        std::pair<const u8 *, const u8 *> p_;
 
       public:
       Vertical_TLC_Proxy()
         : p_(nullptr, nullptr)
       {
       }
-      Vertical_TLC_Proxy(const uint8_t *begin, const uint8_t *end,
+      Vertical_TLC_Proxy(const u8 *begin, const u8 *end,
           Vertical_TLC &t )
         : p_(begin, end) { advance(t); }
 

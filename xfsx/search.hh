@@ -28,7 +28,7 @@
 
 namespace xfsx {
 
-  const uint8_t *search(const uint8_t *begin, const uint8_t *end,
+  const u8 *search(const u8 *begin, const u8 *end,
       const std::vector<Tag_Int> &path, bool everywhere = false,
       Klasse klasse = Klasse::APPLICATION);
 

@@ -62,13 +62,13 @@ BOOST_AUTO_TEST_SUITE(xfsx_)
     {
       using namespace xfsx;
       Unit u;
-      const array<uint8_t, 4> a = {
+      const array<u8, 4> a = {
         0b01'0'00101u,
         0b0'000'0010u,
         0u,
         0u
       };
-      const uint8_t *r = u.read(a.begin(), a.end());
+      const u8 *r = u.read(a.begin(), a.end());
       BOOST_CHECK_EQUAL(u.shape, Shape::PRIMITIVE);
       BOOST_CHECK(r == a.end());
     }
@@ -77,13 +77,13 @@ BOOST_AUTO_TEST_SUITE(xfsx_)
     {
       using namespace xfsx;
       Unit u;
-      const array<uint8_t, 4> a = {
+      const array<u8, 4> a = {
         0b01'1'00101u,
         0b0'000'0010u,
         0u,
         0u
       };
-      const uint8_t *r = u.read(a.begin(), a.end());
+      const u8 *r = u.read(a.begin(), a.end());
       BOOST_CHECK_EQUAL(u.shape, Shape::CONSTRUCTED);
       BOOST_CHECK(r == a.end()-2);
     }
@@ -92,7 +92,7 @@ BOOST_AUTO_TEST_SUITE(xfsx_)
     {
       using namespace xfsx;
       Unit u;
-      const array<uint8_t, 3> a = {
+      const array<u8, 3> a = {
         0b01'0'00101u,
         0b0'000'0010u,
         0u,
@@ -111,15 +111,15 @@ BOOST_AUTO_TEST_SUITE(xfsx_)
         Klasse::PRIVATE };
       for (auto k : ks) {
         Unit u;
-        array<uint8_t, 4> a = {
+        array<u8, 4> a = {
           0b01'0'00101u,
           0b0'000'0010u,
           0u,
           0u
         };
         a[0] &= 0b00'11'1111u;
-        a[0] |= static_cast<uint8_t>(k);
-        const uint8_t *r = u.read(a.begin(), a.end());
+        a[0] |= static_cast<u8>(k);
+        const u8 *r = u.read(a.begin(), a.end());
         BOOST_CHECK_EQUAL(u.klasse, k);
         BOOST_CHECK(r == a.end());
       }
@@ -138,19 +138,18 @@ BOOST_AUTO_TEST_SUITE(xfsx_)
       };
       for (auto t : ts) {
         Unit u;
-        const array<uint8_t, 4> a = {
+        const array<u8, 4> a = {
           0b01'0'00101u,
           0b0'000'0010u,
           0u,
           0u
         };
-        vector<uint8_t> v;
+        vector<u8> v;
         v.push_back(a[0]);
         v[0] &= 0b11'1'00000;
-        uint8_t b = t.tag;
-        v[0] |= b;
+        v[0] |= t.tag;
         v.insert(v.end(), a.begin()+1, a.end());
-        const uint8_t *r = u.read(v.data(), v.data() + v.size());
+        const u8 *r = u.read(v.data(), v.data() + v.size());
         BOOST_CHECK_EQUAL(u.tag, t.tag);
         BOOST_CHECK(r == v.data() + v.size());
         BOOST_CHECK_EQUAL(u.t_size, t.t_size);
@@ -180,13 +179,13 @@ BOOST_AUTO_TEST_SUITE(xfsx_)
       };
       for (auto t : ts) {
         Unit u;
-        const array<uint8_t, 4> a = {
+        const array<u8, 4> a = {
           0b01'0'11111u,
           0b0'000'0010u,
           0u,
           0u
         };
-        vector<uint8_t> v;
+        vector<u8> v;
         v.push_back(a[0]);
         size_t x = t.tag;
         unsigned i = sizeof(size_t)*8/7;
@@ -198,16 +197,16 @@ BOOST_AUTO_TEST_SUITE(xfsx_)
         for (; i>0; --i) {
           size_t y = x >> (i*7);
           y &= 0b0'111'1111u;
-          uint8_t b = y;
+          u8 b = y;
           b |= 0b1'000'0000u;
           v.push_back(b);
         }
         size_t y = x;
         y &= 0b0'111'1111u;
-        uint8_t b = y;
+        u8 b = y;
         v.push_back(b);
         v.insert(v.end(), a.begin()+1, a.end());
-        const uint8_t *r = u.read(v.data(), v.data() + v.size());
+        const u8 *r = u.read(v.data(), v.data() + v.size());
         BOOST_CHECK_EQUAL(u.tag, t.tag);
         BOOST_CHECK(r == v.data() + v.size());
         BOOST_CHECK_EQUAL(u.t_size, t.t_size);
@@ -219,19 +218,19 @@ BOOST_AUTO_TEST_SUITE(xfsx_)
     BOOST_AUTO_TEST_CASE(short_lengths)
     {
       using namespace xfsx;
-      const array<uint8_t, 8> ls = {
+      const array<u8, 8> ls = {
         0, 1, 2, 3, 23, 125, 126, 127
       };
       for (auto l : ls) {
         Unit u;
-        array<uint8_t, 256> a = {
+        array<u8, 256> a = {
           0b01'0'00101u,
           0b0'000'0010u,
           0u,
           0u
         };
         a[1] = l;
-        const uint8_t *r = u.read(a.begin(), a.end());
+        const u8 *r = u.read(a.begin(), a.end());
         BOOST_CHECK_EQUAL(u.length, l);
         BOOST_CHECK(r == a.begin() + 2 + l);
         BOOST_CHECK_EQUAL(u.is_long_definite, false);
@@ -253,7 +252,7 @@ BOOST_AUTO_TEST_SUITE(xfsx_)
       if (sizeof(size_t) < 8) {
         ls.resize(6);
       }
-      const array<uint8_t, 9> tls = {
+      const array<u8, 9> tls = {
         3, 3, 3,
         4,
         4,
@@ -265,8 +264,8 @@ BOOST_AUTO_TEST_SUITE(xfsx_)
       auto tl = tls.begin();
       for (auto l : ls) {
         Unit u;
-        uint8_t fst = 0b01'1'00101u;
-        vector<uint8_t> v;
+        u8 fst = 0b01'1'00101u;
+        vector<u8> v;
         v.push_back(fst);
         v.push_back(0);
         unsigned i = sizeof(size_t);
@@ -278,13 +277,13 @@ BOOST_AUTO_TEST_SUITE(xfsx_)
         for (; i>0; --i) {
           size_t x = l >> ((i-1)*8);
           x &= 0xffu;
-          uint8_t b = x;
+          u8 b = x;
           v.push_back(b);
           ++v[1];
         }
         v[1] |= 0b1'000'0000;
-        const uint8_t *r = u.read(v.data(),
-            (uint8_t*)(numeric_limits<ssize_t>::max()));
+        const u8 *r = u.read(v.data(),
+            (u8 *)(numeric_limits<ssize_t>::max()));
         BOOST_CHECK_EQUAL(u.length, l);
         BOOST_CHECK_EQUAL(u.t_size, 1);
         BOOST_CHECK_EQUAL(u.tl_size, *tl);
@@ -311,21 +310,21 @@ BOOST_AUTO_TEST_SUITE(xfsx_)
       }
       for (auto l : ls) {
         Unit u;
-        uint8_t fst = 0b01'1'00101u;
-        vector<uint8_t> v;
+        u8 fst = 0b01'1'00101u;
+        vector<u8> v;
         v.push_back(fst);
         v.push_back(0);
         unsigned i = sizeof(size_t);
         for (; i>0; --i) {
           size_t x = l >> ((i-1)*8);
           x &= 0xffu;
-          uint8_t b = x;
+          u8 b = x;
           v.push_back(b);
           ++v[1];
         }
         v[1] |= 0b1'000'0000;
-        const uint8_t *r = u.read(v.data(),
-            (uint8_t*)(numeric_limits<ssize_t>::max()));
+        const u8 *r = u.read(v.data(),
+            (u8 *)(numeric_limits<ssize_t>::max()));
         BOOST_CHECK_EQUAL(u.length, l);
         BOOST_CHECK_EQUAL(u.t_size, 1);
         BOOST_CHECK_EQUAL(u.tl_size, 2+sizeof(size_t));
@@ -338,7 +337,7 @@ BOOST_AUTO_TEST_SUITE(xfsx_)
     {
       using namespace xfsx;
       Unit u;
-      const array<uint8_t, 16> a = {
+      const array<u8, 16> a = {
         0b01'0'11111u,
         0b11'01'0101u,
         0b11'01'0101u,
@@ -358,7 +357,7 @@ BOOST_AUTO_TEST_SUITE(xfsx_)
       };
       BOOST_CHECK_THROW(u.read(a.begin(), a.end()), std::overflow_error);
       /*
-      const uint8_t *r = u.read(a.begin(), a.end());
+      const u8 *r = u.read(a.begin(), a.end());
       BOOST_CHECK_EQUAL(u.t_size, 13);
       BOOST_CHECK_EQUAL(u.tl_size, 14);
       BOOST_CHECK(r == a.end());
@@ -369,7 +368,7 @@ BOOST_AUTO_TEST_SUITE(xfsx_)
     {
       using namespace xfsx;
       Unit u;
-      const array<uint8_t, 9> a = {
+      const array<u8, 9> a = {
         0b01'0'11111u, // first byte
         0b10'01'0000u, // long tag, max_uint32 + 1
         0b10'00'0000u,
@@ -387,7 +386,7 @@ BOOST_AUTO_TEST_SUITE(xfsx_)
     {
       using namespace xfsx;
       Unit u;
-      const array<uint8_t, 2> a = { 0x7fu, 0x85u };
+      const array<u8, 2> a = { 0x7fu, 0x85u };
       BOOST_CHECK_THROW(u.read(a.begin(), a.end()), std::overflow_error);
     }
 
@@ -395,10 +394,10 @@ BOOST_AUTO_TEST_SUITE(xfsx_)
     {
       using namespace xfsx;
       Unit u;
-      const array<uint8_t, 2> a = {
+      const array<u8, 2> a = {
         0b01'1'00001u, 0b1'000'0000u
       };
-      const uint8_t *r = u.read(a.begin(), a.end());
+      const u8 *r = u.read(a.begin(), a.end());
       BOOST_CHECK_EQUAL(u.t_size, 1);
       BOOST_CHECK_EQUAL(u.tl_size, 2);
       BOOST_CHECK(r == a.end());
@@ -408,8 +407,8 @@ BOOST_AUTO_TEST_SUITE(xfsx_)
     {
       using namespace xfsx;
       Unit u;
-      const array<uint8_t, 8> a = { 0u };
-      const uint8_t *r = u.read(a.begin(), a.end());
+      const array<u8, 8> a = { 0u };
+      const u8 *r = u.read(a.begin(), a.end());
       BOOST_CHECK_EQUAL(u.t_size, 1);
       BOOST_CHECK_EQUAL(u.tl_size, 2);
       BOOST_CHECK(r == a.begin()+2);
@@ -421,8 +420,8 @@ BOOST_AUTO_TEST_SUITE(xfsx_)
       using namespace xfsx;
       Unit u;
       BOOST_CHECK_EQUAL(u.is_eoc(), false);
-      const array<uint8_t, 8> a = { 0u };
-      const uint8_t *r = u.read(a.begin(), a.end());
+      const array<u8, 8> a = { 0u };
+      const u8 *r = u.read(a.begin(), a.end());
       BOOST_CHECK(r == a.begin()+2);
       u.t_size = 0;
       u.tl_size = 0;
@@ -448,7 +447,7 @@ BOOST_AUTO_TEST_SUITE(xfsx_)
       u.tl_size          = 2;
       u.tag              = 23;
       u.length           = 13;
-      array<uint8_t, 16> a;
+      array<u8, 16> a;
       auto r = u.write(a.begin(), a.end());
       BOOST_CHECK_EQUAL(a[0], 0b01'0'10111u);
       BOOST_CHECK_EQUAL(a[1], 0b0'000'1101u);
@@ -468,7 +467,7 @@ BOOST_AUTO_TEST_SUITE(xfsx_)
       u.tl_size          = 2;
       u.tag              = 23;
       u.length           = 0;
-      array<uint8_t, 16> a;
+      array<u8, 16> a;
       auto r = u.write(a.begin(), a.end());
       BOOST_CHECK_EQUAL(a[0], 0b01'0'10111u);
       BOOST_CHECK_EQUAL(a[1], 0b1'000'0000u);
@@ -488,7 +487,7 @@ BOOST_AUTO_TEST_SUITE(xfsx_)
       u.tl_size          = 4;
       u.tag              = 23;
       u.length           = 13;
-      array<uint8_t, 16> a;
+      array<u8, 16> a;
       auto r = u.write(a.begin(), a.end());
       BOOST_CHECK_EQUAL(a[0], 0b01'0'11111u);
       BOOST_CHECK_EQUAL(a[1], 0b10'0'00000u);
@@ -510,7 +509,7 @@ BOOST_AUTO_TEST_SUITE(xfsx_)
       u.tl_size          = 6;
       u.tag              = 23;
       u.length           = 13;
-      array<uint8_t, 16> a;
+      array<u8, 16> a;
       auto r = u.write(a.begin(), a.end());
       BOOST_CHECK_EQUAL(a[0], 0b01'0'11111u);
       BOOST_CHECK_EQUAL(a[1], 0b10'0'00000u);
@@ -534,7 +533,7 @@ BOOST_AUTO_TEST_SUITE(xfsx_)
       u.tl_size          = 2;
       u.tag              = 23;
       u.length           = 13;
-      array<uint8_t, 16> a;
+      array<u8, 16> a;
       BOOST_CHECK_THROW(u.write(a.begin(), a.begin()+1), std::overflow_error);
     }
 
@@ -542,8 +541,8 @@ BOOST_AUTO_TEST_SUITE(xfsx_)
     {
       using namespace xfsx;
       Unit u{Unit::EOC()};
-      array<uint8_t, 8> a { 1u, 2u, 3u, 4u, 5u, 6u, 7u, 8u };
-      uint8_t *r = u.write(a.begin(), a.end());
+      array<u8, 8> a { 1u, 2u, 3u, 4u, 5u, 6u, 7u, 8u };
+      u8 *r = u.write(a.begin(), a.end());
       BOOST_CHECK(r == a.begin() + 2);
       BOOST_CHECK(a[0] == 0u);
       BOOST_CHECK(a[1] == 0u);
@@ -562,8 +561,8 @@ BOOST_AUTO_TEST_SUITE(xfsx_)
     BOOST_AUTO_TEST_CASE(long_length_const)
     {
       using namespace xfsx;
-      array<uint8_t, 30> a;
-      uint8_t *end = nullptr;
+      array<u8, 30> a;
+      u8 *end = nullptr;
       {
         Unit u(Klasse::APPLICATION, 23, 16258469694287840439lu);
         end = u.write(a.begin(), a.end());
@@ -580,8 +579,8 @@ BOOST_AUTO_TEST_SUITE(xfsx_)
     BOOST_AUTO_TEST_CASE(long_length_primi)
     {
       using namespace xfsx;
-      array<uint8_t, 30> a;
-      uint8_t *end = nullptr;
+      array<u8, 30> a;
+      u8 *end = nullptr;
       {
         Unit u;
         u.init_tag(23);
@@ -746,11 +745,11 @@ BOOST_AUTO_TEST_SUITE(xfsx_)
     {
       using namespace xfsx;
       TLC u;
-      const array<uint8_t, 3> a = {
+      const array<u8, 3> a = {
         0b01'0'00001u, 0b0'000'0001u,
         23u
       };
-      const uint8_t *r = u.read(a.begin(), a.end());
+      const u8 *r = u.read(a.begin(), a.end());
       (void)r;
       int64_t x = 0;
       u.copy_content(x);
@@ -763,11 +762,11 @@ BOOST_AUTO_TEST_SUITE(xfsx_)
     {
       using namespace xfsx;
       TLC u;
-      const array<uint8_t, 6> a = {
+      const array<u8, 6> a = {
         0b01'0'00001u, 0b0'000'0100u,
         0, 0, 0, 23u
       };
-      const uint8_t *r = u.read(a.begin(), a.end());
+      const u8 *r = u.read(a.begin(), a.end());
       (void)r;
       int64_t x = 0;
       u.copy_content(x);
@@ -778,11 +777,11 @@ BOOST_AUTO_TEST_SUITE(xfsx_)
     {
       using namespace xfsx;
       TLC u;
-      const array<uint8_t, 11> a = {
+      const array<u8, 11> a = {
         0b01'0'00001u, 0b0'000'1001u,
         0, 0, 0, 0, 0, 0, 0, 0, 23u
       };
-      const uint8_t *r = u.read(a.begin(), a.end());
+      const u8 *r = u.read(a.begin(), a.end());
       (void)r;
       int64_t x = 0;
       BOOST_CHECK_THROW(u.copy_content(x), std::overflow_error);
@@ -792,11 +791,11 @@ BOOST_AUTO_TEST_SUITE(xfsx_)
     {
       using namespace xfsx;
       TLC u;
-      const array<uint8_t, 11> a = {
+      const array<u8, 11> a = {
         0b01'1'00001u, 0b0'000'1001u,
         0, 0, 0, 0, 0, 0, 0, 0, 23u
       };
-      const uint8_t *r = u.read(a.begin(), a.end());
+      const u8 *r = u.read(a.begin(), a.end());
       (void)r;
       int64_t x = 0;
       BOOST_CHECK_THROW(u.copy_content(x), std::range_error);
@@ -806,11 +805,11 @@ BOOST_AUTO_TEST_SUITE(xfsx_)
     {
       using namespace xfsx;
       TLC u;
-      const array<uint8_t, 3> a = {
+      const array<u8, 3> a = {
         0b01'0'00001u, 0b0'000'0001u,
         23u
       };
-      const uint8_t *r = u.read(a.begin(), a.end());
+      const u8 *r = u.read(a.begin(), a.end());
       (void)r;
       int64_t x = -1;
       u.copy_content(x);
@@ -821,11 +820,11 @@ BOOST_AUTO_TEST_SUITE(xfsx_)
     {
       using namespace xfsx;
       TLC u;
-      const array<uint8_t, 3> a = {
+      const array<u8, 3> a = {
         0b01'0'00001u, 0b0'000'0001u,
-        static_cast<uint8_t>(-23)
+        static_cast<u8>(-23)
       };
-      const uint8_t *r = u.read(a.begin(), a.end());
+      const u8 *r = u.read(a.begin(), a.end());
       (void)r;
       int64_t x = 0;
       u.copy_content(x);
@@ -850,7 +849,7 @@ BOOST_AUTO_TEST_SUITE(xfsx_)
       };
       for (auto inp : inps) {
         TLC u;
-        vector<uint8_t> v;
+        vector<u8> v;
         v.push_back(0b01'0'00001u);
         uint8_t i = sizeof(int64_t);
         if (inp<0)
@@ -868,10 +867,10 @@ BOOST_AUTO_TEST_SUITE(xfsx_)
         i = std::min(size_t(i+1), sizeof(int64_t));
         v.push_back(i);
         for (; i>0; --i) {
-          uint8_t b =  uint64_t(0xffu) & uint64_t(inp>>(8*(i-1)));
+          u8 b =  uint64_t(0xffu) & uint64_t(inp>>(8*(i-1)));
           v.push_back(b);
         }
-        const uint8_t *r = u.read(v.data(), v.data() + v.size());
+        const u8 *r = u.read(v.data(), v.data() + v.size());
         (void)r;
         int64_t x = 0;
         BOOST_TEST_CHECKPOINT("Integer value: " << inp);
@@ -893,7 +892,7 @@ BOOST_AUTO_TEST_SUITE(xfsx_)
       };
       for (auto inp : inps) {
         TLC u;
-        vector<uint8_t> v;
+        vector<u8> v;
         v.push_back(0b01'0'00001u);
         uint8_t i = sizeof(uint64_t);
         for (; i>0; --i) {
@@ -904,10 +903,10 @@ BOOST_AUTO_TEST_SUITE(xfsx_)
         i = std::min(size_t(i+1), sizeof(uint64_t));
         v.push_back(i);
         for (; i>0; --i) {
-          uint8_t b =  uint64_t(0xffu) & uint64_t(inp>>(8*(i-1)));
+          u8 b =  uint64_t(0xffu) & uint64_t(inp>>(8*(i-1)));
           v.push_back(b);
         }
-        const uint8_t *r = u.read(v.data(), v.data() + v.size());
+        const u8 *r = u.read(v.data(), v.data() + v.size());
         (void)r;
         uint64_t x = 0;
         BOOST_TEST_CHECKPOINT("Integer value: " << inp);
@@ -928,7 +927,7 @@ BOOST_AUTO_TEST_SUITE(xfsx_)
       };
       for (auto inp : inps) {
         TLC u;
-        vector<uint8_t> v;
+        vector<u8> v;
         v.push_back(0b01'0'00001u);
         uint8_t i = sizeof(int32_t);
         if (inp<0)
@@ -946,10 +945,10 @@ BOOST_AUTO_TEST_SUITE(xfsx_)
         i = std::min(size_t(i+1), sizeof(int32_t));
         v.push_back(i);
         for (; i>0; --i) {
-          uint8_t b =  uint32_t(0xffu) & uint32_t(inp>>(8*(i-1)));
+          u8 b =  uint32_t(0xffu) & uint32_t(inp>>(8*(i-1)));
           v.push_back(b);
         }
-        const uint8_t *r = u.read(v.data(), v.data() + v.size());
+        const u8 *r = u.read(v.data(), v.data() + v.size());
         (void)r;
         int32_t x = 0;
         BOOST_TEST_CHECKPOINT("Integer value: " << inp);
@@ -970,7 +969,7 @@ BOOST_AUTO_TEST_SUITE(xfsx_)
       };
       for (auto inp : inps) {
         TLC u;
-        vector<uint8_t> v;
+        vector<u8> v;
         v.push_back(0b01'0'00001u);
         uint8_t i = sizeof(int16_t);
         if (inp<0)
@@ -988,10 +987,10 @@ BOOST_AUTO_TEST_SUITE(xfsx_)
         i = std::min(size_t(i+1), sizeof(int16_t));
         v.push_back(i);
         for (; i>0; --i) {
-          uint8_t b =  uint16_t(0xffu) & uint16_t(inp>>(8*(i-1)));
+          u8 b =  uint16_t(0xffu) & uint16_t(inp>>(8*(i-1)));
           v.push_back(b);
         }
-        const uint8_t *r = u.read(v.data(), v.data() + v.size());
+        const u8 *r = u.read(v.data(), v.data() + v.size());
         (void)r;
         int16_t x = 0;
         BOOST_TEST_CHECKPOINT("Integer value: " << inp);
@@ -1004,11 +1003,11 @@ BOOST_AUTO_TEST_SUITE(xfsx_)
     {
       using namespace xfsx;
       TLC u;
-      const array<uint8_t, 3> a = {
+      const array<u8, 3> a = {
         0b01'0'00001u, 0b0'000'0001u,
-        static_cast<uint8_t>(-23)
+        static_cast<u8>(-23)
       };
-      const uint8_t *r = u.read(a.begin(), a.end());
+      const u8 *r = u.read(a.begin(), a.end());
       (void)r;
       int8_t x = 0;
       u.copy_content(x);
@@ -1023,14 +1022,14 @@ BOOST_AUTO_TEST_SUITE(xfsx_)
     BOOST_AUTO_TEST_CASE(bool_true)
     {
       using namespace xfsx;
-      const array<uint8_t, 5> inps = { 1u, 2u, 255u, 23u, 128u };
+      const array<u8, 5> inps = { 1u, 2u, 255u, 23u, 128u };
       for (auto inp : inps) {
         TLC u;
-        array<uint8_t, 3> a = {
+        array<u8, 3> a = {
           0b01'0'00001u, 0b0'000'0001u
         };
         a[2] = inp;
-        const uint8_t *r = u.read(a.begin(), a.end());
+        const u8 *r = u.read(a.begin(), a.end());
         (void)r;
         bool x = false;
         u.copy_content(x);
@@ -1045,11 +1044,11 @@ BOOST_AUTO_TEST_SUITE(xfsx_)
     {
       using namespace xfsx;
       TLC u;
-      const array<uint8_t, 3> a = {
+      const array<u8, 3> a = {
         0b01'0'00001u, 0b0'000'0001u,
         0u
       };
-      const uint8_t *r = u.read(a.begin(), a.end());
+      const u8 *r = u.read(a.begin(), a.end());
       (void)r;
       bool x = false;
       u.copy_content(x);
@@ -1063,13 +1062,13 @@ BOOST_AUTO_TEST_SUITE(xfsx_)
     {
       using namespace xfsx;
       TLC u;
-      const array<uint8_t, 7> a = {
+      const array<u8, 7> a = {
         0b01'0'00001u, 0b0'000'0101u,
-        uint8_t('h'), uint8_t('e'), uint8_t('l'), uint8_t('l'), uint8_t('o')
+        u8('h'), u8('e'), u8('l'), u8('l'), u8('o')
       };
-      const uint8_t *r = u.read(a.begin(), a.end());
+      const u8 *r = u.read(a.begin(), a.end());
       (void)r;
-      std::pair<const uint8_t *, const uint8_t *> x;
+      std::pair<const u8 *, const u8 *> x;
       u.copy_content(x);
       BOOST_CHECK(x.first  == a.begin()+2);
       BOOST_CHECK(x.second == a.end());
@@ -1079,11 +1078,11 @@ BOOST_AUTO_TEST_SUITE(xfsx_)
     {
       using namespace xfsx;
       TLC u;
-      const array<uint8_t, 7> a = {
+      const array<u8, 7> a = {
         0b01'0'00001u, 0b0'000'0101u,
-        uint8_t('h'), uint8_t('e'), uint8_t('l'), uint8_t('l'), uint8_t('o')
+        u8('h'), u8('e'), u8('l'), u8('l'), u8('o')
       };
-      const uint8_t *r = u.read(a.begin(), a.end());
+      const u8 *r = u.read(a.begin(), a.end());
       (void)r;
       std::pair<const char *, const char *> x;
       u.copy_content(x);
@@ -1104,7 +1103,7 @@ BOOST_AUTO_TEST_SUITE(xfsx_)
       BOOST_AUTO_TEST_CASE(empty)
       {
         using namespace xfsx;
-        const uint8_t a[1] = {0};
+        const u8 a[1] = {0};
         BCD_String b;
         decode(a, 0, b);
         BOOST_CHECK_EQUAL(b.empty(), true);
@@ -1113,7 +1112,7 @@ BOOST_AUTO_TEST_SUITE(xfsx_)
       BOOST_AUTO_TEST_CASE(basic)
       {
         using namespace xfsx;
-        array<uint8_t, 4> a = {
+        array<u8, 4> a = {
           0xDEu, 0xADu, 0xCAu, 0x0Eu
         };
         BCD_String b;
@@ -1125,7 +1124,7 @@ BOOST_AUTO_TEST_SUITE(xfsx_)
       BOOST_AUTO_TEST_CASE(filler_in_the_middle)
       {
         using namespace xfsx;
-        array<uint8_t, 4> a = {
+        array<u8, 4> a = {
           0xDEu, 0xADu, 0xCAu, 0xFEu
         };
         BCD_String b;
@@ -1138,7 +1137,7 @@ BOOST_AUTO_TEST_SUITE(xfsx_)
       BOOST_AUTO_TEST_CASE(filler_at_the_end)
       {
         using namespace xfsx;
-        array<uint8_t, 4> a = {
+        array<u8, 4> a = {
           0xDEu, 0xADu, 0xCAu, 0xEFu
         };
         BCD_String b;
@@ -1150,7 +1149,7 @@ BOOST_AUTO_TEST_SUITE(xfsx_)
       BOOST_AUTO_TEST_CASE(all)
       {
         using namespace xfsx;
-        array<uint8_t, 8> a = {
+        array<u8, 8> a = {
           0x12u, 0x34u, 0x56u, 0x78u, 0x90u, 0xABu, 0xCDu, 0xEFu
         };
         BCD_String b;
@@ -1162,7 +1161,7 @@ BOOST_AUTO_TEST_SUITE(xfsx_)
       BOOST_AUTO_TEST_CASE(uneven)
       {
         using namespace xfsx;
-        array<uint8_t, 9> a = {
+        array<u8, 9> a = {
           0x12u, 0x34u, 0x56u, 0x78u, 0x90u, 0xABu, 0xCDu, 0xEFu, 0xCAu
         };
         BCD_String b;
@@ -1181,8 +1180,8 @@ BOOST_AUTO_TEST_SUITE(xfsx_)
       {
         using namespace xfsx;
         const char inp[] = "&#xde;&#xad;\xca\xfe world\\xca\\xfe";
-        const uint8_t *begin = reinterpret_cast<const uint8_t*>(inp);
-        const uint8_t *end = begin + sizeof(inp) - 1;
+        const u8 *begin = reinterpret_cast<const u8 *>(inp);
+        const u8 *end = begin + sizeof(inp) - 1;
         Hex_String b;
         decode(begin, end-begin, b);
         const string &s = b;
@@ -1193,8 +1192,8 @@ BOOST_AUTO_TEST_SUITE(xfsx_)
       {
         using namespace xfsx;
         const char inp[] = "&#xde;&#xad;\xca\xfe world\\xca\\xfe";
-        const uint8_t *begin = reinterpret_cast<const uint8_t*>(inp);
-        const uint8_t *end = begin + sizeof(inp) - 1;
+        const u8 *begin = reinterpret_cast<const u8 *>(inp);
+        const u8 *end = begin + sizeof(inp) - 1;
         Hex_XML_String b;
         decode(begin, end-begin, b);
         const string &s = b;
@@ -1214,8 +1213,8 @@ BOOST_AUTO_TEST_SUITE(xfsx_)
     {
       using namespace xfsx;
       int64_t x = 23;
-      array<uint8_t, 8> a;
-      uint8_t *r = encode(x, a.begin(), minimally_encoded_length(x));
+      array<u8, 8> a;
+      u8 *r = encode(x, a.begin(), minimally_encoded_length(x));
       BOOST_REQUIRE(r == a.begin() + 1);
       int64_t y = 0;
       decode(a.begin(), 1, y);
@@ -1226,8 +1225,8 @@ BOOST_AUTO_TEST_SUITE(xfsx_)
     {
       using namespace xfsx;
       int64_t x = 23;
-      array<uint8_t, 8> a;
-      uint8_t *r = encode(x, a.begin(), 4);
+      array<u8, 8> a;
+      u8 *r = encode(x, a.begin(), 4);
       BOOST_REQUIRE(r == a.begin() + 4);
       int64_t y = 0;
       decode(a.begin(), 4, y);
@@ -1238,7 +1237,7 @@ BOOST_AUTO_TEST_SUITE(xfsx_)
     {
       using namespace xfsx;
       int64_t x = 23;
-      array<uint8_t, 8> a;
+      array<u8, 8> a;
       BOOST_CHECK_THROW(encode(x, a.begin(), 9), std::overflow_error);
     }
 
@@ -1260,8 +1259,8 @@ BOOST_AUTO_TEST_SUITE(xfsx_)
       };
       for (auto inp : inps) {
         uint8_t l = minimally_encoded_length(inp);
-        array<uint8_t, 8> a;
-        uint8_t *r = encode(inp, a.begin(), l);
+        array<u8, 8> a;
+        u8 *r = encode(inp, a.begin(), l);
         BOOST_REQUIRE(r == a.begin() + l);
         int64_t y = 0;
         decode(a.begin(), l, y);
@@ -1282,8 +1281,8 @@ BOOST_AUTO_TEST_SUITE(xfsx_)
       };
       for (auto inp : inps) {
         uint8_t l = minimally_encoded_length(inp);
-        array<uint8_t, 8> a;
-        uint8_t *r = encode(inp, a.begin(), l);
+        array<u8, 8> a;
+        u8 *r = encode(inp, a.begin(), l);
         BOOST_REQUIRE(r == a.begin() + l);
         uint64_t y = 0;
         decode(a.begin(), l, y);
@@ -1303,8 +1302,8 @@ BOOST_AUTO_TEST_SUITE(xfsx_)
       };
       for (auto inp : inps) {
         uint8_t l = minimally_encoded_length(inp);
-        array<uint8_t, 8> a;
-        uint8_t *r = encode(inp, a.begin(), l);
+        array<u8, 8> a;
+        u8 *r = encode(inp, a.begin(), l);
         BOOST_REQUIRE(r == a.begin() + l);
         int32_t y = 0;
         decode(a.begin(), l, y);
@@ -1325,8 +1324,8 @@ BOOST_AUTO_TEST_SUITE(xfsx_)
       };
       for (auto inp : inps) {
         uint8_t l = minimally_encoded_length(inp);
-        array<uint8_t, 8> a;
-        uint8_t *r = encode(inp, a.begin(), l);
+        array<u8, 8> a;
+        u8 *r = encode(inp, a.begin(), l);
         BOOST_REQUIRE(r == a.begin() + l);
         int16_t y = 0;
         decode(a.begin(), l, y);
@@ -1347,8 +1346,8 @@ BOOST_AUTO_TEST_SUITE(xfsx_)
       };
       for (auto inp : inps) {
         uint8_t l = minimally_encoded_length(inp);
-        array<uint8_t, 8> a;
-        uint8_t *r = encode(inp, a.begin(), l);
+        array<u8, 8> a;
+        u8 *r = encode(inp, a.begin(), l);
         BOOST_REQUIRE(r == a.begin() + l);
         int8_t y = 0;
         decode(a.begin(), l, y);
@@ -1363,9 +1362,9 @@ BOOST_AUTO_TEST_SUITE(xfsx_)
     BOOST_AUTO_TEST_CASE(boolean)
     {
       using namespace xfsx;
-      array<uint8_t, 8> a;
+      array<u8, 8> a;
       bool x = true;
-      uint8_t *r = encode(x, a.begin(), 1);
+      u8 *r = encode(x, a.begin(), 1);
       BOOST_REQUIRE(r == a.begin() + 1);
       bool y = false;
       decode(a.begin(), 1, y);
@@ -1375,9 +1374,9 @@ BOOST_AUTO_TEST_SUITE(xfsx_)
     BOOST_AUTO_TEST_CASE(boolean_false)
     {
       using namespace xfsx;
-      array<uint8_t, 8> a;
+      array<u8, 8> a;
       bool x = false;
-      uint8_t *r = encode(x, a.begin(), 1);
+      u8 *r = encode(x, a.begin(), 1);
       BOOST_REQUIRE(r == a.begin() + 1);
       bool y = true;
       decode(a.begin(), 1, y);
@@ -1387,7 +1386,7 @@ BOOST_AUTO_TEST_SUITE(xfsx_)
     BOOST_AUTO_TEST_CASE(boolean_throw)
     {
       using namespace xfsx;
-      array<uint8_t, 8> a;
+      array<u8, 8> a;
       bool x = false;
       BOOST_CHECK_THROW(encode(x, a.begin(), 0), std::overflow_error);
     }
@@ -1395,7 +1394,7 @@ BOOST_AUTO_TEST_SUITE(xfsx_)
     BOOST_AUTO_TEST_CASE(boolean_throw_too_large)
     {
       using namespace xfsx;
-      array<uint8_t, 8> a;
+      array<u8, 8> a;
       bool x = false;
       BOOST_CHECK_THROW(encode(x, a.begin(), 2), std::overflow_error);
     }
@@ -1403,14 +1402,14 @@ BOOST_AUTO_TEST_SUITE(xfsx_)
     BOOST_AUTO_TEST_CASE(uchar_pair)
     {
       using namespace xfsx;
-      array<uint8_t, 8> a;
+      array<u8, 8> a;
       const char s[] = "hello";
-      pair<const uint8_t*, const uint8_t*> x(
-          reinterpret_cast<const uint8_t*>(s),
-          reinterpret_cast<const uint8_t*>(s+sizeof(s)-1));
-      uint8_t *r = encode(x, a.begin(), 5);
+      pair<const u8 *, const u8 *> x(
+          reinterpret_cast<const u8 *>(s),
+          reinterpret_cast<const u8 *>(s+sizeof(s)-1));
+      u8 *r = encode(x, a.begin(), 5);
       BOOST_CHECK(r == a.begin() + 5);
-      pair<const uint8_t*, const uint8_t*> y;
+      pair<const u8 *, const u8 *> y;
       decode(a.begin(), 5, y);
       string t(reinterpret_cast<const char*>(y.first),
           reinterpret_cast<const char*>(y.second));
@@ -1420,10 +1419,10 @@ BOOST_AUTO_TEST_SUITE(xfsx_)
     BOOST_AUTO_TEST_CASE(char_pair)
     {
       using namespace xfsx;
-      array<uint8_t, 8> a;
+      array<u8, 8> a;
       const char s[] = "hello";
       pair<const char*, const char*> x(s, s+sizeof(s)-1);
-      uint8_t *r = encode(x, a.begin(), 5);
+      u8 *r = encode(x, a.begin(), 5);
       BOOST_CHECK(r == a.begin() + 5);
       pair<const char*, const char*> y;
       decode(a.begin(), 5, y);
@@ -1433,7 +1432,7 @@ BOOST_AUTO_TEST_SUITE(xfsx_)
     BOOST_AUTO_TEST_CASE(pair_throw)
     {
       using namespace xfsx;
-      array<uint8_t, 8> a;
+      array<u8, 8> a;
       const char s[] = "hello";
       pair<const char*, const char*> x(s, s+sizeof(s)-1);
       BOOST_CHECK_THROW(encode(x, a.begin(), 4), std::overflow_error);
@@ -1441,7 +1440,7 @@ BOOST_AUTO_TEST_SUITE(xfsx_)
     BOOST_AUTO_TEST_CASE(pair_throw_too_large)
     {
       using namespace xfsx;
-      array<uint8_t, 8> a;
+      array<u8, 8> a;
       const char s[] = "hello";
       pair<const char*, const char*> x(s, s+sizeof(s)-1);
       BOOST_CHECK_THROW(encode(x, a.begin(), 6), std::overflow_error);
@@ -1450,9 +1449,9 @@ BOOST_AUTO_TEST_SUITE(xfsx_)
     BOOST_AUTO_TEST_CASE(str)
     {
       using namespace xfsx;
-      array<uint8_t, 8> a;
+      array<u8, 8> a;
       string x("hello");
-      uint8_t *r = encode(x, a.begin(), 5);
+      u8 *r = encode(x, a.begin(), 5);
       BOOST_CHECK(r == a.begin() + 5);
       pair<const char*, const char*> y;
       decode(a.begin(), 5, y);
@@ -1463,7 +1462,7 @@ BOOST_AUTO_TEST_SUITE(xfsx_)
     BOOST_AUTO_TEST_CASE(str_throw)
     {
       using namespace xfsx;
-      array<uint8_t, 8> a;
+      array<u8, 8> a;
       string x("hello");
       BOOST_CHECK_THROW(encode(x, a.begin(), 4), std::overflow_error);
       BOOST_CHECK_THROW(encode(x, a.begin(), 6), std::overflow_error);
@@ -1473,8 +1472,8 @@ BOOST_AUTO_TEST_SUITE(xfsx_)
     {
       using namespace xfsx;
       BCD_String x("deadcafe");
-      array<uint8_t, 8> a;
-      uint8_t *r = encode(x, a.begin(), 4);
+      array<u8, 8> a;
+      u8 *r = encode(x, a.begin(), 4);
       BOOST_REQUIRE(r == a.begin() + 4);
       BOOST_CHECK_EQUAL(a[0], 0xdeu);
       BOOST_CHECK_EQUAL(a[1], 0xadu);
@@ -1486,8 +1485,8 @@ BOOST_AUTO_TEST_SUITE(xfsx_)
     {
       using namespace xfsx;
       BCD_String x("deadcafe2");
-      array<uint8_t, 8> a;
-      uint8_t *r = encode(x, a.begin(), 5);
+      array<u8, 8> a;
+      u8 *r = encode(x, a.begin(), 5);
       BOOST_REQUIRE(r == a.begin() + 5);
       BOOST_CHECK_EQUAL(a[0], 0xdeu);
       BOOST_CHECK_EQUAL(a[1], 0xadu);
@@ -1500,7 +1499,7 @@ BOOST_AUTO_TEST_SUITE(xfsx_)
     {
       using namespace xfsx;
       BCD_String x("deadcafe2");
-      array<uint8_t, 8> a;
+      array<u8, 8> a;
       BOOST_CHECK_THROW(encode(x, a.begin(), 4), std::overflow_error);
     }
 
@@ -1508,8 +1507,8 @@ BOOST_AUTO_TEST_SUITE(xfsx_)
     {
       using namespace xfsx;
       Hex_String x("\\xde\\xad&#xca;&#xfe;23");
-      array<uint8_t, 32> a;
-      uint8_t *r = encode(x, a.begin(), 16);
+      array<u8, 32> a;
+      u8 *r = encode(x, a.begin(), 16);
       BOOST_REQUIRE(r == a.begin() + 16);
       BOOST_CHECK_EQUAL(a[0], 0xdeu);
       BOOST_CHECK_EQUAL(a[1], 0xadu);
@@ -1522,8 +1521,8 @@ BOOST_AUTO_TEST_SUITE(xfsx_)
     {
       using namespace xfsx;
       Hex_XML_String x("\\xde\\xad&#xca;&#xfe;23");
-      array<uint8_t, 32> a;
-      uint8_t *r = encode(x, a.begin(), 12);
+      array<u8, 32> a;
+      u8 *r = encode(x, a.begin(), 12);
       BOOST_REQUIRE(r == a.begin() + 12);
       BOOST_CHECK_EQUAL(a[8], 0xcau);
       BOOST_CHECK_EQUAL(a[9], 0xfeu);
@@ -1539,7 +1538,7 @@ BOOST_AUTO_TEST_SUITE(xfsx_)
     {
       using namespace xfsx;
       Hex_String x("\\xde\\xad&#xca;&#xfe;23");
-      array<uint8_t, 32> a;
+      array<u8, 32> a;
       BOOST_CHECK_THROW(encode(x, a.begin(), 15), std::overflow_error);
       BOOST_CHECK_THROW(encode(x, a.begin(), 17), std::overflow_error);
     }
@@ -1549,7 +1548,7 @@ BOOST_AUTO_TEST_SUITE(xfsx_)
       using namespace xfsx;
       const char inp[] = "fo&#x0d;o";
       XML_Content c(make_pair(inp, inp+sizeof(inp)-1));
-      array<uint8_t, 32> a;
+      array<u8, 32> a;
       auto r = encode(c, a.begin(), 4);
       BOOST_CHECK(r == a.begin() + 4);
       BOOST_CHECK(a[0] == 'f');
@@ -1563,7 +1562,7 @@ BOOST_AUTO_TEST_SUITE(xfsx_)
     {
       using namespace xfsx;
       XML_Content c;
-      array<uint8_t, 32> a;
+      array<u8, 32> a;
       auto r = encode(c, a.begin(), minimally_encoded_length(c));
       BOOST_CHECK(r == a.begin());
     }
@@ -1705,13 +1704,13 @@ BOOST_AUTO_TEST_SUITE(xfsx_)
     {
       using namespace xfsx;
       const char s[] = "Hello World";
-      pair<const uint8_t *, const uint8_t *> x(
-          reinterpret_cast<const uint8_t*>(s),
-          reinterpret_cast<const uint8_t*>(s+sizeof(s)-1));
+      pair<const u8 *, const u8 *> x(
+          reinterpret_cast<const u8 *>(s),
+          reinterpret_cast<const u8 *>(s+sizeof(s)-1));
       BOOST_CHECK_EQUAL(minimally_encoded_length(x), 11u);
       BOOST_CHECK_EQUAL(minimally_encoded_length(make_pair(
-              reinterpret_cast<const uint8_t*>(s),
-              reinterpret_cast<const uint8_t*>(s))), 0u);
+              reinterpret_cast<const u8 *>(s),
+              reinterpret_cast<const u8 *>(s))), 0u);
     }
 
     BOOST_AUTO_TEST_CASE(spair)
@@ -1859,9 +1858,9 @@ BOOST_AUTO_TEST_SUITE(xfsx_)
     BOOST_AUTO_TEST_CASE(simple_write)
     {
       using namespace xfsx;
-      array<uint8_t, 30> a;
+      array<u8, 30> a;
       Unit u(42);
-      uint8_t *p = u.write(a.begin(), a.end());
+      u8 *p = u.write(a.begin(), a.end());
       TLV x(13, int32_t(6));
       x.klasse = Klasse::APPLICATION;
       p = x.write(p, a.end());
@@ -1874,7 +1873,7 @@ BOOST_AUTO_TEST_SUITE(xfsx_)
       {
         TLC tlc;
         Unit &u = tlc;
-        const uint8_t *p = u.read(a.begin(), a.end());
+        const u8 *p = u.read(a.begin(), a.end());
         BOOST_CHECK_EQUAL(u.tag, 42u);
         BOOST_CHECK_EQUAL(u.klasse, Klasse::UNIVERSAL);
         BOOST_CHECK_EQUAL(u.shape, Shape::CONSTRUCTED);
@@ -1898,7 +1897,7 @@ BOOST_AUTO_TEST_SUITE(xfsx_)
     BOOST_AUTO_TEST_CASE(constructed_write)
     {
       using namespace xfsx;
-      array<uint8_t, 32> a;
+      array<u8, 32> a;
       TLV x(13);
       x.shape = Shape::CONSTRUCTED;
       x.klasse = Klasse::APPLICATION;
@@ -1908,7 +1907,7 @@ BOOST_AUTO_TEST_SUITE(xfsx_)
       o = eoc.write(o, a.end());
       {
         TLC tlc;
-        const uint8_t *p = tlc.read(a.begin(), a.end());
+        const u8 *p = tlc.read(a.begin(), a.end());
         BOOST_CHECK_EQUAL(tlc.tag, 13u);
         BOOST_CHECK_EQUAL(tlc.shape, Shape::CONSTRUCTED);
         BOOST_CHECK_EQUAL(tlc.klasse, Klasse::APPLICATION);
@@ -1925,14 +1924,14 @@ BOOST_AUTO_TEST_SUITE(xfsx_)
     BOOST_AUTO_TEST_CASE(xml_content)
     {
       using namespace xfsx;
-      array<uint8_t, 32> a;
+      array<u8, 32> a;
       TLV x(13, XML_Content());
       x.klasse = Klasse::APPLICATION;
       auto o = x.write(a.begin(), a.end());
       (void)o;
       {
         TLC tlc;
-        const uint8_t *p = tlc.read(a.begin(), a.end());
+        const u8 *p = tlc.read(a.begin(), a.end());
         (void)p;
         BOOST_CHECK_EQUAL(tlc.tag, 13u);
         BOOST_CHECK_EQUAL(tlc.shape, Shape::PRIMITIVE);
@@ -1985,14 +1984,14 @@ BOOST_AUTO_TEST_SUITE(xfsx_)
     BOOST_AUTO_TEST_CASE(throw_unmatched_eoc)
     {
       using namespace xfsx;
-      array<uint8_t, 8> a { 0u, 0u };
+      array<u8, 8> a { 0u, 0u };
       Vertical_TLC t;
       BOOST_CHECK_THROW(t.read(a.begin(), a.end()), xfsx::Unexpected_EOC);
     }
     BOOST_AUTO_TEST_CASE(throw_unmatched_eoc2)
     {
       using namespace xfsx;
-      array<uint8_t, 8> a { 0u, 0u };
+      array<u8, 8> a { 0u, 0u };
       Unit c(23);
       auto r = c.write(a.begin(), a.end());
       Unit eoc{Unit::EOC()};
@@ -2008,7 +2007,7 @@ BOOST_AUTO_TEST_SUITE(xfsx_)
       using namespace xfsx;
       Unit c(23);
       c.init_length(8);
-      array<uint8_t, 32> a;
+      array<u8, 32> a;
       auto r = c.write(a.begin(), a.end());
       TLV v(30, string("Hello World"));
       r = v.write(r, a.end());
@@ -2022,7 +2021,7 @@ BOOST_AUTO_TEST_SUITE(xfsx_)
     {
       using namespace xfsx;
       Unit c(23);
-      array<uint8_t, 32> a;
+      array<u8, 32> a;
       auto r = c.write(a.begin(), a.end());
       Unit x(11);
       x.init_length(0);
@@ -2046,7 +2045,7 @@ BOOST_AUTO_TEST_SUITE(xfsx_)
     BOOST_AUTO_TEST_CASE(some_heights)
     {
       using namespace xfsx;
-      array<uint8_t, 128> a;
+      array<u8, 128> a;
       Unit c1(23);
       auto r = c1.write(a.begin(), a.end());
       TLV v1(3, string("Hello"));
@@ -2125,7 +2124,7 @@ BOOST_AUTO_TEST_SUITE(xfsx_)
     BOOST_AUTO_TEST_CASE(skip_eoc)
     {
       using namespace xfsx;
-      array<uint8_t, 128> a;
+      array<u8, 128> a;
       Unit c1(23);
       auto p = c1.write(a.begin(), a.end());
       TLV v1(3, string("Hello"));

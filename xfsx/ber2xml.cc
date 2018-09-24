@@ -77,7 +77,7 @@ namespace xfsx {
     }
 
     void write_unber_tl(
-        const uint8_t *begin, const uint8_t *end,
+        const u8 *begin, const u8 *end,
         byte::writer::Base &w)
     {
       Reader r(begin, end);
@@ -91,7 +91,7 @@ namespace xfsx {
     }
 
     void write_unber_tl(
-        const uint8_t *begin, const uint8_t *end,
+        const u8 *begin, const u8 *end,
         const char *filename)
     {
       ixxx::util::FD fd(filename, O_CREAT | O_WRONLY | O_TRUNC, 0666);
@@ -100,7 +100,7 @@ namespace xfsx {
       w.flush();
     }
     void write_unber_tl(
-        const uint8_t *begin, const uint8_t *end,
+        const u8 *begin, const u8 *end,
         const std::string &filename)
     {
       write_unber_tl(begin, end, filename.c_str());
@@ -108,7 +108,7 @@ namespace xfsx {
 
 
     void write_indent_unber_tl(
-        const uint8_t *begin, const uint8_t *end,
+        const u8 *begin, const u8 *end,
         byte::writer::Base &w)
     {
       Vertical_Reader r(begin, end);
@@ -119,7 +119,7 @@ namespace xfsx {
       }
     }
     void write_indent_unber_tl(
-        const uint8_t *begin, const uint8_t *end,
+        const u8 *begin, const u8 *end,
         const char *filename)
     {
       ixxx::util::FD fd(filename, O_CREAT | O_WRONLY | O_TRUNC, 0666);
@@ -128,7 +128,7 @@ namespace xfsx {
       w.flush();
     }
     void write_indent_unber_tl(
-        const uint8_t *begin, const uint8_t *end,
+        const u8 *begin, const u8 *end,
         const std::string &filename)
     {
       write_indent_unber_tl(begin, end, filename.c_str());
@@ -141,8 +141,8 @@ namespace xfsx {
 
         void write_blocks();
       protected:
-        const uint8_t *begin_ {nullptr};
-        const uint8_t *end_   {nullptr};
+        const u8 *begin_ {nullptr};
+        const u8 *end_   {nullptr};
         Skip_EOC_Reader r;
         byte::writer::Base &w;
         stack<bool> indefinite_stack;
@@ -171,14 +171,14 @@ namespace xfsx {
         virtual void pop();
       public:
         Writer(
-            const uint8_t *begin, const uint8_t *end,
+            const u8 *begin, const u8 *end,
             byte::writer::Base &w, const Writer_Arguments &args);
         virtual ~Writer();
         void write();
 
     };
     Writer::Writer(
-        const uint8_t *begin, const uint8_t *end,
+        const u8 *begin, const u8 *end,
         byte::writer::Base &w, const Writer_Arguments &args)
       :
         args_(args),
@@ -413,7 +413,7 @@ namespace xfsx {
 
 
     void write(
-        const uint8_t *begin, const uint8_t *end,
+        const u8 *begin, const u8 *end,
         byte::writer::Base &w,
         const Writer_Arguments &args)
     {
@@ -421,7 +421,7 @@ namespace xfsx {
       writer.write();
     }
     void write(
-        const uint8_t *begin, const uint8_t *end,
+        const u8 *begin, const u8 *end,
         const char *filename,
         const Writer_Arguments &args)
     {
@@ -431,7 +431,7 @@ namespace xfsx {
       w.flush();
     }
     void write(
-        const uint8_t *begin, const uint8_t *end,
+        const u8 *begin, const u8 *end,
         const std::string &filename,
         const Writer_Arguments &args)
     {
@@ -462,11 +462,11 @@ namespace xfsx {
         void pop() override;
       public:
         Pretty_Writer(
-            const uint8_t *begin, const uint8_t *end,
+            const u8 *begin, const u8 *end,
             byte::writer::Base &w, const Pretty_Writer_Arguments &args);
     };
     Pretty_Writer::Pretty_Writer(
-        const uint8_t *begin, const uint8_t *end,
+        const u8 *begin, const u8 *end,
         byte::writer::Base &w, const Pretty_Writer_Arguments &args)
       :
         Writer(begin, end, w, args),
@@ -617,7 +617,7 @@ namespace xfsx {
         void write_pp();
       public:
         Lua_Pretty_Writer(
-            const uint8_t *begin, const uint8_t *end,
+            const u8 *begin, const u8 *end,
             byte::writer::Base &w, const Pretty_Writer_Arguments &args);
 
         void write_attributes() override;
@@ -625,7 +625,7 @@ namespace xfsx {
     };
 
     Lua_Pretty_Writer::Lua_Pretty_Writer(
-        const uint8_t *begin, const uint8_t *end,
+        const u8 *begin, const u8 *end,
         byte::writer::Base &w, const Pretty_Writer_Arguments &args)
       :
         Pretty_Writer(begin, end, w, args)
@@ -747,7 +747,7 @@ namespace xfsx {
 #endif // XFSX_USE_LUA
 
     void pretty_write(
-        const uint8_t *begin, const uint8_t *end,
+        const u8 *begin, const u8 *end,
         byte::writer::Base &w,
         const Pretty_Writer_Arguments &args)
     {
@@ -765,7 +765,7 @@ namespace xfsx {
     }
 
     void pretty_write(
-        const uint8_t *begin, const uint8_t *end,
+        const u8 *begin, const u8 *end,
         const std::string &filename,
         const Pretty_Writer_Arguments &args)
     {

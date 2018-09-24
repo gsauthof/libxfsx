@@ -35,6 +35,8 @@
 
 using namespace std;
 
+using u8 = xfsx::u8;
+
 namespace bed {
 
   namespace command {
@@ -51,12 +53,12 @@ namespace bed {
       if (p.tag(tlc) != grammar::tap::TRANSFER_BATCH)
         throw runtime_error("Format currently not supported");
       p.advance(tlc);
-      const uint8_t *begin = tlc.begin;
+      const u8 *begin = tlc.begin;
 
       Audit_Control_Info aci;
       aci(p, tlc);
 
-      const uint8_t *end = m.end();
+      const u8 *end = m.end();
       if (p.tag(tlc) == grammar::tap::AUDIT_CONTROL_INFO)
         end = tlc.begin;
 
@@ -79,11 +81,11 @@ namespace bed {
             args_.out_filename, O_CREAT | O_WRONLY | O_TRUNC, 0666));
       xfsx::byte::writer::File o(fd);
 
-      auto x = reinterpret_cast<uint8_t*>(o.obtain_chunk(tb.tl_size));
+      auto x = reinterpret_cast<u8 *>(o.obtain_chunk(tb.tl_size));
       x = tb.write(x, x + tb.tl_size);
       o.write(reinterpret_cast<const char*>(begin),
           reinterpret_cast<const char*>(end));
-      x = reinterpret_cast<uint8_t*>(o.obtain_chunk(bw.size()));
+      x = reinterpret_cast<u8 *>(o.obtain_chunk(bw.size()));
       bw.store(x, x + bw.size());
 
       o.flush();

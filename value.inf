@@ -9,7 +9,7 @@ union {
   int64_t
   bool
   std::string
-  "std::pair<const uint8_t*, const uint8_t*>"
+  "std::pair<const u8*, const u8*>"
   "std::pair<const char*, const char*>"
   XML_Content
   BCD_Content
@@ -21,5 +21,6 @@ option {
   }
   include {
     xfsx/types.hh
+    xfsx/octet.hh
   }
 }

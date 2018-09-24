@@ -49,7 +49,7 @@ namespace xfsx {
         Node<T> *push(std::unique_ptr<Node> e);
         void add_to_length(size_t l);
         size_t init_length();
-        uint8_t *write(uint8_t *begin, uint8_t *end) const;
+        u8 *write(u8 *begin, u8 *end) const;
         const std::deque<std::unique_ptr<Node<T> > > &children() const;
 
         void mk_vector(size_t l = 0);

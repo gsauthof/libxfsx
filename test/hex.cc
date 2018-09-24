@@ -31,8 +31,11 @@
 #include <string>
 
 #include <xfsx/hex_impl.hh>
+#include <xfsx/octet.hh>
 
 using namespace std;
+
+using u8 = xfsx::u8;
 
 BOOST_AUTO_TEST_SUITE(xfsx_)
 
@@ -49,7 +52,7 @@ BOOST_AUTO_TEST_SUITE(xfsx_)
 
           BOOST_AUTO_TEST_CASE(escape_c_style)
           {
-            uint8_t b = uint8_t('A');
+            u8 b = u8('A');
             array<char, 16> a;
             auto r = Escape<Style::C>()(b, a.begin());
             BOOST_REQUIRE(r == a.begin() + 4);
@@ -58,7 +61,7 @@ BOOST_AUTO_TEST_SUITE(xfsx_)
 
           BOOST_AUTO_TEST_CASE(escape_xml_style)
           {
-            uint8_t b = uint8_t('A');
+            u8 b = u8('A');
             array<char, 16> a;
             auto r = Escape<Style::XML>()(b, a.begin());
             BOOST_REQUIRE(r == a.begin() + 6);
@@ -72,8 +75,8 @@ BOOST_AUTO_TEST_SUITE(xfsx_)
           BOOST_AUTO_TEST_CASE(empty)
           {
             const char inp[] = "";
-            const uint8_t *begin = reinterpret_cast<const uint8_t*>(inp);
-            const uint8_t *end = begin + sizeof(inp)-1;
+            const u8 *begin = reinterpret_cast<const u8*>(inp);
+            const u8 *end = begin + sizeof(inp)-1;
             array<char, 16> a;
             auto r = impl::decode<Style::C>(begin, end, a.begin());
             BOOST_CHECK(r == a.begin());
@@ -81,8 +84,8 @@ BOOST_AUTO_TEST_SUITE(xfsx_)
           BOOST_AUTO_TEST_CASE(one)
           {
             const char inp[] = "a";
-            const uint8_t *begin = reinterpret_cast<const uint8_t*>(inp);
-            const uint8_t *end = begin + sizeof(inp)-1;
+            const u8 *begin = reinterpret_cast<const u8*>(inp);
+            const u8 *end = begin + sizeof(inp)-1;
             array<char, 16> a;
             auto r = impl::decode<Style::C>(begin, end, a.begin());
             BOOST_REQUIRE(r == a.begin()+1);
@@ -91,8 +94,8 @@ BOOST_AUTO_TEST_SUITE(xfsx_)
           BOOST_AUTO_TEST_CASE(one_special)
           {
             const char inp[] = "\\";
-            const uint8_t *begin = reinterpret_cast<const uint8_t*>(inp);
-            const uint8_t *end = begin + sizeof(inp)-1;
+            const u8 *begin = reinterpret_cast<const u8*>(inp);
+            const u8 *end = begin + sizeof(inp)-1;
             array<char, 16> a;
             auto r = impl::decode<Style::C>(begin, end, a.begin());
             BOOST_REQUIRE(r == a.begin()+4);
@@ -101,8 +104,8 @@ BOOST_AUTO_TEST_SUITE(xfsx_)
           BOOST_AUTO_TEST_CASE(large)
           {
             const char inp[] = "He\\llo &Wor\x01ld - foo \x03\x04\x05""bar!";
-            const uint8_t *begin = reinterpret_cast<const uint8_t*>(inp);
-            const uint8_t *end = begin + sizeof(inp)-1;
+            const u8 *begin = reinterpret_cast<const u8*>(inp);
+            const u8 *end = begin + sizeof(inp)-1;
             array<char, 64> a;
             auto r = impl::decode<Style::C>(begin, end, a.begin());
             const char ref[] = "He\\x5cllo &Wor\\x01ld - foo \\x03\\x04\\x05bar!";
@@ -112,8 +115,8 @@ BOOST_AUTO_TEST_SUITE(xfsx_)
           BOOST_AUTO_TEST_CASE(large_xml)
           {
             const char inp[] = "He\\llo &Wor\x01ld - foo \x03\x04\x05" "bar!";
-            const uint8_t *begin = reinterpret_cast<const uint8_t*>(inp);
-            const uint8_t *end = begin + sizeof(inp)-1;
+            const u8 *begin = reinterpret_cast<const u8*>(inp);
+            const u8 *end = begin + sizeof(inp)-1;
             array<char, 64> a;
             auto r = impl::decode<Style::XML>(begin, end, a.begin());
             const char ref[] = "He\\llo &#x26;Wor&#x01;ld - foo &#x03;&#x04;&#x05;bar!";
@@ -123,8 +126,8 @@ BOOST_AUTO_TEST_SUITE(xfsx_)
           BOOST_AUTO_TEST_CASE(large_gt_127)
           {
             const char inp[] = "foo\xca\xfe\xff";
-            const uint8_t *begin = reinterpret_cast<const uint8_t*>(inp);
-            const uint8_t *end = begin + sizeof(inp)-1;
+            const u8 *begin = reinterpret_cast<const u8*>(inp);
+            const u8 *end = begin + sizeof(inp)-1;
             array<char, 64> a;
             auto r = impl::decode<Style::C>(begin, end, a.begin());
             const char ref[] = "foo\\xca\\xfe\\xff";
@@ -135,8 +138,8 @@ BOOST_AUTO_TEST_SUITE(xfsx_)
           BOOST_AUTO_TEST_CASE(xml_gt_lt)
           {
             const char inp[] = "<foo>Hello</foo><bar>World</bar>";
-            const uint8_t *begin = reinterpret_cast<const uint8_t*>(inp);
-            const uint8_t *end = begin + sizeof(inp)-1;
+            const u8 *begin = reinterpret_cast<const u8*>(inp);
+            const u8 *end = begin + sizeof(inp)-1;
             array<char, 128> a;
             auto r = impl::decode<Style::XML>(begin, end, a.begin());
             const char ref[] = "&#x3c;foo&#x3e;Hello&#x3c;/foo&#x3e;&#x3c;bar&#x3e;World&#x3c;/bar&#x3e;";
@@ -185,7 +188,7 @@ BOOST_AUTO_TEST_SUITE(xfsx_)
             const char inp[] = "";
             const char *begin = inp;
             const char *end = inp + sizeof(inp)-1;
-            array<uint8_t, 16> a;
+            array<u8, 16> a;
             auto r = impl::encode<Style::XML>(begin, end, a.begin());
             BOOST_REQUIRE(r == a.begin());
           }
@@ -195,7 +198,7 @@ BOOST_AUTO_TEST_SUITE(xfsx_)
             const char inp[] = "Hello World";
             const char *begin = inp;
             const char *end = inp + sizeof(inp)-1;
-            array<uint8_t, 16> a;
+            array<u8, 16> a;
             auto r = impl::encode<Style::XML>(begin, end, a.begin());
             BOOST_REQUIRE_EQUAL(r - a.begin(), end-begin);
             const char *b = reinterpret_cast<const char*>(a.begin());
@@ -209,7 +212,7 @@ BOOST_AUTO_TEST_SUITE(xfsx_)
             const char inp[] = "Hello&#x20;World";
             const char *begin = inp;
             const char *end = inp + sizeof(inp)-1;
-            array<uint8_t, 16> a;
+            array<u8, 16> a;
             auto r = impl::encode<Style::XML>(begin, end, a.begin());
             BOOST_REQUIRE_EQUAL(r - a.begin(), 11);
             const char *b = reinterpret_cast<const char*>(a.begin());
@@ -224,7 +227,7 @@ BOOST_AUTO_TEST_SUITE(xfsx_)
             const char inp[] = "Hello\\x20World";
             const char *begin = inp;
             const char *end = inp + sizeof(inp)-1;
-            array<uint8_t, 16> a;
+            array<u8, 16> a;
             auto r = impl::encode<Style::C>(begin, end, a.begin());
             BOOST_REQUIRE_EQUAL(r - a.begin(), 11);
             const char *b = reinterpret_cast<const char*>(a.begin());
@@ -239,7 +242,7 @@ BOOST_AUTO_TEST_SUITE(xfsx_)
             const char inp[] = "Hello World&#x";
             const char *begin = inp;
             const char *end = inp + sizeof(inp)-1;
-            array<uint8_t, 16> a;
+            array<u8, 16> a;
             auto r = impl::encode<Style::XML>(begin, end, a.begin());
             BOOST_REQUIRE_EQUAL(r - a.begin(), 14);
             const char *b = reinterpret_cast<const char*>(a.begin());
@@ -254,7 +257,7 @@ BOOST_AUTO_TEST_SUITE(xfsx_)
             const char inp[] = "Hello World\\x";
             const char *begin = inp;
             const char *end = inp + sizeof(inp)-1;
-            array<uint8_t, 16> a;
+            array<u8, 16> a;
             auto r = impl::encode<Style::C>(begin, end, a.begin());
             BOOST_REQUIRE_EQUAL(r - a.begin(), 13);
             const char *b = reinterpret_cast<const char*>(a.begin());
@@ -269,7 +272,7 @@ BOOST_AUTO_TEST_SUITE(xfsx_)
             const char inp[] = "&#xde;Hel&#xad;&#xca;&#xfe;&#x01;&#x02;lo Wor&#x23;ld";
             const char *begin = inp;
             const char *end = inp + sizeof(inp)-1;
-            array<uint8_t, 64> a;
+            array<u8, 64> a;
             auto r = impl::encode<Style::XML>(begin, end, a.begin());
             const char ref[] = "\xdeHel\xad\xca\xfe\x01\x02lo Wor\x23ld";
             size_t m = sizeof(ref)-1;
@@ -285,7 +288,7 @@ BOOST_AUTO_TEST_SUITE(xfsx_)
             const char inp[] = "\xdeHel\xad\xca\xfe\x01\x02lo Wor\x23ld";
             const char *begin = inp;
             const char *end = inp + sizeof(inp)-1;
-            array<uint8_t, 64> a;
+            array<u8, 64> a;
             auto r = impl::encode<Style::C>(begin, end, a.begin());
             const char ref[] = "\xdeHel\xad\xca\xfe\x01\x02lo Wor\x23ld";
             size_t m = sizeof(ref)-1;
@@ -301,7 +304,7 @@ BOOST_AUTO_TEST_SUITE(xfsx_)
             const char inp[] = "\\xdeHel\\xad\\xca\\xfe\\x01\\x02lo Wor\\x23ld";
             const char *begin = inp;
             const char *end = inp + sizeof(inp)-1;
-            array<uint8_t, 64> a;
+            array<u8, 64> a;
             auto r = impl::encode<Style::C>(begin, end, a.begin());
             const char ref[] = "\xdeHel\xad\xca\xfe\x01\x02lo Wor\x23ld";
             size_t m = sizeof(ref)-1;
@@ -317,7 +320,7 @@ BOOST_AUTO_TEST_SUITE(xfsx_)
             const char inp[] = "\\xDEHel\\xAd\\xcA\\xfe\\x01\\x02lo Wor\\x23ld";
             const char *begin = inp;
             const char *end = inp + sizeof(inp)-1;
-            array<uint8_t, 64> a;
+            array<u8, 64> a;
             auto r = impl::encode<Style::C>(begin, end, a.begin());
             const char ref[] = "\xdeHel\xad\xca\xfe\x01\x02lo Wor\x23ld";
             size_t m = sizeof(ref)-1;
@@ -344,8 +347,8 @@ BOOST_AUTO_TEST_SUITE(xfsx_)
         BOOST_AUTO_TEST_CASE(basic)
         {
           const char inp[] = "\x10""foo bar32\x00";
-          const uint8_t *begin = reinterpret_cast<const uint8_t*>(inp);
-          const uint8_t *end = begin + sizeof(inp)-1;
+          const u8 *begin = reinterpret_cast<const u8*>(inp);
+          const u8 *end = begin + sizeof(inp)-1;
           size_t n = decoded_size<Style::XML>(begin, end);
           vector<char> a(n);
           auto r = decode<Style::XML>(begin, end, a.data());
@@ -358,8 +361,8 @@ BOOST_AUTO_TEST_SUITE(xfsx_)
         BOOST_AUTO_TEST_CASE(raw)
         {
           const char inp[] = "Hello";
-          const uint8_t *begin = reinterpret_cast<const uint8_t*>(inp);
-          const uint8_t *end = begin + sizeof(inp)-1;
+          const u8 *begin = reinterpret_cast<const u8*>(inp);
+          const u8 *end = begin + sizeof(inp)-1;
           size_t n = decoded_size<Style::Raw>(begin, end);
           BOOST_REQUIRE_EQUAL(n, 10u);
           vector<char> a(n);
@@ -379,7 +382,7 @@ BOOST_AUTO_TEST_SUITE(xfsx_)
           const char inp[] = "&#xca;Divide&#xfe; and Conquer";
           const char *begin = inp;
           const char *end = inp + sizeof(inp)-1;
-          array<uint8_t, 64> a;
+          array<u8, 64> a;
           auto r = encode<Style::XML>(begin, end, a.begin());
           BOOST_REQUIRE_EQUAL(r - a.begin(),
               ssize_t(encoded_size<Style::XML>(begin, end)));
@@ -396,7 +399,7 @@ BOOST_AUTO_TEST_SUITE(xfsx_)
           const char inp[] = "48656c6c6f";
           const char *begin = inp;
           const char *end = inp + sizeof(inp)-1;
-          array<uint8_t, 64> a;
+          array<u8, 64> a;
           auto r = encode<Style::Raw>(begin, end, a.begin());
           BOOST_REQUIRE_EQUAL(r - a.begin(),
               ssize_t(encoded_size<Style::Raw>(begin, end)));

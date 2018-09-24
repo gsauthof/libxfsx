@@ -35,6 +35,7 @@
 #include "types.hh"
 #include "value.hh"
 #include "s_pair.hh"
+#include "octet.hh"
 
 namespace xfsx {
 
@@ -215,7 +216,7 @@ namespace xfsx {
            typename = std::enable_if_t<!std::is_fundamental<T>::value> >
       size_t minimally_encoded_length(const T &);
   template<> size_t minimally_encoded_length(
-      const std::pair<const uint8_t*, const uint8_t *> &v);
+      const std::pair<const u8 *, const u8 *> &v);
   template<> size_t minimally_encoded_length(
       const std::pair<const char*, const char*> &v);
   template<> size_t minimally_encoded_length(
@@ -233,61 +234,61 @@ namespace xfsx {
   template<> size_t minimally_encoded_length(
       const Int64_Content &v);
 
-  template<typename T> void decode(const uint8_t *begin, size_t size, T &);
-  template<> void decode(const uint8_t *begin, size_t size, int8_t &r);
-  template<> void decode(const uint8_t *begin, size_t size, uint8_t &r);
-  template<> void decode(const uint8_t *begin, size_t size, int16_t &r);
-  template<> void decode(const uint8_t *begin, size_t size, uint16_t &r);
-  template<> void decode(const uint8_t *begin, size_t size, int64_t &r);
-  template<> void decode(const uint8_t *begin, size_t size, uint64_t &r);
-  template<> void decode(const uint8_t *begin, size_t size, int32_t &r);
-  template<> void decode(const uint8_t *begin, size_t size, uint32_t &r);
-  template<> void decode(const uint8_t *begin, size_t size, bool &r);
-  template<> void decode(const uint8_t *begin, size_t size,
-      std::pair<const uint8_t*, const uint8_t *> &r);
-  template<> void decode(const uint8_t *begin, size_t size,
+  template<typename T> void decode(const u8 *begin, size_t size, T &);
+  template<> void decode(const u8 *begin, size_t size, int8_t &r);
+  template<> void decode(const u8 *begin, size_t size, uint8_t &r);
+  template<> void decode(const u8 *begin, size_t size, int16_t &r);
+  template<> void decode(const u8 *begin, size_t size, uint16_t &r);
+  template<> void decode(const u8 *begin, size_t size, int64_t &r);
+  template<> void decode(const u8 *begin, size_t size, uint64_t &r);
+  template<> void decode(const u8 *begin, size_t size, int32_t &r);
+  template<> void decode(const u8 *begin, size_t size, uint32_t &r);
+  template<> void decode(const u8 *begin, size_t size, bool &r);
+  template<> void decode(const u8 *begin, size_t size,
+      std::pair<const u8 *, const u8 *> &r);
+  template<> void decode(const u8 *begin, size_t size,
       std::pair<const char*, const char *> &r);
-  template<> void decode(const uint8_t *begin, size_t size,
+  template<> void decode(const u8 *begin, size_t size,
       BCD_String &r);
-  template<> void decode(const uint8_t *begin, size_t size,
+  template<> void decode(const u8 *begin, size_t size,
       Hex_String &r);
-  template<> void decode(const uint8_t *begin, size_t size,
+  template<> void decode(const u8 *begin, size_t size,
       Hex_XML_String &r);
 
   template<typename T,
            typename = std::enable_if_t<std::is_fundamental<T>::value> >
-      uint8_t *encode(T, uint8_t *begin, size_t size);
-  template<> uint8_t *encode(uint8_t t, uint8_t *begin, size_t size);
-  template<> uint8_t *encode(int8_t t, uint8_t *begin, size_t size);
-  template<> uint8_t *encode(uint16_t t, uint8_t *begin, size_t size);
-  template<> uint8_t *encode(int16_t t, uint8_t *begin, size_t size);
-  template<> uint8_t *encode(uint32_t t, uint8_t *begin, size_t size);
-  template<> uint8_t *encode(int32_t t, uint8_t *begin, size_t size);
-  template<> uint8_t *encode(uint64_t t, uint8_t *begin, size_t size);
-  template<> uint8_t *encode(int64_t t, uint8_t *begin, size_t size);
-  template<> uint8_t *encode(bool t, uint8_t *begin, size_t size);
+      u8 *encode(T, u8 *begin, size_t size);
+  template<> u8 *encode(uint8_t t, u8 *begin, size_t size);
+  template<> u8 *encode(int8_t t, u8 *begin, size_t size);
+  template<> u8 *encode(uint16_t t, u8 *begin, size_t size);
+  template<> u8 *encode(int16_t t, u8 *begin, size_t size);
+  template<> u8 *encode(uint32_t t, u8 *begin, size_t size);
+  template<> u8 *encode(int32_t t, u8 *begin, size_t size);
+  template<> u8 *encode(uint64_t t, u8 *begin, size_t size);
+  template<> u8 *encode(int64_t t, u8 *begin, size_t size);
+  template<> u8 *encode(bool t, u8 *begin, size_t size);
   template<typename T,
            typename = std::enable_if_t<!std::is_fundamental<T>::value> >
-      uint8_t *encode(const T &, uint8_t *begin, size_t size);
-  template<> uint8_t *encode(const std::pair<const uint8_t*, const uint8_t*> &t,
-      uint8_t *begin, size_t size);
-  template<> uint8_t *encode(const std::pair<const char*, const char*> &t,
-      uint8_t *begin, size_t size);
-  template<> uint8_t *encode(const std::string &t, uint8_t *begin, size_t size);
-  template<> uint8_t *encode(const BCD_String &t, uint8_t *begin, size_t size);
-  template<> uint8_t *encode(const Hex_String &t, uint8_t *begin, size_t size);
-  template<> uint8_t *encode(const Hex_XML_String &t,
-      uint8_t *begin, size_t size);
-  template<> uint8_t *encode(const XML_Content &t, uint8_t *begin, size_t size);
-  template<> uint8_t *encode(const BCD_Content &t, uint8_t *begin, size_t size);
-  template<> uint8_t *encode(const Int64_Content &t,
-      uint8_t *begin, size_t size);
+      u8 *encode(const T &, u8 *begin, size_t size);
+  template<> u8 *encode(const std::pair<const u8 *, const u8 *> &t,
+      u8 *begin, size_t size);
+  template<> u8 *encode(const std::pair<const char*, const char*> &t,
+      u8 *begin, size_t size);
+  template<> u8 *encode(const std::string &t, u8 *begin, size_t size);
+  template<> u8 *encode(const BCD_String &t, u8 *begin, size_t size);
+  template<> u8 *encode(const Hex_String &t, u8 *begin, size_t size);
+  template<> u8 *encode(const Hex_XML_String &t,
+      u8 *begin, size_t size);
+  template<> u8 *encode(const XML_Content &t, u8 *begin, size_t size);
+  template<> u8 *encode(const BCD_Content &t, u8 *begin, size_t size);
+  template<> u8 *encode(const Int64_Content &t,
+      u8 *begin, size_t size);
 
   struct Encode_Visitor {
-    typedef uint8_t* result_type;
-    uint8_t *begin;
+    typedef u8 * result_type;
+    u8 *begin;
     size_t size;
-    Encode_Visitor(uint8_t *begin, size_t size)
+    Encode_Visitor(u8 *begin, size_t size)
       :
         begin(begin),
         size(size)
@@ -295,13 +296,13 @@ namespace xfsx {
     }
     template <typename T,
               typename = std::enable_if_t<std::is_fundamental<T>::value> >
-      uint8_t *operator()(T t) const
+      u8 *operator()(T t) const
     {
       return encode(t, begin, size);
     }
     template <typename T,
               typename = std::enable_if_t<!std::is_fundamental<T>::value> >
-      uint8_t *operator()(const T &t) const
+      u8 *operator()(const T &t) const
     {
       return encode(t, begin, size);
     }
@@ -311,13 +312,13 @@ namespace xfsx {
     typedef size_t result_type;
     template <typename T,
               typename = std::enable_if_t<std::is_fundamental<T>::value> >
-      uint8_t *operator()(T t) const
+      u8 *operator()(T t) const
     {
       return minimally_encoded_length(t);
     }
     template <typename T,
               typename = std::enable_if_t<!std::is_fundamental<T>::value> >
-      uint8_t *operator()(const T &t) const
+      u8 *operator()(const T &t) const
     {
       return minimally_encoded_length(t);
     }
@@ -339,8 +340,8 @@ namespace xfsx {
 
     bool is_eoc() const;
 
-    const uint8_t *read(const uint8_t *begin, const uint8_t *end);
-    uint8_t *write(uint8_t *begin, uint8_t *end) const;
+    const u8 *read(const u8 *begin, const u8 *end);
+    u8 *write(u8 *begin, u8 *end) const;
 
 
     void init_tag(Tag_Int tag);
@@ -377,10 +378,10 @@ namespace xfsx {
   };
 
   struct TLC : public Unit {
-    const uint8_t *begin {nullptr};
+    const u8 *begin {nullptr};
 
-    const uint8_t *read(const uint8_t *begin, const uint8_t *end);
-    uint8_t *write(uint8_t *begin, uint8_t *end) const;
+    const u8 *read(const u8 *begin, const u8 *end);
+    u8 *write(u8 *begin, u8 *end) const;
 
     template <typename T> void copy_content(T &t) const
     {
@@ -426,10 +427,10 @@ namespace xfsx {
       uint32_t height {0};
 
       Vertical_TLC();
-      const uint8_t *read(const uint8_t *begin, const uint8_t *end);
-      const uint8_t *skip(const uint8_t *begin,
-          const uint8_t *end);
-      const uint8_t *skip_children(const uint8_t *begin, const uint8_t *end);
+      const u8 *read(const u8 *begin, const u8 *end);
+      const u8 *skip(const u8 *begin,
+          const u8 *end);
+      const u8 *skip_children(const u8 *begin, const u8 *end);
 
       uint32_t depth_ {0};
 
@@ -449,7 +450,7 @@ namespace xfsx {
         return value_;
       }
 
-    inline uint8_t *write(uint8_t *begin, uint8_t *end) const
+    inline u8 *write(u8 *begin, u8 *end) const
     {
       if (size_t(end-begin) < tl_size + length)
         throw std::overflow_error("write: value too large");
@@ -506,21 +507,21 @@ namespace xfsx {
   template <typename T>
   class Basic_Reader {
     protected:
-      const uint8_t *begin_;
-      const uint8_t *end_;
+      const u8 *begin_;
+      const u8 *end_;
       uint32_t skip_zero_ {0};
     public:
-      Basic_Reader(const uint8_t *begin, const uint8_t *end);
+      Basic_Reader(const u8 *begin, const u8 *end);
 
       class iterator {
         protected:
-          const uint8_t *first_;
-          const uint8_t *current_;
-          const uint8_t *begin_;
-          const uint8_t *end_;
+          const u8 *first_;
+          const u8 *current_;
+          const u8 *begin_;
+          const u8 *end_;
           T tlc_;
         public:
-          iterator(const uint8_t *begin, const uint8_t *end, uint32_t skip_zero_);
+          iterator(const u8 *begin, const u8 *end, uint32_t skip_zero_);
 
           const T &operator*() const;
           T &operator*();

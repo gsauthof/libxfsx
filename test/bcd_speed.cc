@@ -89,9 +89,9 @@ static void random_init(const string &file, vector<char> &v)
 
 struct Decode_Helper
 {
-  const uint8_t *cast_input(const char *c) const
+  const u8 *cast_input(const char *c) const
   {
-    return reinterpret_cast<const uint8_t*>(c);
+    return reinterpret_cast<const u8*>(c);
   }
   char *cast_output(char *c) const
   {
@@ -113,9 +113,9 @@ struct Encode_Helper
   {
     return c;
   }
-  uint8_t *cast_output(char *c) const
+  u8 *cast_output(char *c) const
   {
-    return reinterpret_cast<uint8_t*>(c);
+    return reinterpret_cast<u8*>(c);
   }
   size_t increment_size(size_t digits) const
   {
@@ -185,26 +185,26 @@ int main(int argc, char **argv)
   Arguments args(argc, argv);
   //bench_decode(args);
   bench("Default decode", args,
-      [](const uint8_t *b, const uint8_t *e, char *o) {
+      [](const u8 *b, const u8 *e, char *o) {
         xfsx::bcd::decode(b, e, o); }, Decode_Helper());
   bench("Default functor", args,
-      [](const uint8_t *b, const uint8_t *e, char *o) {
+      [](const u8 *b, const u8 *e, char *o) {
         xfsx::bcd::impl::decode::Decode<char*>()(b, e, o); }, Decode_Helper());
   bench("Two half decode", args,
-      [](const uint8_t *b, const uint8_t *e, char *o) {
+      [](const u8 *b, const u8 *e, char *o) {
         xfsx::bcd::impl::decode::Two_Half_Decode<char*>()(b, e, o); },
         Decode_Helper() );
   bench("Two half decode cmp", args,
-      [](const uint8_t *b, const uint8_t *e, char *o) {
+      [](const u8 *b, const u8 *e, char *o) {
         xfsx::bcd::impl::decode::Two_Half_Decode<char*,
           xfsx::bcd::impl::decode::Half_To_Char_Cmp<> >()(b, e, o); },
           Decode_Helper() );
   bench("Default encode", args,
-      [](const char *b, const char *e, uint8_t *o) {
+      [](const char *b, const char *e, u8 *o) {
         xfsx::bcd::encode(b, e, o); }, Encode_Helper());
   bench("Two char encode", args,
-      [](const char *b, const char *e, uint8_t *o) {
-        xfsx::bcd::impl::encode::Two_Char_Encode<uint8_t *>()(b, e, o); },
+      [](const char *b, const char *e, u8 *o) {
+        xfsx::bcd::impl::encode::Two_Char_Encode<u8 *>()(b, e, o); },
         Encode_Helper());
   return 0;
 }

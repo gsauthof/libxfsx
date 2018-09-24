@@ -12,6 +12,7 @@
 #include <xfsx/bcd_impl.hh>
 #include <xfsx/bcd.hh>
 
+using u8 = xfsx::u8;
 
 using namespace std;
 
@@ -30,7 +31,7 @@ BOOST_AUTO_TEST_SUITE(xfsx_)
       BOOST_AUTO_TEST_CASE(basic_manual)
       {
         Two_Half_Decode<char*> d;
-        array<uint8_t, 2> a = { 0xDEu, 0xADu };
+        array<u8, 2> a = { 0xDEu, 0xADu };
         string s(4, ' ');
         char *o = &s[0];
         d(a.begin(), a.end(), o);
@@ -40,7 +41,7 @@ BOOST_AUTO_TEST_SUITE(xfsx_)
       BOOST_AUTO_TEST_CASE(basic_non_default)
       {
         Two_Half_Decode<char*, Half_To_Char_Branch<> > d;
-        array<uint8_t, 2> a = { 0xDEu, 0xADu };
+        array<u8, 2> a = { 0xDEu, 0xADu };
         string s(4, ' ');
         char *o = &s[0];
         d(a.begin(), a.end(), o);
@@ -107,8 +108,8 @@ BOOST_AUTO_TEST_SUITE(xfsx_)
         i = boost::endian::native_to_little(i);
         uint64_t o = 0x00000000deadcafelu;
         (void)o;
-        array<uint8_t, 4> a;
-        auto r = encode::Gather::Base<uint64_t, uint8_t*,
+        array<u8, 4> a;
+        auto r = encode::Gather::Base<uint64_t, u8*,
              encode::Gather::Shift>()(i, a.begin());
         BOOST_REQUIRE(r == a.end());
 
@@ -124,8 +125,8 @@ BOOST_AUTO_TEST_SUITE(xfsx_)
         uint64_t i = 0x0d0e0a0d0c0a0f0elu;
         uint64_t o = 0x00000000deadcafelu;
         (void)o;
-        array<uint8_t, 4> a;
-        auto r = encode::Gather::Base<uint64_t, uint8_t*,
+        array<u8, 4> a;
+        auto r = encode::Gather::Base<uint64_t, u8*,
              encode::Gather::Shift_Big>()(i, a.begin());
         BOOST_REQUIRE(r == a.end());
 
@@ -179,7 +180,7 @@ BOOST_AUTO_TEST_SUITE(xfsx_)
       BOOST_AUTO_TEST_CASE_TEMPLATE(single, T, decoder_types)
       {
         T d;
-        array<uint8_t, 1> a = { 0xCAu };
+        array<u8, 1> a = { 0xCAu };
         string s(2, ' ');;
         char *p = &s[0];
         d(a.begin(), a.end(), p);
@@ -189,7 +190,7 @@ BOOST_AUTO_TEST_SUITE(xfsx_)
       BOOST_AUTO_TEST_CASE_TEMPLATE(basic, T, decoder_types)
       {
         T d;
-        array<uint8_t, 4> a = {
+        array<u8, 4> a = {
           0xDEu, 0xADu, 0xCAu, 0x0Eu
         };
         string s(a.size()*2, ' ');
@@ -202,7 +203,7 @@ BOOST_AUTO_TEST_SUITE(xfsx_)
       {
         T d;
         using namespace xfsx;
-        array<uint8_t, 4> a = {
+        array<u8, 4> a = {
           0xDEu, 0xADu, 0xCAu, 0xFEu
         };
         string s(a.size()*2, ' ');
@@ -216,7 +217,7 @@ BOOST_AUTO_TEST_SUITE(xfsx_)
       {
         T d;
         using namespace xfsx;
-        array<uint8_t, 4> a = {
+        array<u8, 4> a = {
           0xDEu, 0xADu, 0xCAu, 0xEFu
         };
         string s(a.size()*2, ' ');
@@ -230,7 +231,7 @@ BOOST_AUTO_TEST_SUITE(xfsx_)
       {
         T d;
         using namespace xfsx;
-        array<uint8_t, 8> a = {
+        array<u8, 8> a = {
           0x12u, 0x34u, 0x56u, 0x78u, 0x90u, 0xABu, 0xCDu, 0xEFu
         };
         string s(a.size()*2, ' ');
@@ -243,7 +244,7 @@ BOOST_AUTO_TEST_SUITE(xfsx_)
       {
         T d;
         using namespace xfsx;
-        array<uint8_t, 7> a = {
+        array<u8, 7> a = {
           0x12u, 0x34u, 0x56u, 0x78u, 0x90u, 0xABu, 0xCDu
         };
         string s(a.size()*2, ' ');
@@ -256,7 +257,7 @@ BOOST_AUTO_TEST_SUITE(xfsx_)
       {
         T d;
         using namespace xfsx;
-        array<uint8_t, 9> a = {
+        array<u8, 9> a = {
           0x12u, 0x34u, 0x56u, 0x78u, 0x90u, 0xABu, 0xCDu, 0xEFu, 0x23u
         };
         string s(a.size()*2, ' ');
@@ -269,7 +270,7 @@ BOOST_AUTO_TEST_SUITE(xfsx_)
       {
         T d;
         using namespace xfsx;
-        array<uint8_t, 64> a = {
+        array<u8, 64> a = {
           0x12u, 0x34u, 0x56u, 0x78u, 0x90u, 0xABu, 0xCDu, 0xEFu,
           0x12u, 0x34u, 0x56u, 0x78u, 0x90u, 0xABu, 0xCDu, 0xEFu,
           0x12u, 0x34u, 0x56u, 0x78u, 0x90u, 0xABu, 0xCDu, 0xEFu,
@@ -303,16 +304,16 @@ BOOST_AUTO_TEST_SUITE(xfsx_)
        using namespace xfsx::bcd::impl::encode;
 
       typedef boost::mpl::list<
-            Encode<uint8_t*>
-          , Encode<uint8_t*, uint32_t>
-          , Encode<uint8_t*, uint64_t, Scatter::Direct>
-          , Two_Char_Encode<uint8_t*>
+            Encode<u8*>
+          , Encode<u8*, uint32_t>
+          , Encode<u8*, uint64_t, Scatter::Direct>
+          , Two_Char_Encode<u8*>
         > encoder_types;
 
        BOOST_AUTO_TEST_CASE_TEMPLATE(empty, T, encoder_types)
        {
          array<char, 1> i;
-         array<uint8_t, 1> a;
+         array<u8, 1> a;
          auto r = T()(i.begin(), i.begin(), a.begin());
          BOOST_CHECK(r == a.begin());
        }
@@ -320,7 +321,7 @@ BOOST_AUTO_TEST_SUITE(xfsx_)
        BOOST_AUTO_TEST_CASE_TEMPLATE(one, T, encoder_types)
        {
          const char i[] = "c";
-         array<uint8_t, 1> a;
+         array<u8, 1> a;
          const char *begin = i;
          const char *end = begin + sizeof(i) - 1;
          auto r = T()(begin, end, a.begin());
@@ -331,7 +332,7 @@ BOOST_AUTO_TEST_SUITE(xfsx_)
        BOOST_AUTO_TEST_CASE_TEMPLATE(more, T, encoder_types)
        {
          const char i[] = "deadcafe";
-         array<uint8_t, 4> a;
+         array<u8, 4> a;
          const char *begin = i;
          const char *end = begin + sizeof(i) - 1;
          auto r = T()(begin, end, a.begin());
@@ -345,7 +346,7 @@ BOOST_AUTO_TEST_SUITE(xfsx_)
        BOOST_AUTO_TEST_CASE_TEMPLATE(filler, T, encoder_types)
        {
          const char i[] = "deadcafe1";
-         array<uint8_t, 5> a;
+         array<u8, 5> a;
          const char *begin = i;
          const char *end = begin + sizeof(i) - 1;
          auto r = T()(begin, end, a.begin());
@@ -360,7 +361,7 @@ BOOST_AUTO_TEST_SUITE(xfsx_)
        BOOST_AUTO_TEST_CASE_TEMPLATE(filler_longer, T, encoder_types)
        {
          const char i[] = "133713371337133";
-         vector<uint8_t> a(8);
+         vector<u8> a(8);
          const char *begin = i;
          const char *end = begin + sizeof(i) - 1;
          auto r = T()(begin, end, a.data());
@@ -371,7 +372,7 @@ BOOST_AUTO_TEST_SUITE(xfsx_)
        BOOST_AUTO_TEST_CASE_TEMPLATE(upper_case, T, encoder_types)
        {
          const char i[] = "DeAdcAfEdeADcaFEDEadCAfe";
-         array<uint8_t, 12> a;
+         array<u8, 12> a;
          const char *begin = i;
          const char *end = begin + sizeof(i) - 1;
          auto r = T()(begin, end, a.begin());
@@ -405,7 +406,7 @@ BOOST_AUTO_TEST_SUITE(xfsx_)
         BOOST_AUTO_TEST_CASE(filler)
         {
           const char i[] = "133713371337133";
-          vector<uint8_t> a(8);
+          vector<u8> a(8);
           auto r = xfsx::bcd::encode(i, i + sizeof(i) - 1, a.data());
           BOOST_CHECK(r == a.data() + a.size());
         }

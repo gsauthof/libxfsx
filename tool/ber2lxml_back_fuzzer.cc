@@ -47,8 +47,8 @@ Notes:
 using namespace std;
 
 static void compare_bers(
-    const pair<const uint8_t*, const uint8_t*> &a,
-    const pair<const uint8_t*, const uint8_t*> &b,
+    const pair<const u8*, const u8*> &a,
+    const pair<const u8*, const u8*> &b,
     const xfsx::xml::Pretty_Writer_Arguments &args)
 {
   xfsx::byte::writer::Memory x;
@@ -62,7 +62,7 @@ static void compare_bers(
     throw domain_error("Resulting XML differs from input XML");
 }
 
-extern "C" int LLVMFuzzerTestOneInput(const uint8_t *d, size_t n) {
+extern "C" int LLVMFuzzerTestOneInput(const u8 *d, size_t n) {
   // Disabling the ASN1 usage to avoid false-positives in the
   // XML comparison - e.g. when (by chance) a primitive tag
   // is generated with a constructed tag number
@@ -73,7 +73,7 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t *d, size_t n) {
   xfsx::xml::Pretty_Writer_Arguments args;
   xfsx::BER_Writer_Arguments wargs;
   // xfsx::tap::apply_grammar(asn_filenames, wargs);
-  vector<uint8_t> v;
+  vector<u8> v;
   try {
     xxxml::doc::Ptr doc = xfsx::xml::l2::generate_tree(d, d+n, args);
     xfsx::xml::l2::write_ber(doc, v, wargs);

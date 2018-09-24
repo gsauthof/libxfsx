@@ -22,6 +22,7 @@
 
 #include <algorithm>
 #include <stdlib.h>
+#include "octet.hh"
 
 using namespace std;
 
@@ -29,41 +30,42 @@ namespace xfsx {
 
   namespace hex {
 
+
     template <typename Style_Tag>
-    size_t decoded_size(const uint8_t *begin, const uint8_t *end)
+    size_t decoded_size(const u8 *begin, const u8 *end)
     {
       return impl::decoded_size<Style_Tag>(begin, end);
     }
     template size_t decoded_size<Style::XML>(
-        const uint8_t *begin, const uint8_t *end);
+        const u8 *begin, const u8 *end);
     template size_t decoded_size<Style::C>(
-        const uint8_t *begin, const uint8_t *end);
+        const u8 *begin, const u8 *end);
     template size_t decoded_size<Style::Raw>(
-        const uint8_t *begin, const uint8_t *end);
+        const u8 *begin, const u8 *end);
 
     template <typename Style_Tag>
-    char *decode(const uint8_t *begin, const uint8_t *end, char *o)
+    char *decode(const u8 *begin, const u8 *end, char *o)
     {
       return impl::decode<Style_Tag>(begin, end, o);
     }
     template char *decode<Style::XML>(
-        const uint8_t *begin, const uint8_t *end, char *o);
+        const u8 *begin, const u8 *end, char *o);
     template char *decode<Style::C>(
-        const uint8_t *begin, const uint8_t *end, char *o);
+        const u8 *begin, const u8 *end, char *o);
     template char *decode<Style::Raw>(
-        const uint8_t *begin, const uint8_t *end, char *o);
+        const u8 *begin, const u8 *end, char *o);
 
     template <typename Style_Tag>
-      uint8_t *encode(const char *begin, const char *end, uint8_t *o)
+      u8 *encode(const char *begin, const char *end, u8 *o)
     {
       return impl::encode<Style_Tag>(begin, end, o);
     }
-    template uint8_t *encode<Style::XML>(
-        const char *begin, const char *end, uint8_t *o);
-    template uint8_t *encode<Style::C>(
-        const char *begin, const char *end, uint8_t *o);
-    template uint8_t *encode<Style::Raw>(
-        const char *begin, const char *end, uint8_t *o);
+    template u8 *encode<Style::XML>(
+        const char *begin, const char *end, u8 *o);
+    template u8 *encode<Style::C>(
+        const char *begin, const char *end, u8 *o);
+    template u8 *encode<Style::Raw>(
+        const char *begin, const char *end, u8 *o);
 
     template <typename Style_Tag>
       size_t encoded_size(const char *begin, const char *end)

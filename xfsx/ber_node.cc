@@ -93,7 +93,7 @@ namespace xfsx {
       return tlc_.tl_size + l;
     }
     template <typename T>
-    uint8_t *Node<T>::write(uint8_t *begin, uint8_t *end) const
+    u8 *Node<T>::write(u8 *begin, u8 *end) const
     {
       auto p = tlc_.write(begin, end);
       if (!v_.empty()) {

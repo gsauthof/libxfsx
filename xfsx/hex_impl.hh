@@ -28,12 +28,14 @@
 #include <boost/regex.hpp>
 
 #include "bcd_impl.hh"
+#include "octet.hh"
 
 namespace xfsx {
 
   namespace hex {
 
     namespace impl {
+
 
       struct Is_Control {
         bool operator()(uint8_t b) const { return (b < 32u || b > 126u); }
@@ -150,20 +152,20 @@ namespace xfsx {
         };
 
       template <typename Style_Tag>
-        size_t count_decode_overhead(const uint8_t *begin, const uint8_t *end)
+        size_t count_decode_overhead(const u8 *begin, const u8 *end)
         {
           return std::count_if(begin, end, Is_Not_Normal<Style_Tag>())
             * Overhead<Style_Tag>()();
         }
       template <typename Style_Tag>
-      size_t decoded_size(const uint8_t *begin, const uint8_t *end)
+      size_t decoded_size(const u8 *begin, const u8 *end)
       {
         return size_t(end-begin)
           + impl::count_decode_overhead<Style_Tag>(begin, end);
       }
       template <>
       inline size_t decoded_size<Style::Raw>(
-          const uint8_t *begin, const uint8_t *end)
+          const u8 *begin, const u8 *end)
       {
         size_t n = end - begin;
         return n * 2u;
@@ -193,9 +195,9 @@ namespace xfsx {
                  }
 
       template <typename Style_Tag>
-        char *decode(const uint8_t *begin, const uint8_t *end, char *o)
+        char *decode(const u8 *begin, const u8 *end, char *o)
         {
-          const uint8_t *i = begin;
+          const u8 *i = begin;
           auto io = std::make_pair(i, o);
           do {
             io = copy_while(io.first, end, io.second, Is_Normal<Style_Tag>());
@@ -308,13 +310,13 @@ namespace xfsx {
       }
       template <typename Style_Tag>
         struct Un_Escape {
-          std::pair<const char*, uint8_t*>
-            operator()(const char *begin, const char *end, uint8_t *o)
+          std::pair<const char*, u8*>
+            operator()(const char *begin, const char *end, u8 *o)
           {
             const char *a = begin + Surround::Base<Style_Tag>().prefix_size();
             const char *b =
               begin + Surround::Base<Style_Tag>().prefix_size() + 2u;
-            o = bcd::impl::encode::Basic_Encode<uint8_t*, uint16_t,
+            o = bcd::impl::encode::Basic_Encode<u8*, uint16_t,
               // to avoid alignment issues
               bcd::impl::encode::Scatter::Memcpy >()( a, b, o);
             auto i = begin
@@ -381,7 +383,7 @@ namespace xfsx {
         }
 
       template <typename Style_Tag>
-        uint8_t *encode(const char *begin, const char *end, uint8_t *o)
+        u8 *encode(const char *begin, const char *end, u8 *o)
         {
           const char *i = begin;
           auto io = std::make_pair(i, o);

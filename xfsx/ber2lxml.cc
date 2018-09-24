@@ -62,7 +62,7 @@ namespace xfsx {
           void pop();
         public:
           Tree_Generator(
-              const uint8_t *begin, const uint8_t *end,
+              const xfsx::u8 *begin, const xfsx::u8 *end,
               xxxml::doc::Ptr &&doc,
               const Pretty_Writer_Arguments &args
               );
@@ -70,7 +70,7 @@ namespace xfsx {
       };
 
       Tree_Generator::Tree_Generator(
-          const uint8_t *begin, const uint8_t *end,
+          const xfsx::u8 *begin, const xfsx::u8 *end,
           xxxml::doc::Ptr &&doc,
           const Pretty_Writer_Arguments &args)
         :
@@ -213,8 +213,8 @@ namespace xfsx {
       }
 
       xxxml::doc::Ptr generate_tree(
-          const uint8_t *begin,
-          const uint8_t *end,
+          const xfsx::u8 *begin,
+          const xfsx::u8 *end,
           const Pretty_Writer_Arguments &args)
       {
         xxxml::doc::Ptr doc = xxxml::new_doc();

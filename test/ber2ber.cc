@@ -21,6 +21,8 @@ using namespace std;
 
 namespace bf = boost::filesystem;
 
+using u8 = xfsx::u8;
+
 static void compare_identity(const char *rel_filename_str)
 {
   bf::path rel_filename(rel_filename_str);
@@ -70,7 +72,7 @@ static void compare_identity(const char *rel_filename_str)
 
 }
 
-static unsigned read_for_throw(const uint8_t *begin, const uint8_t *end)
+static unsigned read_for_throw(const u8 *begin, const u8 *end)
 {
   using namespace xfsx;
   Vertical_Reader r(begin, end);
@@ -117,7 +119,7 @@ static void check_flat_no_throw(const char *rel_filename_str)
 
 static void check_reference(
     const char *suffix,
-    std::function<void(const uint8_t *, const uint8_t *, const string &)> fn,
+    std::function<void(const u8 *, const u8 *, const string &)> fn,
     const char *rel_filename_str)
 {
   bf::path rel_filename(rel_filename_str);
@@ -163,7 +165,7 @@ static void check_reference(
   }
 }
 
-static void write_indef(const uint8_t *begin, const uint8_t *end,
+static void write_indef(const u8 *begin, const u8 *end,
     const string &filename)
 {
   xfsx::ber::write_indefinite(begin, end, filename);
@@ -184,7 +186,7 @@ static void compare_indefinite(const char *rel_filename_str)
   check_reference("indefinite", write_indef, rel_filename_str);
 }
 
-static void write_def(const uint8_t *begin, const uint8_t *end,
+static void write_def(const u8 *begin, const u8 *end,
     const string &filename)
 {
   xfsx::ber::write_definite(begin, end, filename);

@@ -27,11 +27,14 @@
 #include <stdlib.h>
 #include <boost/endian/conversion.hpp>
 
+#include <xfsx/octet.hh>
+
 namespace xfsx {
 
   namespace bcd {
 
     namespace impl {
+
 
       // distribute byte into all bytes of the destination
       //
@@ -87,15 +90,15 @@ namespace xfsx {
 
           template <typename T> struct Base<T, Yes> {
             enum { alignment = sizeof(T) };
-            const uint8_t *operator()(const uint8_t *begin)
+            const u8 *operator()(const u8 *begin)
             {
-              const uint8_t *r = next_aligned_address<T>(begin);
+              const u8 *r = next_aligned_address<T>(begin);
               return r;
             }
           };
           template <typename T> struct Base<T, No> {
             enum { alignment = 1};
-            const uint8_t *operator()(const uint8_t *begin)
+            const u8 *operator()(const u8 *begin)
             {
               return begin;
             }

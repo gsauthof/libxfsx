@@ -396,7 +396,7 @@ namespace xfsx {
 
   namespace {
 
-  template <bool b, typename T> inline void shift_into_int(const uint8_t *&p,
+  template <bool b, typename T> inline void shift_into_int(const u8 *&p,
       size_t n, T &r)
   {
     // work around ambiguity issue with T=size_t and boost::endian on Mac OSX
@@ -409,7 +409,7 @@ namespace xfsx {
     }
 #else
     if (b) {
-      memcpy(reinterpret_cast<uint8_t*>(&r)+(sizeof(T)-n), p, n);
+      memcpy(reinterpret_cast<u8 *>(&r)+(sizeof(T)-n), p, n);
       boost::endian::big_to_native_inplace(r);
       p += n;
     }
@@ -482,12 +482,12 @@ namespace xfsx {
    *   - https://en.wikipedia.org/wiki/X.690
    */
 
-  const uint8_t *Unit::read(const uint8_t *begin,
-      const uint8_t *end)
+  const u8 *Unit::read(const u8 *begin,
+      const u8 *end)
   {
     if (end-begin < 2)
       throw TL_Too_Small();
-    const uint8_t *p = begin;
+    const u8 *p = begin;
     klasse = static_cast<Klasse>((*p) & 0b11'000'000u);
     shape  = static_cast<Shape>((*p) & 0b00'1'00000u);
     is_long_tag = ((*p) & 0b1'11'11u) == 0b1'11'11u;
@@ -548,7 +548,7 @@ namespace xfsx {
       return p;
   }
 
-  uint8_t *Unit::write(uint8_t *begin, uint8_t *end) const
+  u8 *Unit::write(u8 *begin, u8 *end) const
   {
     // if (end - begin < 2)
     //  throw overflow_error("TL write buffer must be at least 2 bytes long");
@@ -556,7 +556,7 @@ namespace xfsx {
       throw overflow_error("TL write buffer is too small");
     uint8_t b = static_cast<uint8_t>(klasse);
     b |= static_cast<uint8_t>(shape);
-    uint8_t *p = begin;
+    u8 *p = begin;
     if (is_long_tag) {
       b |= 0b11'11'1u;
       *p++ = b;
@@ -581,7 +581,7 @@ namespace xfsx {
       #if USE_BOOST_ENDIAN_FOR_LENGTH_WRITE
         size_t x = length;
         boost::endian::native_to_big_inplace(x);
-        memcpy(p, reinterpret_cast<uint8_t*>(&x)+(sizeof(size_t)-l), l);
+        memcpy(p, reinterpret_cast<u8 *>(&x)+(sizeof(size_t)-l), l);
         p += l;
       #else
         for (uint8_t i = (l-1)*8; i > 0; i-=8) {
@@ -661,13 +661,13 @@ namespace xfsx {
     init_length(length);
   }
 
-  const uint8_t *TLC::read(const uint8_t *begin,
-      const uint8_t *end)
+  const u8 *TLC::read(const u8 *begin,
+      const u8 *end)
   {
     this->begin = begin;
     return Unit::read(begin, end);
   }
-  uint8_t *TLC::write(uint8_t *begin, uint8_t *end) const
+  u8 *TLC::write(u8 *begin, u8 *end) const
   {
     auto p = Unit::write(begin, end);
     if (shape == Shape::PRIMITIVE)
@@ -755,11 +755,11 @@ namespace xfsx {
    * unusual.
    *
    */
-  const uint8_t *Vertical_TLC::read(const uint8_t *begin,
-      const uint8_t *end)
+  const u8 *Vertical_TLC::read(const u8 *begin,
+      const u8 *end)
   {
     height = depth_;
-    const uint8_t *r = TLC::read(begin, end);
+    const u8 *r = TLC::read(begin, end);
     switch (shape) {
       case Shape::PRIMITIVE:
         if (is_eoc()) {
@@ -787,8 +787,8 @@ namespace xfsx {
     return r;
   }
 
-  const uint8_t *Vertical_TLC::skip(const uint8_t *begin,
-      const uint8_t *end)
+  const u8 *Vertical_TLC::skip(const u8 *begin,
+      const u8 *end)
   {
     assert(begin < end);
     if (shape == Shape::CONSTRUCTED && length) {
@@ -805,8 +805,8 @@ namespace xfsx {
   // (even if the first tag is indefinite)
   //
   // assumes that last operation on tlc was a read
-  const uint8_t *Vertical_TLC::skip_children(const uint8_t *begin,
-      const uint8_t *end)
+  const u8 *Vertical_TLC::skip_children(const u8 *begin,
+      const u8 *end)
   {
     if (!(begin<end))
       throw overflow_error("Not enough space for skipping children");
@@ -886,7 +886,7 @@ namespace xfsx {
   }
 #endif
   template<> size_t minimally_encoded_length(
-      const std::pair<const uint8_t*, const uint8_t *> &v)
+      const std::pair<const u8 *, const u8 *> &v)
   {
     return size_t(v.second - v.first);
   }
@@ -938,7 +938,7 @@ namespace xfsx {
   }
 
 
-  template <typename T> void decode_int(const uint8_t *begin, size_t length,
+  template <typename T> void decode_int(const u8 *begin, size_t length,
       T &r)
   {
     if (length > sizeof(T))
@@ -954,65 +954,65 @@ namespace xfsx {
         r = ((*begin) & 0b1'000'0000) ? -1 : 0;
       else
         r = 0;
-      const uint8_t *p = begin;
+      const u8 *p = begin;
       shift_into_int<USE_BOOST_ENDIAN_FOR_INTEGER>(p, length, r);
     }
   }
 
-  template<> void decode(const uint8_t *begin, size_t length, int64_t &r)
+  template<> void decode(const u8 *begin, size_t length, int64_t &r)
   {
     decode_int(begin, length, r);
   }
-  template<> void decode(const uint8_t *begin, size_t length, uint64_t &r)
+  template<> void decode(const u8 *begin, size_t length, uint64_t &r)
   {
     decode_int(begin, length, r);
   }
-  template<> void decode(const uint8_t *begin, size_t length, int32_t &r)
+  template<> void decode(const u8 *begin, size_t length, int32_t &r)
   {
     decode_int(begin, length, r);
   }
-  template<> void decode(const uint8_t *begin, size_t length, uint32_t &r)
+  template<> void decode(const u8 *begin, size_t length, uint32_t &r)
   {
     decode_int(begin, length, r);
   }
-  template<> void decode(const uint8_t *begin, size_t length, int16_t &r)
+  template<> void decode(const u8 *begin, size_t length, int16_t &r)
   {
     decode_int(begin, length, r);
   }
-  template<> void decode(const uint8_t *begin, size_t length, uint16_t &r)
+  template<> void decode(const u8 *begin, size_t length, uint16_t &r)
   {
     decode_int(begin, length, r);
   }
-  template<> void decode(const uint8_t *begin, size_t length, int8_t &r)
+  template<> void decode(const u8 *begin, size_t length, int8_t &r)
   {
     decode_int(begin, length, r);
   }
-  template<> void decode(const uint8_t *begin, size_t length, uint8_t &r)
+  template<> void decode(const u8 *begin, size_t length, uint8_t &r)
   {
     decode_int(begin, length, r);
   }
 
-  template<> void decode(const uint8_t *begin, size_t length, bool &r)
+  template<> void decode(const u8 *begin, size_t length, bool &r)
   {
     if (length > 1)
       throw overflow_error("encoded boolean is too large");
     r = *begin;
   }
 
-  template<> void decode(const uint8_t *begin, size_t size,
-      std::pair<const uint8_t*, const uint8_t *> &r)
+  template<> void decode(const u8 *begin, size_t size,
+      std::pair<const u8 *, const u8 *> &r)
   {
     r.first  = begin;
     r.second = begin + size;
   }
-  template<> void decode(const uint8_t *begin, size_t size,
+  template<> void decode(const u8 *begin, size_t size,
       std::pair<const char*, const char *> &r)
   {
     r.first  = reinterpret_cast<const char *>(begin);
     r.second = reinterpret_cast<const char *>(begin) + size;
   }
 
-  template<> void decode(const uint8_t *begin, size_t size,
+  template<> void decode(const u8 *begin, size_t size,
       BCD_String &r)
   {
     if (!size) {
@@ -1022,7 +1022,7 @@ namespace xfsx {
     string s;
     swap(s, r.get());
     s.resize(size*2);
-    const uint8_t *end = begin + size;
+    const u8 *end = begin + size;
     char *x = &s[0];
     bcd::decode(begin, end, x);
     if (s.back() == 'f')
@@ -1030,7 +1030,7 @@ namespace xfsx {
     r = std::move(s);
   }
   template <typename Style_Tag, typename H>
-  void decode_hex(const uint8_t *begin, size_t size,
+  void decode_hex(const u8 *begin, size_t size,
       H &r)
   {
     if (!size) {
@@ -1038,26 +1038,26 @@ namespace xfsx {
       return;
     }
     string s(std::move(r.get()));
-    const uint8_t *end = begin + size;
+    const u8 *end = begin + size;
     s.resize(hex::decoded_size<Style_Tag>(begin, end));
     char *x = &s[0];
     hex::decode<Style_Tag>(begin, end, x);
     r = std::move(s);
   }
-  template<> void decode(const uint8_t *begin, size_t size,
+  template<> void decode(const u8 *begin, size_t size,
       Hex_String &r)
   {
     decode_hex<hex::Style::C>(begin, size, r);
   }
-  template<> void decode(const uint8_t *begin, size_t size,
+  template<> void decode(const u8 *begin, size_t size,
       Hex_XML_String &r)
   {
     decode_hex<hex::Style::XML>(begin, size, r);
   }
 
-  template<typename T> uint8_t *encode_int(T t, uint8_t *begin, size_t size)
+  template<typename T> u8 *encode_int(T t, u8 *begin, size_t size)
   {
-    uint8_t *p = begin;
+    u8 *p = begin;
     if (sizeof(T) == 1) {
       if (size != 1)
         throw overflow_error("size too small/big for 1 byte int");
@@ -1071,10 +1071,10 @@ namespace xfsx {
      #ifdef USE_BOOST_ENDIAN_FOR_INTEGER_WRITE
         T v = boost::endian::native_to_big(t);
         #ifdef _GNU_SOURCE
-          p = static_cast<uint8_t*>(mempcpy(p,
-                reinterpret_cast<uint8_t*>(&v) + (sizeof(T) - l), l));
+          p = static_cast<u8 *>(mempcpy(p,
+                reinterpret_cast<u8 *>(&v) + (sizeof(T) - l), l));
         #else
-          memcpy(p, reinterpret_cast<uint8_t*>(&v) + (sizeof(T) - l), l);
+          memcpy(p, reinterpret_cast<u8 *>(&v) + (sizeof(T) - l), l);
           p += l;
         #endif
       #else
@@ -1086,80 +1086,80 @@ namespace xfsx {
     return p;
   }
 
-  template<> uint8_t *encode(uint8_t t, uint8_t *begin, size_t size)
+  template<> u8 *encode(uint8_t t, u8 *begin, size_t size)
   {
     return encode_int(t, begin, size);
   }
-  template<> uint8_t *encode(int8_t t, uint8_t *begin, size_t size)
+  template<> u8 *encode(int8_t t, u8 *begin, size_t size)
   {
     return encode_int(t, begin, size);
   }
-  template<> uint8_t *encode(uint16_t t, uint8_t *begin, size_t size)
+  template<> u8 *encode(uint16_t t, u8 *begin, size_t size)
   {
     return encode_int(t, begin, size);
   }
-  template<> uint8_t *encode(int16_t t, uint8_t *begin, size_t size)
+  template<> u8 *encode(int16_t t, u8 *begin, size_t size)
   {
     return encode_int(t, begin, size);
   }
-  template<> uint8_t *encode(uint32_t t, uint8_t *begin, size_t size)
+  template<> u8 *encode(uint32_t t, u8 *begin, size_t size)
   {
     return encode_int(t, begin, size);
   }
-  template<> uint8_t *encode(int32_t t, uint8_t *begin, size_t size)
+  template<> u8 *encode(int32_t t, u8 *begin, size_t size)
   {
     return encode_int(t, begin, size);
   }
-  template<> uint8_t *encode(uint64_t t, uint8_t *begin, size_t size)
+  template<> u8 *encode(uint64_t t, u8 *begin, size_t size)
   {
     return encode_int(t, begin, size);
   }
-  template<> uint8_t *encode(int64_t t, uint8_t *begin, size_t size)
+  template<> u8 *encode(int64_t t, u8 *begin, size_t size)
   {
     return encode_int(t, begin, size);
   }
-  template<> uint8_t *encode(bool t, uint8_t *begin, size_t size)
+  template<> u8 *encode(bool t, u8 *begin, size_t size)
   {
     if (size != 1)
       throw overflow_error("bool needs 1 byte");
     *begin = uint8_t(t);
     return begin + 1;
   }
-  template <typename T> uint8_t *encode_pair(
-      const std::pair<const T*, const T*> &t, uint8_t *begin, size_t size)
+  template <typename T> u8 *encode_pair(
+      const std::pair<const T*, const T*> &t, u8 *begin, size_t size)
   {
     if (t.second - t.first != ssize_t(size))
       throw overflow_error("pair too small or too big");
     #ifdef _GNU_SOURCE
-      return static_cast<uint8_t*>(mempcpy(begin, t.first, size));
+      return static_cast<u8 *>(mempcpy(begin, t.first, size));
     #else
       memcpy(begin, t.first, size);
       return begin + size;
     #endif
   }
-  template<> uint8_t *encode(
-      const std::pair<const uint8_t*, const uint8_t*> &t, uint8_t *begin,
+  template<> u8 *encode(
+      const std::pair<const u8 *, const u8 *> &t, u8 *begin,
       size_t size)
   {
     return encode_pair(t, begin, size);
   }
-  template<> uint8_t *encode(const std::pair<const char*, const char*> &t,
-      uint8_t *begin, size_t size)
+  template<> u8 *encode(const std::pair<const char*, const char*> &t,
+      u8 *begin, size_t size)
   {
     return encode_pair(t, begin, size);
   }
-  template<> uint8_t *encode(const string &t, uint8_t *begin, size_t size)
+  template<> u8 *encode(const string &t, u8 *begin, size_t size)
   {
     if (t.size() != size)
       throw overflow_error("string too small or too big");
     #ifdef _GNU_SOURCE
-      return static_cast<uint8_t*>(mempcpy(begin, t.data(), size));
+      return static_cast<u8 *>(mempcpy(begin, t.data(), size));
     #else
       memcpy(begin, t.data(), size);
       return begin + size;
     #endif
   }
-  template<> uint8_t *encode(const BCD_String &t, uint8_t *begin, size_t size)
+  template<> u8 *encode(const BCD_String &t, u8 *begin, size_t size)
   {
     if ((t.size() + 2 - 1) / 2 != size)
       throw overflow_error("BCD_String too small or too big");
@@ -1167,7 +1167,7 @@ namespace xfsx {
   }
 
   template <typename Style_Tag, typename H>
-  uint8_t *encode_hex(const H &t, uint8_t *o_begin, size_t size)
+  u8 *encode_hex(const H &t, u8 *o_begin, size_t size)
   {
     const char *begin = t.get().data();
     const char *end   = t.get().data() + t.get().size();
@@ -1175,30 +1175,30 @@ namespace xfsx {
       throw overflow_error("Hex_String too small or too big");
     return hex::encode<Style_Tag>(begin, end, o_begin);
   }
-  template<> uint8_t *encode(const Hex_String &t, uint8_t *o_begin, size_t size)
+  template<> u8 *encode(const Hex_String &t, u8 *o_begin, size_t size)
   {
     return encode_hex<hex::Style::C>(t, o_begin, size);
   }
-  template<> uint8_t *encode(const Hex_XML_String &t, uint8_t *o_begin,
+  template<> u8 *encode(const Hex_XML_String &t, u8 *o_begin,
       size_t size)
   {
     return encode_hex<hex::Style::XML>(t, o_begin, size);
   }
-  template<> uint8_t *encode(const XML_Content &t, uint8_t *begin, size_t size)
+  template<> u8 *encode(const XML_Content &t, u8 *begin, size_t size)
   {
     auto r = hex::encode<hex::Style::XML>(t.begin(), t.end(), begin);
     if (r !=  begin + size)
       throw overflow_error("XML_Content too long");
     return r;
   }
-  template<> uint8_t *encode(const BCD_Content &t, uint8_t *begin, size_t size)
+  template<> u8 *encode(const BCD_Content &t, u8 *begin, size_t size)
   {
     auto r = bcd::encode(t.begin(), t.end(), begin);
     if (r !=  begin + size)
       throw overflow_error("BCD_Content too long");
     return r;
   }
-  template<> uint8_t *encode(const Int64_Content &t, uint8_t *begin,
+  template<> u8 *encode(const Int64_Content &t, u8 *begin,
       size_t size)
   {
     return encode(t.value(), begin, size);
@@ -1207,7 +1207,7 @@ namespace xfsx {
 
 
   template <typename T>
-  Basic_Reader<T>::Basic_Reader(const uint8_t *begin, const uint8_t *end)
+  Basic_Reader<T>::Basic_Reader(const u8 *begin, const u8 *end)
     :
       begin_(begin),
       end_(end)
@@ -1226,7 +1226,7 @@ namespace xfsx {
   }
 
   template <typename T>
-  Basic_Reader<T>::iterator::iterator(const uint8_t *begin, const uint8_t *end,
+  Basic_Reader<T>::iterator::iterator(const u8 *begin, const u8 *end,
       uint32_t skip_zero)
     :
       first_(begin),

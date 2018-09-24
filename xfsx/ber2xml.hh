@@ -40,49 +40,49 @@ namespace xfsx {
     struct Pretty_Writer_Arguments;
 
     void write_unber_tl(
-        const uint8_t *begin, const uint8_t *end,
+        const u8 *begin, const u8 *end,
         byte::writer::Base &w
         );
     void write_unber_tl(
-        const uint8_t *begin, const uint8_t *end,
+        const u8 *begin, const u8 *end,
         const std::string &filename);
     void write_unber_tl(
-        const uint8_t *begin, const uint8_t *end,
+        const u8 *begin, const u8 *end,
         const char *filename);
 
     void write_indent_unber_tl(
-        const uint8_t *begin, const uint8_t *end,
+        const u8 *begin, const u8 *end,
         byte::writer::Base &w);
     void write_indent_unber_tl(
-        const uint8_t *begin, const uint8_t *end,
+        const u8 *begin, const u8 *end,
         const std::string &filename);
     void write_indent_unber_tl(
-        const uint8_t *begin, const uint8_t *end,
+        const u8 *begin, const u8 *end,
         const char *filename);
 
 
     void write(
-        const uint8_t *begin, const uint8_t *end,
+        const u8 *begin, const u8 *end,
         byte::writer::Base &w,
         const Writer_Arguments &args = default_writer_arguments
         );
     void write(
-        const uint8_t *begin, const uint8_t *end,
+        const u8 *begin, const u8 *end,
         const std::string &filename,
         const Writer_Arguments &args = default_writer_arguments
         );
     void write(
-        const uint8_t *begin, const uint8_t *end,
+        const u8 *begin, const u8 *end,
         const char *filename,
         const Writer_Arguments &args = default_writer_arguments
         );
 
     void pretty_write(
-        const uint8_t *begin, const uint8_t *end,
+        const u8 *begin, const u8 *end,
         byte::writer::Base &w,
         const Pretty_Writer_Arguments &args);
     void pretty_write(
-        const uint8_t *begin, const uint8_t *end,
+        const u8 *begin, const u8 *end,
         const std::string &filename,
         const Pretty_Writer_Arguments &args);
   }

@@ -37,17 +37,19 @@
 #include <functional>
 
 #include <xfsx/ber2xml.hh>
+#include <xfsx/octet.hh>
 
 #include "test.hh"
 
 using namespace std;
+using u8 = xfsx::u8;
 
 namespace bf = boost::filesystem;
 
 static void compare(
     const char *suffix_str,
     std::function<void(
-      const uint8_t *begin, const uint8_t *end, const char *filename)>
+      const u8 *begin, const u8 *end, const char *filename)>
       write_fn,
     const char *rel_filename_str
     )
@@ -108,7 +110,7 @@ static void compare(
 static void compare_tl_unber(const char *rel_filename_str)
 {
   compare("unber_tl",
-      static_cast<void(*)(const uint8_t *, const uint8_t *, const char*)>(
+      static_cast<void(*)(const u8 *, const u8 *, const char*)>(
         xfsx::xml::write_unber_tl
         ),
       rel_filename_str);
@@ -117,13 +119,13 @@ static void compare_tl_unber(const char *rel_filename_str)
 static void compare_indent_tl_unber(const char *rel_filename_str)
 {
   compare("indent_unber_tl",
-      static_cast<void(*)(const uint8_t *, const uint8_t *, const char*)>(
+      static_cast<void(*)(const u8 *, const u8 *, const char*)>(
         xfsx::xml::write_indent_unber_tl
         ),
       rel_filename_str);
 }
 
-static void write_xml(const uint8_t *begin, const uint8_t *end,
+static void write_xml(const u8 *begin, const u8 *end,
     const char* filename)
 {
   xfsx::xml::write(begin, end, filename);
@@ -134,7 +136,7 @@ static void compare_xml(const char *rel_filename_str)
   compare("ber_xml", write_xml, rel_filename_str);
 }
 
-static void write_pretty_xml(const uint8_t *begin, const uint8_t *end,
+static void write_pretty_xml(const u8 *begin, const u8 *end,
     const char* filename)
 {
   string tap_filename(test::path::in()
@@ -174,7 +176,7 @@ static void write_pretty_xml(const uint8_t *begin, const uint8_t *end,
   xfsx::xml::pretty_write(begin, end, filename, args);
 }
 
-static void write_pretty_xml_args(const uint8_t *begin, const uint8_t *end,
+static void write_pretty_xml_args(const u8 *begin, const u8 *end,
     const char* filename)
 {
   string tap_filename(test::path::in()
@@ -326,7 +328,7 @@ BOOST_AUTO_TEST_SUITE(xfsx_)
         Unit u;
         u.init_tag(23);
         u.init_length(16258469694287840439lu);
-        array<uint8_t, 16> a;
+        array<u8, 16> a;
         auto r = u.write(a.begin(), a.end());
         BOOST_CHECK_EQUAL(r-a.begin(), 10);
 

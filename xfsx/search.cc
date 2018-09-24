@@ -36,7 +36,7 @@ namespace xfsx {
   // foo/bar/baz  -> path = {{ to_tag(foo), to_tag(bar), to_tag(baz) }},
   //                 everywhere = true
 
-  const uint8_t *search(const uint8_t *begin, const uint8_t *end,
+  const u8 *search(const u8 *begin, const u8 *end,
       const std::vector<Tag_Int> &path, bool everywhere, Klasse klasse)
   {
     using namespace xfsx::traverser;

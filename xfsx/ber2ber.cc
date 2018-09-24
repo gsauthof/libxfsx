@@ -38,19 +38,19 @@ namespace xfsx {
 
   namespace ber {
 
-    void write_identity(const uint8_t *ibegin, const uint8_t *iend,
-        uint8_t *begin, uint8_t *end)
+    void write_identity(const u8 *ibegin, const u8 *iend,
+        u8 *begin, u8 *end)
     {
       Reader r(ibegin, iend);
       auto i = r.begin();
-      uint8_t *p = begin;
+      u8 *p = begin;
       for (; i!= r.end(); ++i) {
         TLC &tlc = *i;
         Unit &u = tlc;
         p = u.write(p, end);
         if (u.shape == Shape::PRIMITIVE) {
           #ifdef _GNU_SOURCE
-            p = static_cast<uint8_t*>(
+            p = static_cast<u8*>(
                 mempcpy(p, tlc.begin + u.tl_size, u.length));
           #else
             memcpy(p, tlc.begin + u.tl_size, u.length);
@@ -61,10 +61,10 @@ namespace xfsx {
     }
 
 
-    uint8_t *write_indefinite(const uint8_t *ibegin, const uint8_t *iend,
-        uint8_t *begin, uint8_t *end)
+    u8 *write_indefinite(const u8 *ibegin, const u8 *iend,
+        u8 *begin, u8 *end)
     {
-      uint8_t *p = begin;
+      u8 *p = begin;
       Vertical_Reader r(ibegin, iend);
       uint32_t last_height = 0;
       stack<bool> marker_stack;
@@ -115,7 +115,7 @@ namespace xfsx {
       return p;
     }
 
-    void write_indefinite(const uint8_t *ibegin, const uint8_t *iend,
+    void write_indefinite(const u8 *ibegin, const u8 *iend,
         const std::string &filename)
     {
       ixxx::util::FD fd(filename, O_CREAT | O_RDWR, 0666);
@@ -129,8 +129,8 @@ namespace xfsx {
     }
 
 
-    uint8_t *write_definite(const uint8_t *ibegin, const uint8_t *iend,
-        uint8_t *begin, uint8_t *end)
+    u8 *write_definite(const u8 *ibegin, const u8 *iend,
+        u8 *begin, u8 *end)
     {
       Skip_EOC_Reader r(ibegin, iend);
       uint32_t last_height = 0;
@@ -181,13 +181,13 @@ namespace xfsx {
         node_stack.top()->add_to_length(l);
       }
       assert(!node_stack.empty());
-      uint8_t *p = begin;
+      u8 *p = begin;
       for (auto &child : root.children())
         p = child->write(p, end);
       return p;
     }
 
-    void write_definite(const uint8_t *ibegin, const uint8_t *iend,
+    void write_definite(const u8 *ibegin, const u8 *iend,
         const std::string &filename)
     {
       ixxx::util::FD fd(filename, O_CREAT | O_RDWR, 0666);

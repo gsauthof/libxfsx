@@ -35,13 +35,13 @@ Notes:
 
 using namespace std;
 
-extern "C" int LLVMFuzzerTestOneInput(const uint8_t *d, size_t n) {
+extern "C" int LLVMFuzzerTestOneInput(const u8 *d, size_t n) {
   string tap_filename(test::path::in()
       + "/../../libgrammar/test/in/asn1/tap_3_12_strip.asn1");
   deque<string> asn_filenames = {tap_filename};
   xfsx::BER_Writer_Arguments args;
   xfsx::tap::apply_grammar(asn_filenames, args);
-  vector<uint8_t> v;
+  vector<u8> v;
   try {
     const char *e = reinterpret_cast<const char*>(d);
     xfsx::xml::write_ber(e, e+n, v, args);

@@ -24,23 +24,25 @@
 #include <stdint.h>
 #include <string>
 
+#include "octet.hh"
+
 namespace xfsx {
 
   namespace ber {
 
-    void write_identity(const uint8_t *ibegin, const uint8_t *iend,
-        uint8_t *begin, uint8_t *end);
+    void write_identity(const u8 *ibegin, const u8 *iend,
+        u8 *begin, u8 *end);
 
 
-    uint8_t *write_indefinite(const uint8_t *ibegin, const uint8_t *iend,
-        uint8_t *begin, uint8_t *end);
-    void write_indefinite(const uint8_t *ibegin, const uint8_t *iend,
+    u8 *write_indefinite(const u8 *ibegin, const u8 *iend,
+        u8 *begin, u8 *end);
+    void write_indefinite(const u8 *ibegin, const u8 *iend,
         const std::string &filename);
 
 
-    uint8_t *write_definite(const uint8_t *ibegin, const uint8_t *iend,
-        uint8_t *begin, uint8_t *end);
-    void write_definite(const uint8_t *ibegin, const uint8_t *iend,
+    u8 *write_definite(const u8 *ibegin, const u8 *iend,
+        u8 *begin, u8 *end);
+    void write_definite(const u8 *ibegin, const u8 *iend,
         const std::string &filename);
 
   }

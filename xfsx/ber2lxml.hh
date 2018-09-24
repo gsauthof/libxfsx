@@ -23,6 +23,7 @@
 
 #include <xxxml/xxxml.hh>
 #include <stdint.h>
+#include "octet.hh"
 
 namespace xfsx {
 
@@ -32,7 +33,7 @@ namespace xfsx {
 
     namespace l2 {
 
-      xxxml::doc::Ptr generate_tree(const uint8_t *begin, const uint8_t *end,
+      xxxml::doc::Ptr generate_tree(const u8 *begin, const u8 *end,
           const Pretty_Writer_Arguments &args);
     }
   }

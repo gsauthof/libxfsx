@@ -59,16 +59,16 @@ namespace xfsx {
 
   namespace bcd {
 
-    char *decode(const uint8_t *begin, const uint8_t *end,
+    char *decode(const u8 *begin, const u8 *end,
         char *o)
     {
       return impl::decode::Decode<char *>()(begin, end, o);
     }
 
-    uint8_t *encode(const char *begin, const char *end,
-        uint8_t *o)
+    u8 *encode(const char *begin, const char *end,
+        u8 *o)
     {
-      return impl::encode::Encode<uint8_t*>()(begin, end, o);
+      return impl::encode::Encode<u8*>()(begin, end, o);
     }
 
 

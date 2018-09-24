@@ -87,14 +87,14 @@ namespace xfsx {
 
           // has alignment and aliasing issues
           template <typename T> struct Base<T, Direct> {
-            T operator()(const uint8_t *i) const
+            T operator()(const u8 *i) const
             {
               return *reinterpret_cast<const T*>(i);
             }
           };
 
           template <typename T> struct Base<T, Memcpy> {
-            T operator()(const uint8_t *i) const
+            T operator()(const u8 *i) const
             {
               T r;
               memcpy(&r, i, sizeof(T));
@@ -197,7 +197,7 @@ namespace xfsx {
           O operator()(const char *begin, const char *end, O o) const
           {
             for (const char *i = begin; i < end; i += sizeof(T)) {
-              T a = S()(reinterpret_cast<const uint8_t*>(i));
+              T a = S()(reinterpret_cast<const u8*>(i));
               T b = C()(a);
               o   = G()(b, o);
             }

@@ -23,15 +23,17 @@
 
 #include <stdint.h>
 
+#include "octet.hh"
+
 namespace xfsx {
 
   namespace bcd {
 
-    char *decode(const uint8_t *begin, const uint8_t *end,
+    char *decode(const u8 *begin, const u8 *end,
         char *o);
 
-    uint8_t *encode(const char *begin, const char *end,
-        uint8_t *o);
+    u8 *encode(const char *begin, const char *end,
+        u8 *o);
 
   }
 

@@ -41,7 +41,7 @@ Notes:
 
 using namespace std;
 
-extern "C" int LLVMFuzzerTestOneInput(const uint8_t *d, size_t n) {
+extern "C" int LLVMFuzzerTestOneInput(const u8 *d, size_t n) {
   string tap_filename(test::path::in()
       + "/../../libgrammar/test/in/asn1/tap_3_12_strip.asn1");
   deque<string> asn_filenames = {tap_filename};

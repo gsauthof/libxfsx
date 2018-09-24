@@ -93,11 +93,11 @@ namespace xfsx {
 
         template <typename O, typename F = Half_To_Char_SAR<> >
           struct Two_Half_Decode {
-            void operator()(const uint8_t *begin, const uint8_t *end,
+            void operator()(const u8 *begin, const u8 *end,
                 O &o)
             {
               F f;
-              for (const uint8_t *i = begin; i < end; ++i) {
+              for (const u8 *i = begin; i < end; ++i) {
                 uint8_t b = *i;
                 uint8_t l = b >> 4;
                 uint8_t r = b & 0b00'00'1111u;
@@ -216,7 +216,7 @@ namespace xfsx {
 
           template <typename T> struct Base<T, Shift> {
             // read the characters as big endian
-            T operator()(const uint8_t *i) const
+            T operator()(const u8 *i) const
             {
               uint8_t increment = sizeof(T)/2u;
               T b = *i;
@@ -240,7 +240,7 @@ namespace xfsx {
           template <typename T> struct Base<T, Reverse> {
             // read the characters as little endian
             // such that endian conversion at the end is not necessary
-            T operator()(const uint8_t *i) const
+            T operator()(const u8 *i) const
             {
               uint8_t increment = sizeof(T)/2u;
               T b = 0;
@@ -272,12 +272,12 @@ namespace xfsx {
                  typename G = Gather::Base<O, T, Gather_Policy>
                    >
                    struct Basic_Decode {
-                     O operator()(const uint8_t *begin, const uint8_t *end,
+                     O operator()(const u8 *begin, const u8 *end,
                          O o) const
                      {
                        O r = o;
                        uint8_t increment = sizeof(T)/2u;
-                       for (const uint8_t *i = begin; i < end; i += increment) {
+                       for (const u8 *i = begin; i < end; i += increment) {
                          T a = S()(i);
                          // XXX use references on C and G, i.e. for a and b?
                          T b = C()(a);
@@ -298,18 +298,18 @@ namespace xfsx {
                    >
            struct Decode {
 
-             O operator()(const uint8_t *begin, const uint8_t *end,
+             O operator()(const u8 *begin, const u8 *end,
                  O o) const
              {
                O r = o;
-               const uint8_t *aligned_begin = A()(begin);
+               const u8 *aligned_begin = A()(begin);
                if (aligned_begin < end) {
                  if (A::alignment > 1) {
                    r = Basic_Decode<O, uint16_t>()(begin, aligned_begin, r);
                  }
 
                  uint8_t increment = sizeof(T)/2u;
-                 const uint8_t *first_end = aligned_begin
+                 const u8 *first_end = aligned_begin
                    + (end - aligned_begin) / increment * increment;
                  r = Basic_Decode<O, T, Scatter_Policy, Convert_Policy,
                    Gather_Policy>()(aligned_begin, first_end, r);
