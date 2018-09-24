@@ -51,7 +51,7 @@ namespace xfsx {
 	};
 
     template<typename T, typename A = std::allocator<T>>
-    using Raw_Vector = std::vector<T, default_init_allocator<A>>;
+    using Raw_Vector = std::vector<T, default_init_allocator<T, A>>;
 
 } // xfsx
 
