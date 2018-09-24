@@ -466,14 +466,14 @@ namespace bed {
   {
     ++a.verbosity;
   }
-  static void apply_help(Arguments &a, unsigned, unsigned&,
+  static void apply_help(Arguments &, unsigned, unsigned&,
       unsigned, char **argv)
   {
     print_help(*argv);
     exit(0);
   }
-  static void apply_version(Arguments &a, unsigned, unsigned&,
-      unsigned, char **argv)
+  static void apply_version(Arguments &, unsigned, unsigned&,
+      unsigned, char ** /*argv*/)
   {
     print_version();
   }
@@ -641,12 +641,13 @@ namespace bed {
     a.out_filename = argv[i];
   }
 
-  static void apply_pretty_print(Arguments &a, unsigned i, unsigned&,
-      unsigned, char **argv)
+  static void apply_pretty_print(Arguments &a, unsigned, unsigned&,
+      unsigned, char ** /*argv*/)
   {
 #ifdef XFSX_USE_LUA
     a.pretty_print = true;
 #else
+    (void)a;
     throw logic_error("not compiled with Lua support");
 #endif
   }

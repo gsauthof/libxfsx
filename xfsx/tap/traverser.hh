@@ -119,6 +119,7 @@ namespace xfsx {
                     case grammar::tap::CAMEL_INVOCATION_FEE:
                       if (!std::is_same<Tag, Charge_Tag>::value)
                         break;
+                      // fall through
                     case s_label:
                       if (!refund_
                                    && (    charge_type_ == "00"

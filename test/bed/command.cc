@@ -10,6 +10,7 @@
 #include <bed/arguments.hh>
 
 #include <test/test.hh>
+#include <test/bed/helper.hh>
 
 using namespace std;
 namespace bf = boost::filesystem;

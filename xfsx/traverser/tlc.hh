@@ -83,7 +83,7 @@ namespace xfsx {
         }
       }
 
-      bool eot(const Vertical_TLC &t) const
+      bool eot(const Vertical_TLC &) const
       {
         return !p_.first;
       }

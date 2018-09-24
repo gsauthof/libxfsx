@@ -97,7 +97,7 @@ namespace xfsx {
         return encoded_length_int(v);
       }
 #endif
-      template <> size_t encoded_length(char v)
+      template <> size_t encoded_length(char)
       {
         return 1;
       }
@@ -189,7 +189,7 @@ namespace xfsx {
         return encode_int(v, o, n);
       }
 #endif
-      template <> char *encode(char v, char *o, size_t n)
+      template <> char *encode(char v, char *o, size_t /*n*/)
       {
         *o++ = v;
         return o;
@@ -198,7 +198,7 @@ namespace xfsx {
       {
         return encode_int(uint8_t(v), o, n);
       }
-      template <> char *encode(const std::string &s, char *o, size_t n)
+      template <> char *encode(const std::string &s, char *o, size_t /*n*/)
       {
         return copy(s.begin(), s.end(), o);
       }

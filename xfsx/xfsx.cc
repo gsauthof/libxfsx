@@ -833,11 +833,11 @@ namespace xfsx {
     return parts;
   }
 
-  template<> size_t minimally_encoded_length(uint8_t v)
+  template<> size_t minimally_encoded_length(uint8_t)
   {
     return 1;
   }
-  template<> size_t minimally_encoded_length(int8_t v)
+  template<> size_t minimally_encoded_length(int8_t)
   {
     return 1;
   }

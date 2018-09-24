@@ -30,7 +30,7 @@ namespace bed {
 
   namespace command {
 
-    void apply_search_args(const Arguments &a,
+    static void apply_search_args(const Arguments &a,
         xfsx::xml::Writer_Arguments &b,
         const xfsx::Tag_Translator &translator,
         const xfsx::Name_Translator &name_translator)

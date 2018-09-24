@@ -38,49 +38,49 @@ namespace xfsx {
 
 
       struct Is_Control {
-        bool operator()(uint8_t b) const { return (b < 32u || b > 126u); }
+        bool operator()(u8 b) const { return (b < 32u || b > 126u); }
       };
       struct Is_Printable {
-        bool operator()(uint8_t b) const { return (b > 31u && b < 127u); }
+        bool operator()(u8 b) const { return (b > 31u && b < 127u); }
       };
 
 
       namespace Is_Special {
         template <typename Style_Tag> struct Base;
         template <> struct Base<Style::XML> {
-          bool operator()(uint8_t b) const {
+          bool operator()(u8 b) const {
             return char(b) == '&' || char(b) == '<' || char(b) == '>';
           }
         };
         template <> struct Base<Style::C> {
-          bool operator()(uint8_t b) const { return char(b) == '\\'; }
+          bool operator()(u8 b) const { return char(b) == '\\'; }
         };
         template <> struct Base<Style::Raw> {
-          bool operator()(uint8_t b) const { return false; }
+          bool operator()(u8) const { return false; }
         };
       }
 
       template <typename Style_Tag> struct Is_Normal {
-        bool operator()(uint8_t b) const
+        bool operator()(u8 b) const
         {
           return Is_Printable()(b) && !Is_Special::Base<Style_Tag>()(b);
         }
       };
       template <> struct Is_Normal<Style::Raw> {
-        bool operator()(uint8_t b) const
+        bool operator()(u8) const
         {
           return false;
         }
       };
 
       template <typename Style_Tag> struct Is_Not_Normal {
-        bool operator()(uint8_t b) const
+        bool operator()(u8 b) const
         {
           return Is_Control()(b) || Is_Special::Base<Style_Tag>()(b);
         }
       };
       template <> struct Is_Not_Normal<Style::Raw> {
-        bool operator()(uint8_t b) const
+        bool operator()(u8) const
         {
           return true;
         }
@@ -274,7 +274,7 @@ namespace xfsx {
           }
         };
         template <> struct Base<Style::Raw, Tag::Search> {
-          const char *operator()(const char *begin, const char *end)
+          const char *operator()(const char *begin, const char *)
           {
             return begin;
           }
@@ -311,7 +311,7 @@ namespace xfsx {
       template <typename Style_Tag>
         struct Un_Escape {
           std::pair<const char*, u8*>
-            operator()(const char *begin, const char *end, u8 *o)
+            operator()(const char *begin, const char *, u8 *o)
           {
             const char *a = begin + Surround::Base<Style_Tag>().prefix_size();
             const char *b =

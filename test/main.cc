@@ -35,7 +35,10 @@
 
 using namespace std;
 
-boost::unit_test::test_suite *init_unit_test_suite(int argc, char **argv)
+// /usr/include/boost/test/impl/unit_test_main.ipp
+::boost::unit_test::test_suite* init_unit_test_suite( int argc, char* argv[] );
+
+boost::unit_test::test_suite *init_unit_test_suite(int /*argc*/, char ** /*argv*/)
 {
   boost::unit_test::framework::master_test_suite().add(create_ber2xml_suite());
   boost::unit_test::framework::master_test_suite().add(create_ber2ber_suite());

@@ -60,7 +60,7 @@ namespace xfsx {
 
   namespace xml {
 
-    void write_unber_tl(byte::writer::Base &w, const Unit &u, size_t off)
+    static void write_unber_tl(byte::writer::Base &w, const Unit &u, size_t off)
     {
       w
         << '<'

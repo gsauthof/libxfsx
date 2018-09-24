@@ -109,11 +109,11 @@ namespace xfsx {
     {
       return aci_path_;
     }
-    const std::vector<xfsx::Tag_Int> &raci_path()
+    static const std::vector<xfsx::Tag_Int> &raci_path()
     {
       return raci_path_;
     }
-    const std::vector<xfsx::Tag_Int> &naci_path()
+    static const std::vector<xfsx::Tag_Int> &naci_path()
     {
       return naci_path_;
     }
@@ -121,11 +121,11 @@ namespace xfsx {
     {
       return kth_cdr_path_;
     }
-    const std::vector<xfsx::Tag_Int> &kth_rcdr_path()
+    static const std::vector<xfsx::Tag_Int> &kth_rcdr_path()
     {
       return kth_rcdr_path_;
     }
-    const std::vector<xfsx::Tag_Int> &kth_ncdr_path()
+    static const std::vector<xfsx::Tag_Int> &kth_ncdr_path()
     {
       return kth_ncdr_path_;
     }

@@ -1772,7 +1772,7 @@ BOOST_AUTO_TEST_SUITE(xfsx_)
       {
         p = v;
       }
-      template <typename T> void operator()(const T &t) { }
+      template <typename T> void operator()(const T &) { }
 
     };
 
