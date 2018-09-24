@@ -30,6 +30,7 @@
 #include <boost/filesystem.hpp>
 
 #include <xfsx/xfsx.hh>
+#include <xfsx/string.hh>
 
 #include <ixxx/util.hh>
 
@@ -1117,7 +1118,7 @@ BOOST_AUTO_TEST_SUITE(xfsx_)
         };
         BCD_String b;
         decode(a.begin(), a.size(), b);
-        const string &s = b;
+        const string s(b.get().begin(), b.get().end());
         BOOST_CHECK_EQUAL(s, "deadca0e");
       }
 
@@ -1129,7 +1130,7 @@ BOOST_AUTO_TEST_SUITE(xfsx_)
         };
         BCD_String b;
         decode(a.begin(), a.size(), b);
-        const string &s = b;
+        const string s(b.get().begin(), b.get().end());
         // no special handling (e.g. throw for fillers in the middle)
         BOOST_CHECK_EQUAL(s, "deadcafe");
       }
@@ -1142,7 +1143,7 @@ BOOST_AUTO_TEST_SUITE(xfsx_)
         };
         BCD_String b;
         decode(a.begin(), a.size(), b);
-        const string &s = b;
+        const string s(b.get().begin(), b.get().end());
         BOOST_CHECK_EQUAL(s, "deadcae");
       }
 
@@ -1154,7 +1155,7 @@ BOOST_AUTO_TEST_SUITE(xfsx_)
         };
         BCD_String b;
         decode(a.begin(), a.size(), b);
-        const string &s = b;
+        const string s(b.get().begin(), b.get().end());
         BOOST_CHECK_EQUAL(s, "1234567890abcde");
       }
 
@@ -1166,7 +1167,7 @@ BOOST_AUTO_TEST_SUITE(xfsx_)
         };
         BCD_String b;
         decode(a.begin(), a.size(), b);
-        const string &s = b;
+        const string s(b.get().begin(), b.get().end());
         BOOST_CHECK_EQUAL(s, "1234567890abcdefca");
       }
  
@@ -1184,7 +1185,7 @@ BOOST_AUTO_TEST_SUITE(xfsx_)
         const u8 *end = begin + sizeof(inp) - 1;
         Hex_String b;
         decode(begin, end-begin, b);
-        const string &s = b;
+        const string s(b.get().begin(), b.get().end());
         BOOST_CHECK_EQUAL(s, "&#xde;&#xad;\\xca\\xfe world\\x5cxca\\x5cxfe");
       }
 
@@ -1196,7 +1197,7 @@ BOOST_AUTO_TEST_SUITE(xfsx_)
         const u8 *end = begin + sizeof(inp) - 1;
         Hex_XML_String b;
         decode(begin, end-begin, b);
-        const string &s = b;
+        const string s(b.get().begin(), b.get().end());
         BOOST_CHECK_EQUAL(s, "&#x26;#xde;&#x26;#xad;&#xca;&#xfe; world\\xca\\xfe");
       }
 

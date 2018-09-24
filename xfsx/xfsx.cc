@@ -252,65 +252,6 @@ namespace xfsx {
   }
 
 
-  template <typename Tag> Tagged_String<Tag>::Tagged_String() =default;
-  template <typename Tag>
-  Tagged_String<Tag>::Tagged_String(const std::string &s)
-    :
-      s_(s)
-  {
-  }
-  template <typename Tag>
-  Tagged_String<Tag>::Tagged_String(std::string &&s)
-    :
-       s_(std::move(s))
-  {
-  }
-  template <typename Tag>
-  Tagged_String<Tag> &Tagged_String<Tag>::operator=(const std::string &s)
-  {
-    s_ = s;
-    return *this;
-  }
-  template <typename Tag>
-  Tagged_String<Tag> &Tagged_String<Tag>::operator=(std::string &&s)
-  {
-    s_ = std::move(s);
-    return *this;
-  }
-  template <typename Tag>
-  Tagged_String<Tag>::operator const std::string&() const
-  {
-    return s_;
-  }
-  template <typename Tag>
-  void Tagged_String<Tag>::clear()
-  {
-    s_.clear();
-  }
-  template <typename Tag>
-  size_t Tagged_String<Tag>::size() const
-  {
-    return s_.size();
-  }
-  template <typename Tag>
-  bool Tagged_String<Tag>::empty() const
-  {
-    return s_.empty();
-  }
-  template <typename Tag>
-  std::string &Tagged_String<Tag>::get()
-  {
-    return s_;
-  }
-  template <typename Tag>
-  const std::string &Tagged_String<Tag>::get() const
-  {
-    return s_;
-  }
-
-  template class Tagged_String<BCD>;
-  template class Tagged_String<HEX>;
-  template class Tagged_String<HEX_XML>;
 
   Basic_Content::Basic_Content()
     :
@@ -901,27 +842,6 @@ namespace xfsx {
     return v.size();
   }
   template<> size_t minimally_encoded_length(
-      const BCD_String &v)
-  {
-    return (v.size() + 2 - 1) / 2;
-  }
-  template <typename Style_Tag, typename H> size_t minimally_encoded_length_hex(
-      const H &v)
-  {
-    return hex::encoded_size<Style_Tag>(
-        v.get().data(), v.get().data() + v.get().size());
-  }
-  template<> size_t minimally_encoded_length(
-      const Hex_String &v)
-  {
-    return minimally_encoded_length_hex<hex::Style::C>(v);
-  }
-  template<> size_t minimally_encoded_length(
-      const Hex_XML_String &v)
-  {
-    return minimally_encoded_length_hex<hex::Style::XML>(v);
-  }
-  template<> size_t minimally_encoded_length(
       const XML_Content &v)
   {
     return hex::encoded_size<hex::Style::XML>(v.begin(), v.end());
@@ -1012,48 +932,6 @@ namespace xfsx {
     r.second = reinterpret_cast<const char *>(begin) + size;
   }
 
-  template<> void decode(const u8 *begin, size_t size,
-      BCD_String &r)
-  {
-    if (!size) {
-      r.clear();
-      return;
-    }
-    string s;
-    swap(s, r.get());
-    s.resize(size*2);
-    const u8 *end = begin + size;
-    char *x = &s[0];
-    bcd::decode(begin, end, x);
-    if (s.back() == 'f')
-      s.resize(s.size()-1);
-    r = std::move(s);
-  }
-  template <typename Style_Tag, typename H>
-  void decode_hex(const u8 *begin, size_t size,
-      H &r)
-  {
-    if (!size) {
-      r.clear();
-      return;
-    }
-    string s(std::move(r.get()));
-    const u8 *end = begin + size;
-    s.resize(hex::decoded_size<Style_Tag>(begin, end));
-    char *x = &s[0];
-    hex::decode<Style_Tag>(begin, end, x);
-    r = std::move(s);
-  }
-  template<> void decode(const u8 *begin, size_t size,
-      Hex_String &r)
-  {
-    decode_hex<hex::Style::C>(begin, size, r);
-  }
-  template<> void decode(const u8 *begin, size_t size,
-      Hex_XML_String &r)
-  {
-    decode_hex<hex::Style::XML>(begin, size, r);
-  }
 
   template<typename T> u8 *encode_int(T t, u8 *begin, size_t size)
   {
@@ -1158,31 +1036,6 @@ namespace xfsx {
       memcpy(begin, t.data(), size);
       return begin + size;
     #endif
-  }
-  template<> u8 *encode(const BCD_String &t, u8 *begin, size_t size)
-  {
-    if ((t.size() + 2 - 1) / 2 != size)
-      throw overflow_error("BCD_String too small or too big");
-    return bcd::encode(t.get().data(), t.get().data() + t.get().size(), begin);
-  }
-
-  template <typename Style_Tag, typename H>
-  u8 *encode_hex(const H &t, u8 *o_begin, size_t size)
-  {
-    const char *begin = t.get().data();
-    const char *end   = t.get().data() + t.get().size();
-    if (hex::encoded_size<Style_Tag>(begin, end) != size)
-      throw overflow_error("Hex_String too small or too big");
-    return hex::encode<Style_Tag>(begin, end, o_begin);
-  }
-  template<> u8 *encode(const Hex_String &t, u8 *o_begin, size_t size)
-  {
-    return encode_hex<hex::Style::C>(t, o_begin, size);
-  }
-  template<> u8 *encode(const Hex_XML_String &t, u8 *o_begin,
-      size_t size)
-  {
-    return encode_hex<hex::Style::XML>(t, o_begin, size);
   }
   template<> u8 *encode(const XML_Content &t, u8 *begin, size_t size)
   {

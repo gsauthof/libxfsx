@@ -109,6 +109,10 @@ namespace xfsx {
       {
         return s.size();
       }
+      template <> size_t encoded_length(const Raw_Vector<char> &v)
+      {
+        return v.size();
+      }
       template <> size_t encoded_length(
           const std::pair<const char*, size_t> &v)
       {
@@ -201,6 +205,10 @@ namespace xfsx {
       template <> char *encode(const std::string &s, char *o, size_t /*n*/)
       {
         return copy(s.begin(), s.end(), o);
+      }
+      template <> char *encode(const Raw_Vector<char> &v, char *o, size_t /*n*/)
+      {
+        return copy(v.begin(), v.end(), o);
       }
       template <> char *encode(const std::pair<const char*, size_t> &v,
           char *o, size_t n)

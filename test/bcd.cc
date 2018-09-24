@@ -11,6 +11,7 @@
 
 #include <xfsx/bcd_impl.hh>
 #include <xfsx/bcd.hh>
+#include <xfsx/raw_vector.hh>
 
 using u8 = xfsx::u8;
 
@@ -415,6 +416,19 @@ BOOST_AUTO_TEST_SUITE(xfsx_)
 
 
     BOOST_AUTO_TEST_SUITE_END() // front
+
+    BOOST_AUTO_TEST_SUITE(raw_vector)
+        BOOST_AUTO_TEST_CASE(raw_vector_resize)
+        {
+            const char s[] = "0123456789";
+            xfsx::Raw_Vector<char> v(s, s+sizeof s - 1);
+            BOOST_CHECK_EQUAL(string(v.begin(), v.end()), s);
+            v.resize(4);
+            BOOST_CHECK_EQUAL(string(v.begin(), v.end()), "0123");
+            v.resize(10);
+            BOOST_CHECK_EQUAL(string(v.begin(), v.end()), s);
+        }
+    BOOST_AUTO_TEST_SUITE_END() // raw_vector
 
   BOOST_AUTO_TEST_SUITE_END()
 

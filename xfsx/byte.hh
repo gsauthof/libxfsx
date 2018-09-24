@@ -22,6 +22,7 @@
 #define XFSX_BYTE_HH
 
 #include <vector>
+#include "raw_vector.hh"
 #include <ixxx/util.hh>
 
 namespace xfsx {
@@ -54,6 +55,7 @@ namespace xfsx {
            > >
       size_t encoded_length(const T &v);
       template <> size_t encoded_length(const std::string &s);
+      template <> size_t encoded_length(const Raw_Vector<char> &v);
       template <> size_t encoded_length(
           const std::pair<const char*, size_t> &v);
       template <> size_t encoded_length(
@@ -88,7 +90,8 @@ namespace xfsx {
           char *o, size_t n);
       template <> char *encode(const std::pair<const char*, const char*> &v,
           char *o, size_t n);
-      template <> char *encode(const std::string &v, char *o, size_t n);
+      template <> char *encode(const std::string &s, char *o, size_t n);
+      template <> char *encode(const Raw_Vector<char> &v, char *o, size_t n);
 
       class Base {
         protected:

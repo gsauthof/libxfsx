@@ -169,31 +169,6 @@ namespace xfsx {
       bool empty() const;
   };
 
-  struct BCD{};
-  struct HEX{};
-  struct HEX_XML{};
-
-  template <typename Tag>
-  class Tagged_String {
-    private:
-      std::string s_;
-    public:
-      Tagged_String();
-      Tagged_String(const std::string &s);
-      Tagged_String(std::string &&s);
-      Tagged_String &operator=(const std::string &s);
-      Tagged_String &operator=(std::string &&s);
-      operator const std::string&() const;
-      void clear();
-      size_t size() const;
-      bool empty() const;
-
-      std::string &get();
-      const std::string &get() const;
-  };
-  using BCD_String = Tagged_String<BCD>;
-  using Hex_String = Tagged_String<HEX>;
-  using Hex_XML_String = Tagged_String<HEX_XML>;
 
 
   size_t minimally_encoded_tag_length(Tag_Int v);
@@ -222,12 +197,6 @@ namespace xfsx {
   template<> size_t minimally_encoded_length(
       const std::string &v);
   template<> size_t minimally_encoded_length(
-      const BCD_String &v);
-  template<> size_t minimally_encoded_length(
-      const Hex_String &v);
-  template<> size_t minimally_encoded_length(
-      const Hex_XML_String &v);
-  template<> size_t minimally_encoded_length(
       const XML_Content &v);
   template<> size_t minimally_encoded_length(
       const BCD_Content &v);
@@ -248,12 +217,6 @@ namespace xfsx {
       std::pair<const u8 *, const u8 *> &r);
   template<> void decode(const u8 *begin, size_t size,
       std::pair<const char*, const char *> &r);
-  template<> void decode(const u8 *begin, size_t size,
-      BCD_String &r);
-  template<> void decode(const u8 *begin, size_t size,
-      Hex_String &r);
-  template<> void decode(const u8 *begin, size_t size,
-      Hex_XML_String &r);
 
   template<typename T,
            typename = std::enable_if_t<std::is_fundamental<T>::value> >
@@ -275,10 +238,6 @@ namespace xfsx {
   template<> u8 *encode(const std::pair<const char*, const char*> &t,
       u8 *begin, size_t size);
   template<> u8 *encode(const std::string &t, u8 *begin, size_t size);
-  template<> u8 *encode(const BCD_String &t, u8 *begin, size_t size);
-  template<> u8 *encode(const Hex_String &t, u8 *begin, size_t size);
-  template<> u8 *encode(const Hex_XML_String &t,
-      u8 *begin, size_t size);
   template<> u8 *encode(const XML_Content &t, u8 *begin, size_t size);
   template<> u8 *encode(const BCD_Content &t, u8 *begin, size_t size);
   template<> u8 *encode(const Int64_Content &t,

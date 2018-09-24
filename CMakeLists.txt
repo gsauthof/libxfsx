@@ -120,6 +120,7 @@ message("LUAXX_INCLUDE_DIR: ${LUAXX_INCLUDE_DIR}")
 
 set(LIB_SRC 
   xfsx/xfsx.cc
+  xfsx/string.cc
   xfsx/hex.cc
   xfsx/bcd.cc
   xfsx/ber2xml.cc

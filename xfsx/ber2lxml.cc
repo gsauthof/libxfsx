@@ -26,6 +26,7 @@
 #include "xfsx.hh"
 #include "byte.hh"
 #include "hex.hh"
+#include "string.hh"
 
 #include <xxxml/xxxml.hh>
 

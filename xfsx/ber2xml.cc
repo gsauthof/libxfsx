@@ -25,8 +25,6 @@
 
 #include <stack>
 #include <fcntl.h>
-// XXX remove
-#include <iostream>
 
 #include <boost/algorithm/string.hpp>
 
@@ -43,11 +41,14 @@
     #define SOL_LUAJIT
   #endif // XFSX_USE_LUAJIT
   #include <sol.hpp>
+  // sol::string_view is an alias for std::string_view if compiling for C++17
+  #include <sol/string_view.hpp>
 #endif // XFSX_USE_LUA
 
 #include "xfsx.hh"
 #include "byte.hh"
 #include "hex.hh"
+#include "string.hh"
 #include "traverser/matcher.hh"
 #include "traverser/tlc.hh"
 #include "path.hh"
@@ -682,7 +683,7 @@ namespace xfsx {
                 {
                   Hex_String x;
                   tlc->copy_content(x);
-                  m.second.first(tlc->tag, x.get());
+                  m.second.first(tlc->tag, sol::string_view(x.get().data(), x.get().size()));
                 }
                 break;
               default:
@@ -729,7 +730,7 @@ namespace xfsx {
             Hex_String x;
             tlc->copy_content(x);
             //s = i->second(x.get());
-            c_s = i->second(x.get()).get<const char*>();
+            c_s = i->second(sol::string_view(x.get().data(), x.get().size())).get<const char*>();
           }
           break;
         case Type::BCD:
@@ -737,7 +738,7 @@ namespace xfsx {
             BCD_String x;
             tlc->copy_content(x);
             //s = i->second(x.get());
-            c_s = i->second(x.get()).get<const char*>();
+            c_s = i->second(sol::string_view(x.get().data(), x.get().size())).get<const char*>();
           }
           break;
       }
