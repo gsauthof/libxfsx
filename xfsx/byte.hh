@@ -132,7 +132,7 @@ namespace xfsx {
         private:
 
         protected:
-          std::vector<char> v_;
+          Raw_Vector<char> v_;
           size_t increment_;
 
           void make_room_for(size_t n) override;

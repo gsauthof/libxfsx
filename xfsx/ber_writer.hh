@@ -27,6 +27,7 @@
 #include <xfsx/xfsx.hh>
 #include <xfsx/ber_node.hh>
 #include <xfsx/ber_writer_arguments.hh>
+#include "raw_vector.hh"
 
 namespace xfsx {
 
@@ -56,7 +57,7 @@ namespace xfsx {
         BER_Writer_Base(const BER_Writer_Arguments &args);
         size_t size() const;
         void store(u8 *begin, u8 *end);
-        void store(std::vector<u8> &v);
+        void store(Raw_Vector<u8> &v);
     };
 
 }

@@ -45,7 +45,7 @@ namespace xfsx {
               const BER_Writer_Arguments &args
               );
           void write(const std::string &filename);
-          void write(std::vector<uint8_t> &v);
+          void write(Raw_Vector<u8> &v);
           void write();
       };
 
@@ -53,7 +53,7 @@ namespace xfsx {
           const std::string &filename,
           const BER_Writer_Arguments &args = default_ber_writer_arguments);
       void write_ber(const xxxml::doc::Ptr &doc,
-          std::vector<uint8_t> &v,
+          Raw_Vector<u8> &v,
           const BER_Writer_Arguments &args = default_ber_writer_arguments);
 
     } // l2

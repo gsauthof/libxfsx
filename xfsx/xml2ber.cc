@@ -55,7 +55,7 @@ namespace xfsx {
             );
         void write();
         void write(const string &filename);
-        void write(std::vector<uint8_t> &v);
+        void write(Raw_Vector<u8> &v);
     };
 
     BER_Writer::BER_Writer(const char *begin, const char *end,
@@ -104,7 +104,7 @@ namespace xfsx {
       store(filename);
     }
 
-    void BER_Writer::write(std::vector<uint8_t> &v)
+    void BER_Writer::write(Raw_Vector<u8> &v)
     {
       write();
       store(v);
@@ -157,7 +157,7 @@ namespace xfsx {
     }
 
     void write_ber(const char *begin, const char *end,
-        vector<uint8_t> &v,
+        Raw_Vector<u8> &v,
         const BER_Writer_Arguments &args
         )
     {

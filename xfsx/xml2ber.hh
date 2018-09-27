@@ -23,6 +23,7 @@
 
 #include "xfsx.hh"
 #include "ber_writer_arguments.hh"
+#include "raw_vector.hh"
 
 #include <string>
 #include <unordered_map>
@@ -42,7 +43,7 @@ namespace xfsx {
         const BER_Writer_Arguments &args = default_ber_writer_arguments);
 
     void write_ber(const char *begin, const char *end,
-        std::vector<uint8_t> &v,
+        Raw_Vector<u8> &v,
         const BER_Writer_Arguments &args
         );
 

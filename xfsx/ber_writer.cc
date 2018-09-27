@@ -192,7 +192,7 @@ namespace xfsx {
       auto f = ixxx::util::mmap_file(filename, false, true, root.length());
       store(f.begin(), f.end());
     }
-    void BER_Writer_Base::store(std::vector<u8> &v)
+    void BER_Writer_Base::store(Raw_Vector<u8> &v)
     {
       if (node_stack.size() > 1)
         throw runtime_error("some tags still open at the end of the document");
