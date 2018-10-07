@@ -142,10 +142,11 @@ namespace xfsx {
 
       template <typename Style_Tag>
         struct Escape {
-          char *operator()(uint8_t b, char *o) const
+          char *operator()(u8 b, char *o) const
           {
             o = Surround::Base<Style_Tag>().prefix(o);
-            o = bcd::impl::decode::Basic_Decode<char*, uint16_t>()(&b, &b+1, o);
+            bcd::impl::decode::decode<bcd::impl::decode::Type::BYTEWISE>(&b, &b+1, o);
+            o += 2;
             o = Surround::Base<Style_Tag>().suffix(o);
             return o;
           }

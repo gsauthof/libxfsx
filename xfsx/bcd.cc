@@ -62,7 +62,9 @@ namespace xfsx {
     char *decode(const u8 *begin, const u8 *end,
         char *o)
     {
-      return impl::decode::Decode<char *>()(begin, end, o);
+      impl::decode::decode(begin, end, o);
+      //impl::decode::decode_lookup(begin, end, o);
+      return o + (end-begin)*2;
     }
 
     u8 *encode(const char *begin, const char *end,

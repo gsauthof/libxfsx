@@ -246,6 +246,20 @@ IF(CMAKE_PROJECT_NAME STREQUAL "xfsx")
     ${LUA_LIB}
   )
 
+  add_executable(ut2
+      test/main_catch.cc
+      test/raw_vector.cc
+
+      test/bcd_decode.cc
+
+      xfsx/bcd.cc
+      )
+  set_property(TARGET ut2 PROPERTY INCLUDE_DIRECTORIES
+    ${Boost_INCLUDE_DIRS}
+    ${CMAKE_CURRENT_SOURCE_DIR}
+    ${CMAKE_CURRENT_SOURCE_DIR}/Catch2/single_include/catch2
+    )
+
 endif() # CMAKE_PROJECT_NAME
 
 add_executable(bed
@@ -348,7 +362,10 @@ IF(CMAKE_CURRENT_SOURCE_DIR STREQUAL CMAKE_SOURCE_DIR)
   target_link_libraries(xml2ber_fuzzer ${FUZZER_LIBS})
 
 
-  add_custom_target(check COMMAND ut)
+  add_custom_target(check-old COMMAND ut)
+  add_custom_target(check-new COMMAND ut2)
+
+  add_custom_target(check DEPENDS check-old check-new)
 
   # it is relative to build directory, by default
   # add_custom_command(OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/bed.bash

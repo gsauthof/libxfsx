@@ -25,3 +25,6 @@
 [submodule "telephone-code"]
 	path = telephone-code
 	url = https://github.com/gsauthof/telephone-code.git
+[submodule "Catch2"]
+	path = Catch2
+	url = https://github.com/catchorg/Catch2.git

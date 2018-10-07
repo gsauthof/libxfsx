@@ -29,11 +29,38 @@
 
 #include <xfsx/octet.hh>
 
-namespace xfsx {
+namespace xfsx { namespace bcd { namespace impl {
 
-  namespace bcd {
 
-    namespace impl {
+    template <typename T> T movbe(const u8 *i)
+    {
+        // GCC <= 8.2 on x86-64 unrolls this loop but doesn't optimize
+        // it into a movbe - in contrast to when one manually
+        // unrolls the loop ...
+        // T r = i[0];
+        // for (uint8_t k = 1; k < sizeof(T); ++k) {
+        //     r <<= 8;
+        //     r |= i[k];
+        // }
+        // In contrast to that, GCC >= 7.1 optimizes this into a movbe:
+        T r;
+        memcpy(&r, i, sizeof(T));
+        boost::endian::big_to_native_inplace(r);
+        return r;
+    }
+
+    // broadcast a byte to all byte positions
+    // related trick: T(-1)/0x11 creates pattern 0x0f0f..0f
+    // or just use bcast<T>(0xf) as it's constexpr
+    template<typename T> constexpr T bcast(uint8_t b)
+    {
+        static_assert(!std::numeric_limits<T>::is_signed, "must be unsigned");
+        // std::numeric_limits<T>::max() == T(-1) if T is unsigned
+        // std::numeric_limits<T>::max()/T(255)
+        // creates patern: 0x...0101
+        return T(b) * (std::numeric_limits<T>::max() / T(255));
+    }
+
 
 
       // distribute byte into all bytes of the destination

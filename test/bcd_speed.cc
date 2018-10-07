@@ -27,7 +27,7 @@
 
 #include <boost/lexical_cast.hpp>
 
-#include <ixxx/posix.h>
+#include <ixxx/posix.hh>
 #include <ixxx/util.hh>
 
 #include <xfsx/bcd.hh>
@@ -35,11 +35,12 @@
 
 using namespace std;
 
-void Assert(bool b, const string &msg)
+static void Assert(bool b, const string &msg)
 {
   if (!b)
     throw std::runtime_error(msg);
 }
+using u8 = xfsx::u8;
 
 struct Arguments {
   size_t blocks       {1000}; // blocks per iteration
@@ -101,7 +102,7 @@ struct Decode_Helper
   {
     return digits/2u;
   }
-  void init(vector<char> &v) const
+  void init(vector<char> &) const
   {
   }
   const char *action_str{"decoded"};
@@ -184,21 +185,57 @@ int main(int argc, char **argv)
 {
   Arguments args(argc, argv);
   //bench_decode(args);
-  bench("Default decode", args,
+  bench("Naive branch decode", args,
       [](const u8 *b, const u8 *e, char *o) {
-        xfsx::bcd::decode(b, e, o); }, Decode_Helper());
-  bench("Default functor", args,
+        using namespace xfsx::bcd::impl::decode;
+        decode_bytewise<Convert::BRANCH>(b, e, o); }, Decode_Helper());
+  bench("Naive cmp decode", args,
       [](const u8 *b, const u8 *e, char *o) {
-        xfsx::bcd::impl::decode::Decode<char*>()(b, e, o); }, Decode_Helper());
-  bench("Two half decode", args,
+        using namespace xfsx::bcd::impl::decode;
+        decode_bytewise<Convert::DIRECT>(b, e, o); }, Decode_Helper());
+  bench("Naive subtract decode", args,
       [](const u8 *b, const u8 *e, char *o) {
-        xfsx::bcd::impl::decode::Two_Half_Decode<char*>()(b, e, o); },
-        Decode_Helper() );
-  bench("Two half decode cmp", args,
+        using namespace xfsx::bcd::impl::decode;
+        decode_bytewise<Convert::ARITH>(b, e, o); }, Decode_Helper());
+  bench("Lookup decode", args,
       [](const u8 *b, const u8 *e, char *o) {
-        xfsx::bcd::impl::decode::Two_Half_Decode<char*,
-          xfsx::bcd::impl::decode::Half_To_Char_Cmp<> >()(b, e, o); },
-          Decode_Helper() );
+        using namespace xfsx::bcd::impl::decode;
+        decode_lookup(b, e, o); }, Decode_Helper());
+  bench("Lookup small decode", args,
+      [](const u8 *b, const u8 *e, char *o) {
+        using namespace xfsx::bcd::impl::decode;
+        decode_lookup<Convert::SMALL>(b, e, o); }, Decode_Helper());
+
+  bench("SWAR decode", args,
+      [](const u8 *b, const u8 *e, char *o) {
+        using namespace xfsx::bcd::impl::decode;
+        decode_swar<Scatter::LOOP>(b, e, o); }, Decode_Helper());
+
+#if defined(__BMI2__)
+  bench("SWAR PDEP decode", args,
+      [](const u8 *b, const u8 *e, char *o) {
+        using namespace xfsx::bcd::impl::decode;
+        decode_swar<Scatter::PDEP>(b, e, o); }, Decode_Helper());
+#endif
+#ifdef __SSE3__
+  bench("SIMD SSE3 decode", args,
+      [](const u8 *b, const u8 *e, char *o) {
+        using namespace xfsx::bcd::impl::decode;
+        decode_ssse3<Scatter::LOOP>(b, e, o); }, Decode_Helper());
+  #if defined(__BMI2__)
+  bench("SIMD SSE3 PDEP decode", args,
+      [](const u8 *b, const u8 *e, char *o) {
+        using namespace xfsx::bcd::impl::decode;
+        decode_ssse3<Scatter::PDEP>(b, e, o); }, Decode_Helper());
+  #endif
+#endif
+  bench("default decode", args,
+      [](const u8 *b, const u8 *e, char *o) {
+        using namespace xfsx::bcd;
+        decode(b, e, o); }, Decode_Helper());
+
+  cerr << '\n';
+
   bench("Default encode", args,
       [](const char *b, const char *e, u8 *o) {
         xfsx::bcd::encode(b, e, o); }, Encode_Helper());
@@ -209,7 +246,33 @@ int main(int argc, char **argv)
   return 0;
 }
 
-/* Example output on a 2nd gen iCore7 (i7-2640M).
+/*
+
+## New decode example output (2018-10-07), Skylake i7-6600U CPU @ 2.60GHz
+
+Naive branch decode: decoded 5575.43 MiB in 10 s at 557.543 MiB/s using 1000 times 16 digits per iteration
+Naive cmp decode: decoded 4794.57 MiB in 10 s at 479.457 MiB/s using 1000 times 16 digits per iteration
+Naive subtract decode: decoded 4539.64 MiB in 10 s at 453.964 MiB/s using 1000 times 16 digits per iteration
+Lookup decode: decoded 14348.7 MiB in 10 s at 1434.87 MiB/s using 1000 times 16 digits per iteration
+Lookup small decode: decoded 9259.23 MiB in 10 s at 925.923 MiB/s using 1000 times 16 digits per iteration
+SWAR decode: decoded 9763.04 MiB in 10 s at 976.304 MiB/s using 1000 times 16 digits per iteration
+SWAR PDEP decode: decoded 17100.6 MiB in 10 s at 1710.06 MiB/s using 1000 times 16 digits per iteration
+SIMD SSE3 decode: decoded 43511.9 MiB in 10 s at 4351.19 MiB/s using 1000 times 16 digits per iteration
+SIMD SSE3 PDEP decode: decoded 10635.6 MiB in 10 s at 1063.56 MiB/s using 1000 times 16 digits per iteration
+default decode: decoded 15485.1 MiB in 10 s at 1548.51 MiB/s using 1000 times 16 digits per iteration
+
+## Example output (2018-10-07), Intel Atom CPU C3758 @ 2.20GHz
+
+Naive branch decode: decoded 1945.64 MiB in 10 s at 194.564 MiB/s using 1000 times 16 digits per iteration
+Naive cmp decode: decoded 1715.36 MiB in 10 s at 171.536 MiB/s using 1000 times 16 digits per iteration
+Naive subtract decode: decoded 1520.94 MiB in 10 s at 152.094 MiB/s using 1000 times 16 digits per iteration
+Lookup decode: decoded 4717.04 MiB in 10 s at 471.704 MiB/s using 1000 times 16 digits per iteration
+Lookup small decode: decoded 2999.39 MiB in 10 s at 299.939 MiB/s using 1000 times 16 digits per iteration
+SWAR decode: decoded 3416.11 MiB in 10 s at 341.611 MiB/s using 1000 times 16 digits per iteration
+SIMD SSE3 decode: decoded 12041.5 MiB in 10 s at 1204.15 MiB/s using 1000 times 16 digits per iteration
+default decode: decoded 7354.67 MiB in 10 s at 735.467 MiB/s using 1000 times 16 digits per iteration
+   
+## Old example output on a 2nd gen iCore7 (i7-2640M).
 
 Compiled with -O3, gcc (GCC) 5.3.1 20151207 (Red Hat 5.3.1-2), Fedora 23.
 
