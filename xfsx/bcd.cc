@@ -59,6 +59,7 @@ namespace xfsx {
 
   namespace bcd {
 
+    // XXX eliminate return statements?
     char *decode(const u8 *begin, const u8 *end,
         char *o)
     {
@@ -70,7 +71,8 @@ namespace xfsx {
     u8 *encode(const char *begin, const char *end,
         u8 *o)
     {
-      return impl::encode::Encode<u8*>()(begin, end, o);
+      impl::encode::encode(begin, end, o);
+      return o + ((end-begin)+1)/2;
     }
 
 

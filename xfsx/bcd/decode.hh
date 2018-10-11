@@ -46,7 +46,8 @@
    comments regarding some generic pitfalls.
 
    See also test/bcd_speed.cc for running the different variants against
-   each other (also contains some example results from different architectures).
+   each other (also contains some example results from different
+   architectures).
 
    */
 
@@ -1371,7 +1372,11 @@ void decode_lookup(const u8* begin, const u8* end, char* o)
 #endif
         Gather gather = Gather::MEMCPY,
         char A = 'a',
+#if __SIZEOF_SIZE_T__ == 4
+        typename T = uint32_t
+#else
         typename T = uint64_t
+#endif
         > void decode_swar_word(const u8 *begin, char *o)
         {
             // Scatter
@@ -1438,7 +1443,11 @@ void decode_lookup(const u8* begin, const u8* end, char* o)
         Convert convert = Convert::DIRECT,
         Gather gather = Gather::MEMCPY,
         char A = 'a',
+#if __SIZEOF_SIZE_T__ == 4
+        typename T = uint32_t
+#else
         typename T = uint64_t
+#endif
         > void decode_swar(const u8 *begin, const u8 *end, char *o)
         {
             size_t n = end-begin;
@@ -1620,7 +1629,11 @@ void decode_lookup(const u8* begin, const u8* end, char* o)
 //#endif
         Convert convert = Convert::DIRECT,
         char A = 'a',
+#if __SIZEOF_SIZE_T__ == 4
+        typename T = uint32_t
+#else
         typename T = uint64_t
+#endif
         > void decode_ssse3(const u8 *begin, const u8 *end, char *o)
         {
             size_t n = end-begin;
@@ -1635,7 +1648,7 @@ void decode_lookup(const u8* begin, const u8* end, char* o)
         }
 #endif // __SSSE3__
 
-
+    // XXX switch default type from SWAR to LOOKUP?
     template <
 #if defined(__SSSE3__)
         Type type = Type::SIMD,

@@ -317,9 +317,8 @@ namespace xfsx {
             const char *a = begin + Surround::Base<Style_Tag>().prefix_size();
             const char *b =
               begin + Surround::Base<Style_Tag>().prefix_size() + 2u;
-            o = bcd::impl::encode::Basic_Encode<u8*, uint16_t,
-              // to avoid alignment issues
-              bcd::impl::encode::Scatter::Memcpy >()( a, b, o);
+            bcd::impl::encode::encode_lookup(a, b, o);
+            ++o;
             auto i = begin
               + Surround::Base<Style_Tag>().prefix_size() + 2u
               + Surround::Base<Style_Tag>().suffix_size();

@@ -185,6 +185,7 @@ int main(int argc, char **argv)
 {
   Arguments args(argc, argv);
   //bench_decode(args);
+
   bench("Naive branch decode", args,
       [](const u8 *b, const u8 *e, char *o) {
         using namespace xfsx::bcd::impl::decode;
@@ -217,7 +218,7 @@ int main(int argc, char **argv)
         using namespace xfsx::bcd::impl::decode;
         decode_swar<Scatter::PDEP>(b, e, o); }, Decode_Helper());
 #endif
-#ifdef __SSE3__
+#ifdef __SSSE3__
   bench("SIMD SSE3 decode", args,
       [](const u8 *b, const u8 *e, char *o) {
         using namespace xfsx::bcd::impl::decode;
@@ -239,14 +240,71 @@ int main(int argc, char **argv)
   bench("Default encode", args,
       [](const char *b, const char *e, u8 *o) {
         xfsx::bcd::encode(b, e, o); }, Encode_Helper());
-  bench("Two char encode", args,
+  bench("Bytewise branch", args,
       [](const char *b, const char *e, u8 *o) {
-        xfsx::bcd::impl::encode::Two_Char_Encode<u8 *>()(b, e, o); },
+        using namespace xfsx::bcd::impl::encode;
+        encode_bytewise<Convert::BRANCH>(b, e, o); },
         Encode_Helper());
+  bench("Bytewise cmp", args,
+      [](const char *b, const char *e, u8 *o) {
+        using namespace xfsx::bcd::impl::encode;
+        encode_bytewise<Convert::DIRECT>(b, e, o); },
+        Encode_Helper());
+  bench("Lookup", args,
+      [](const char *b, const char *e, u8 *o) {
+        using namespace xfsx::bcd::impl::encode;
+        encode_lookup(b, e, o); },
+        Encode_Helper());
+  bench("SWAR", args,
+      [](const char *b, const char *e, u8 *o) {
+        using namespace xfsx::bcd::impl::encode;
+        encode_swar<Convert::DIRECT, Gather::LOOP>(b, e, o); },
+        Encode_Helper());
+#if defined(__BMI2__)
+  bench("SWAR PEXT", args,
+      [](const char *b, const char *e, u8 *o) {
+        using namespace xfsx::bcd::impl::encode;
+        encode_swar<Convert::DIRECT, Gather::PEXT>(b, e, o); },
+        Encode_Helper());
+#endif
+#ifdef __SSSE3__
+  bench("SIMD SSSE3", args,
+      [](const char *b, const char *e, u8 *o) {
+        using namespace xfsx::bcd::impl::encode;
+        encode_ssse3<Convert::DIRECT, Gather::LOOP>(b, e, o); },
+        Encode_Helper());
+#if defined(__BMI2__)
+  bench("SIMD SSSE3 PEXT", args,
+      [](const char *b, const char *e, u8 *o) {
+        using namespace xfsx::bcd::impl::encode;
+        encode_ssse3<Convert::DIRECT, Gather::PEXT>(b, e, o); },
+        Encode_Helper());
+#endif
+#endif //__SSSE3__
   return 0;
 }
 
 /*
+
+## New encode example output (2018-10-11), Skylake i7-6600U CPU @ 2.60GHz
+
+Default encode: encoded 23133.8 MiB in 10 s at 2313.38 MiB/s using 1000 times 16 digits per iteration
+Bytewise branch: encoded 9290.95 MiB in 10 s at 929.095 MiB/s using 1000 times 16 digits per iteration
+Bytewise cmp: encoded 9587.14 MiB in 10 s at 958.714 MiB/s using 1000 times 16 digits per iteration
+Lookup: encoded 18808.4 MiB in 10 s at 1880.84 MiB/s using 1000 times 16 digits per iteration
+SWAR: encoded 19447.2 MiB in 10 s at 1944.72 MiB/s using 1000 times 16 digits per iteration
+SWAR PEXT: encoded 26709.5 MiB in 10 s at 2670.95 MiB/s using 1000 times 16 digits per iteration
+SIMD SSSE3: encoded 42142.7 MiB in 10 s at 4214.27 MiB/s using 1000 times 16 digits per iteration
+SIMD SSSE3 PEXT: encoded 42163.9 MiB in 10 s at 4216.39 MiB/s using 1000 times 16 digits per iteration
+
+## Example encode output (2018-10-07), Intel Atom CPU C3758 @ 2.20GHz
+
+Default encode: encoded 9261.15 MiB in 10 s at 926.115 MiB/s using 1000 times 16 digits per iteration
+Bytewise branch: encoded 3233.93 MiB in 10 s at 323.393 MiB/s using 1000 times 16 digits per iteration
+Bytewise cmp: encoded 3324.31 MiB in 10 s at 332.431 MiB/s using 1000 times 16 digits per iteration
+Lookup: encoded 6021.41 MiB in 10 s at 602.141 MiB/s using 1000 times 16 digits per iteration
+SWAR: encoded 6281.23 MiB in 10 s at 628.123 MiB/s using 1000 times 16 digits per iteration
+SIMD SSSE3: encoded 15165.4 MiB in 10 s at 1516.54 MiB/s using 1000 times 16 digits per iteration
 
 ## New decode example output (2018-10-07), Skylake i7-6600U CPU @ 2.60GHz
 
@@ -261,7 +319,7 @@ SIMD SSE3 decode: decoded 43511.9 MiB in 10 s at 4351.19 MiB/s using 1000 times 
 SIMD SSE3 PDEP decode: decoded 10635.6 MiB in 10 s at 1063.56 MiB/s using 1000 times 16 digits per iteration
 default decode: decoded 15485.1 MiB in 10 s at 1548.51 MiB/s using 1000 times 16 digits per iteration
 
-## Example output (2018-10-07), Intel Atom CPU C3758 @ 2.20GHz
+## Example decode output (2018-10-07), Intel Atom CPU C3758 @ 2.20GHz
 
 Naive branch decode: decoded 1945.64 MiB in 10 s at 194.564 MiB/s using 1000 times 16 digits per iteration
 Naive cmp decode: decoded 1715.36 MiB in 10 s at 171.536 MiB/s using 1000 times 16 digits per iteration

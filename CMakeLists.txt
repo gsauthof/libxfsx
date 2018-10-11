@@ -191,7 +191,6 @@ IF(CMAKE_PROJECT_NAME STREQUAL "xfsx")
     test/ber2ber.cc
     test/xml2ber.cc
     test/integer.cc
-    test/bcd.cc
     test/hex.cc
     test/test.cc
     test/comment.cc
@@ -251,6 +250,7 @@ IF(CMAKE_PROJECT_NAME STREQUAL "xfsx")
       test/raw_vector.cc
 
       test/bcd_decode.cc
+      test/bcd_encode.cc
 
       xfsx/bcd.cc
       )
