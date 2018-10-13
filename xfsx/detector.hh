@@ -75,8 +75,8 @@ namespace xfsx {
         const std::deque<std::string> &asn_search_path
         );
 
-    const std::string &default_config_filename();
-    const std::deque<std::string> &default_asn_search_path();
+    std::deque<std::string> default_asn_search_path();
+    std::string default_config_filename(const std::deque<std::string> &asn_search_path);
 
   }
 

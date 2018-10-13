@@ -239,41 +239,35 @@ namespace xfsx {
       return r;
     }
 
-    const std::deque<std::string> &default_asn_search_path()
+    std::deque<std::string> default_asn_search_path()
     {
-      static deque<string> r;
-      if (r.empty()) {
+        deque<string> r;
         try {
-          string v(ixxx::ansi::getenv("ASN1_PATH"));
-          boost::algorithm::split(r, v, boost::algorithm::is_any_of(":"));
+            string v(ixxx::ansi::getenv("ASN1_PATH"));
+            boost::algorithm::split(r, v, boost::algorithm::is_any_of(":"));
         } catch (const ixxx::getenv_error &e) {
         }
         try {
-          string v(ixxx::ansi::getenv("XDG_CONFIG_HOME"));
-          r.push_back(v + "/xfsx/asn1");
-        } catch (const ixxx::getenv_error &e) {
-          try {
-            string v(ixxx::ansi::getenv("HOME"));
+            string v(ixxx::ansi::getenv("XDG_CONFIG_HOME"));
             r.push_back(v + "/xfsx/asn1");
-          } catch (const ixxx::getenv_error &e) {
-          }
+        } catch (const ixxx::getenv_error &e) {
+            try {
+                string v(ixxx::ansi::getenv("HOME"));
+                r.push_back(v + "/xfsx/asn1");
+            } catch (const ixxx::getenv_error &e) {
+            }
         }
 #if (defined(__MINGW32__) || defined(__MINGW64__))
 #else
         r.push_back("/etc/xfsx/asn1");
 #endif
         r.push_back(string(config::prefix()) + "/share/xfsx/asn1");
-      }
-      return r;
+        return r;
     }
 
-    const std::string &default_config_filename()
+    std::string default_config_filename(const std::deque<std::string> &asn_search_path)
     {
-      static string r;
-      if (r.empty()) {
-        r = ixxx::util::which(default_asn_search_path(),
-            "detector.json");
-      }
+      string r(ixxx::util::which(default_asn_search_path(), "detector.json"));
       return r;
     }
 
@@ -284,11 +278,16 @@ namespace xfsx {
         const std::deque<std::string> &asn_search_path
         )
     {
-      Detector d(filename,
-          config_filename.empty() ? default_config_filename() : config_filename,
-          read_fn,
-          asn_search_path.empty() ? default_asn_search_path() : asn_search_path
-          );
+        string def_config_filename;
+        std::deque<std::string> def_asn_search_path;
+        if (def_asn_search_path.empty())
+            def_asn_search_path = default_asn_search_path();
+        const std::deque<std::string> &sp = asn_search_path.empty() ? def_asn_search_path : asn_search_path;
+        if (config_filename.empty())
+            def_config_filename = default_config_filename(sp);
+        const std::string &cfn = config_filename.empty() ? def_config_filename : config_filename;
+
+      Detector d(filename, cfn, read_fn, sp);
       return d.test();
     }
 
