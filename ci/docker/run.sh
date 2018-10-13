@@ -19,13 +19,8 @@ fi
 
 function run_linux()
 {
-  # suppress 'leaks' from system libraries
-  export LSAN_OPTIONS=suppressions="$src_dir"/ci/leak.sup
-
-  ./ut && true
-  : $((r+=$?))
+  ./ut
   bash bed.bash
-  : $((r+=$?))
 }
 
 function run_mingw64()
@@ -33,7 +28,6 @@ function run_mingw64()
   rm -rf ~/.wine
   # just let it fail once such that ~/.wine is populated ...
   winepath
-  # TERM=vt100 wineconsole --backend=curses ./ut && true
   pwd
   # otherwise $HOME/.wine/system.reg might not be there yet ...
   sync
@@ -41,8 +35,7 @@ function run_mingw64()
   sed 's/^\("PATH".*\)"$/\1;Z:\\\\usr\\\\x86_64-w64-mingw32\\\\sys-root\\\\mingw\\\\bin"/' -i $HOME/.wine/system.reg
 
   ln -s lua/liblua.dll
-  TERM=vt100 wineconsole --backend=curses ./ut && true
-  : $((r+=$?))
+  TERM=vt100 wineconsole --backend=curses ./ut
 }
 
 
@@ -50,9 +43,5 @@ cd "$build_dir"
 
 export TEST_IN_BASE="$src_dir"/test
 
-r=0
-
 run_"$tag"
 
-
-exit $((r>127?127:r))

@@ -267,7 +267,7 @@ namespace xfsx {
 
     std::string default_config_filename(const std::deque<std::string> &asn_search_path)
     {
-      string r(ixxx::util::which(default_asn_search_path(), "detector.json"));
+      string r(ixxx::util::which(asn_search_path, "detector.json"));
       return r;
     }
 

@@ -198,13 +198,13 @@ namespace bed {
           }
           auto i = path.begin();
           if (i != path.end()) {
-            const char *rank = xxxml::get_prop(*i, "rank");
-            o << (*i)->name << '(' << rank << ')';
+            auto rank = xxxml::get_prop(*i, "rank");
+            o << (*i)->name << '(' << rank.get() << ')';
             ++i;
           }
           for (; i != path.end(); ++i) {
-            const char *rank = xxxml::get_prop(*i, "rank");
-            o << '/' << (*i)->name << '(' << rank << ')';
+            auto rank = xxxml::get_prop(*i, "rank");
+            o << '/' << (*i)->name << '(' << rank.get() << ')';
           }
           o << " : " << e->message;
           size_t message_size = strlen(e->message);
