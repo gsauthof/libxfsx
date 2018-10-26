@@ -286,6 +286,39 @@ int main(int argc, char **argv)
 
 /*
 
+## example output, Xeon Platinum 8168 CPU @ 2.70GHz
+
+i.e. Skylake Xeon with AVX512 in Digitalocean datacenter, i.e. turbo boost
+likely off and possibly shared with AVX512 heavy guests which definitely may
+decrease the frequency.
+
+Naive branch decode: decoded 5654.23 MiB in 10 s at 565.423 MiB/s using 1000 times 16 digits per iteration
+Naive cmp decode: decoded 4817.44 MiB in 10 s at 481.744 MiB/s using 1000 times 16 digits per iteration
+Naive subtract decode: decoded 4616.62 MiB in 10 s at 461.662 MiB/s using 1000 times 16 digits per iteration
+Lookup decode: decoded 17749.1 MiB in 10 s at 1774.91 MiB/s using 1000 times 16 digits per iteration
+Lookup small decode: decoded 9508.84 MiB in 10 s at 950.884 MiB/s using 1000 times 16 digits per iteration
+SWAR decode: decoded 7932.26 MiB in 10 s at 793.226 MiB/s using 1000 times 16 digits per iteration
+SWAR PDEP decode: decoded 13289.9 MiB in 10 s at 1328.99 MiB/s using 1000 times 16 digits per iteration
+SIMD SSE3 decode: decoded 41749.2 MiB in 10 s at 4174.92 MiB/s using 1000 times 16 digits per iteration
+SIMD SSE3 PDEP decode: decoded 11000.5 MiB in 10 s at 1100.05 MiB/s using 1000 times 16 digits per iteration
+default decode: decoded 21889.5 MiB in 10 s at 2188.95 MiB/s using 1000 times 16 digits per iteration
+
+Default encode: encoded 22916 MiB in 10 s at 2291.6 MiB/s using 1000 times 16 digits per iteration
+Bytewise branch: encoded 9020.16 MiB in 10 s at 902.016 MiB/s using 1000 times 16 digits per iteration
+Bytewise cmp: encoded 8814.44 MiB in 10 s at 881.444 MiB/s using 1000 times 16 digits per iteration
+Lookup: encoded 18998.3 MiB in 10 s at 1899.83 MiB/s using 1000 times 16 digits per iteration
+SWAR: encoded 16959.9 MiB in 10 s at 1695.99 MiB/s using 1000 times 16 digits per iteration
+SWAR PEXT: encoded 22176.1 MiB in 10 s at 2217.61 MiB/s using 1000 times 16 digits per iteration
+SIMD SSSE3: encoded 35960 MiB in 10 s at 3596 MiB/s using 1000 times 16 digits per iteration
+SIMD SSSE3 PEXT: encoded 35924.7 MiB in 10 s at 3592.47 MiB/s using 1000 times 16 digits per iteration
+
+
+Encoding without AVX512 support disabled:
+
+SIMD SSSE3: encoded 31555.5 MiB in 10 s at 3155.55 MiB/s using 1000 times 16 digits per iteration
+SIMD SSSE3 PEXT: encoded 36059.3 MiB in 10 s at 3605.93 MiB/s using 1000 times 16 digits per iteration
+
+
 ## New encode example output (2018-10-11), Skylake i7-6600U CPU @ 2.60GHz
 
 Default encode: encoded 23133.8 MiB in 10 s at 2313.38 MiB/s using 1000 times 16 digits per iteration

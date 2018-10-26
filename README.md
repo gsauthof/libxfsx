@@ -120,6 +120,18 @@ Or to use ninja instead of make and create a release build:
     $ cmake -G Ninja -D CMAKE_BUILD_TYPE=Release ..
     $ ninja-build bed
 
+To optimize even more, e.g. to enable the SIMD optimized BCD
+processing code the simplest thing is to compile for the highest
+lowest common denominator CPU family you want to use (e.g.
+`-march=haswell`) or just use the CPU model of the current
+machine as reference (i.e. `-march=native`). Example:
+
+    $ CXXFLAGS='-DNDEBUG -O3 -march=native -Wall -g' cmake \
+          -DCMAKE_BUILD_TYPE=None -GNinja ..
+
+See also the `bcd_speed` target for benchmarking the different
+BCD variants.
+
 ## Unittests
 
 compile via:
@@ -152,6 +164,12 @@ Optional:
 
 - [Lua][lua] - for content pretty printing support (cf. `--pp` and `config/*.lua`)
 - [libFuzzer][fuzz] - for fuzzing different parts of the library (cf. `tool/*fuzzer.cc`)
+
+That means on a minimal Fedora system you just need to install
+the following packages to get started:
+
+    # dnf -y install boost-devel cmake gcc-c++ git libxml2-devel \
+                     lua-devel ninja-build ragel vim
 
 ## Usage Notes
 

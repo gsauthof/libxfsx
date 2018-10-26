@@ -1,4 +1,4 @@
-// Copyright 2015, Georg Sauthoff <mail@georg.so>
+// Copyright 2015-2018, Georg Sauthoff <mail@georg.so>
 
 /* {{{ LGPLv3
 
@@ -350,6 +350,15 @@ namespace xfsx { namespace bcd { namespace impl { namespace encode {
        moving bytes around in a register. Most other stuff is then
        SSE3 or earlier.
 
+       The AVX extensions increase the register sizes to 256 and
+       512 Bit, which alone isn't that useful for many BCD
+       use cases where we often just have to deal with 16 digits/8 bytes.
+       But AVX512 (!) also generalizes some new instructions to
+       128 bit registers with 8 bit lanes. Particularly interesting
+       are the maskable comparison instructions, e.g. _mm_cmp_epi8_mask().
+       With that instruction we can eliminate another SIMD instruction
+       and free an SIMD register.
+
        Some ASCII diagrams:
        register content is written left to right 
        most significant byte (MSB) to least signifcant byte (LSB)
@@ -411,16 +420,29 @@ namespace xfsx { namespace bcd { namespace impl { namespace encode {
         __m128i gt9_off = _mm_set1_epi8(u8('a')-u8('0')-u8(10));
 
         __m128i v9 = _mm_set1_epi8(u8('9'));
+#if !(defined(__AVX512VL__) && defined(__AVX512BW__))
         // byte-wise compare each byte: 0xff if greather than, 0 otherwise
         // this mask is for zeroing out offsets on some byte positions
         __m128i gt9_mask = _mm_cmpgt_epi8(x, v9);
+#else
+        // /proc/cpuinfo avx512vl avx512bw, -mavx512vl -mavx512bw
+        // byte-wise compare each byte: result is a 16 bit mask,
+        // i.e. one bit 0/1 per byte
+        // _MM_CMPINT_NLE is the same operator ...
+        __mmask16 gt9_mask = _mm_cmp_epi8_mask(x, v9, _MM_CMPINT_GT);
+#endif
 
         // unconditionally make characters lower-case, null-op for '0'..'9'
         x = _mm_or_si128(x, lower_case_mask);
         __m128i v0 = _mm_set1_epi8(u8('0'));
         x = _mm_sub_epi8(x, v0);
+#if !(defined(__AVX512VL__) && defined(__AVX512BW__))
         __m128i m = _mm_and_si128(gt9_off, gt9_mask);
         x = _mm_sub_epi8(x, m);
+#else
+        // only subtract if corresponding bit in the mask is 1
+        x = _mm_mask_sub_epi8(x, gt9_mask, x, gt9_off);
+#endif
 
         // Gather
 #if defined( __BMI2__)
