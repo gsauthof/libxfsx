@@ -355,9 +355,9 @@ namespace xfsx { namespace bcd { namespace impl { namespace encode {
        use cases where we often just have to deal with 16 digits/8 bytes.
        But AVX512 (!) also generalizes some new instructions to
        128 bit registers with 8 bit lanes. Particularly interesting
-       are the maskable comparison instructions, e.g. _mm_cmp_epi8_mask().
-       With that instruction we can eliminate another SIMD instruction
-       and free an SIMD register.
+       are the maskable instructions, e.g. _mm_mask_sub_epi8().
+       With that instruction we can eliminate another mask adjustment SIMD
+       instruction and free an SIMD register.
 
        Some ASCII diagrams:
        register content is written left to right 
