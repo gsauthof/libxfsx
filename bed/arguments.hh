@@ -101,6 +101,7 @@ namespace bed {
     private:
       void parse(unsigned argc, char **argv);
       void validate();
+      void canonicalize();
       void autodetect_stuff();
       void create_cmd();
     public:
@@ -144,6 +145,10 @@ namespace bed {
       std::string command_str;
       std::unique_ptr<command::Base> cmd;
       unsigned verbosity {0};
+
+      bool mmap{false};
+      bool mmap_out{false};
+      bool fsync{true};
   };
 }
 

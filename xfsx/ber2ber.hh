@@ -25,10 +25,16 @@
 #include <string>
 
 #include "octet.hh"
+#include "tlc_reader.hh"
+#include "tlc_writer.hh"
 
 namespace xfsx {
 
+    struct TLC;
+
   namespace ber {
+
+      void write_identity(Simple_Reader<TLC> &r, Simple_Writer<TLC> &w);
 
     void write_identity(const u8 *ibegin, const u8 *iend,
         u8 *begin, u8 *end);

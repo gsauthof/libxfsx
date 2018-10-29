@@ -38,26 +38,21 @@ namespace xfsx {
 
   namespace ber {
 
+      void write_identity(Simple_Reader<TLC> &r, Simple_Writer<TLC> &w)
+      {
+          while (r.next()) {
+              const TLC &tlc = r.tlc();
+              w.write(tlc);
+          }
+          w.flush();
+      }
+
     void write_identity(const u8 *ibegin, const u8 *iend,
         u8 *begin, u8 *end)
     {
-      Reader r(ibegin, iend);
-      auto i = r.begin();
-      u8 *p = begin;
-      for (; i!= r.end(); ++i) {
-        TLC &tlc = *i;
-        Unit &u = tlc;
-        p = u.write(p, end);
-        if (u.shape == Shape::PRIMITIVE) {
-          #ifdef _GNU_SOURCE
-            p = static_cast<u8*>(
-                mempcpy(p, tlc.begin + u.tl_size, u.length));
-          #else
-            memcpy(p, tlc.begin + u.tl_size, u.length);
-            p += u.length;
-          #endif
-        }
-      }
+        Simple_Reader<TLC> r(ibegin, iend);
+        Simple_Writer<TLC> w(begin, end);
+        write_identity(r, w);
     }
 
 

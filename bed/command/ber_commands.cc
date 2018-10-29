@@ -36,6 +36,11 @@
 #include <xfsx/xml2ber.hh>
 #include <xfsx/tap.hh>
 #include <xfsx/path.hh>
+
+#include <xfsx/tlc_reader.hh>
+#include <xfsx/tlc_writer.hh>
+#include <xfsx/xfsx.hh>
+
 #include <ixxx/util.hh>
 #include <ixxx/ixxx.hh>
 #include <xxxml/util.hh>
@@ -44,6 +49,8 @@
 
 #if (defined(__MINGW32__) || defined(__MINGW64__))
   #include <windows.h>
+#else
+    #include <sys/mman.h>
 #endif
 
 using namespace std;
@@ -52,14 +59,69 @@ namespace bed {
 
   namespace command {
 
+      struct In_Helper {
+          xfsx::Simple_Reader<xfsx::TLC> r;
+          ixxx::util::MMap in; 
+
+          In_Helper(const bed::Arguments &args)
+          {
+              auto &args_ = args;
+              if (args_.mmap) {
+                  // bed::Arguments::canonicalize() protects us from this
+                  assert(args_.in_filename != "-");
+                  in = ixxx::util::mmap_file(args_.in_filename);
+                  r = xfsx::Simple_Reader<xfsx::TLC>(in.begin(), in.end());
+              } else {
+                  if (args_.in_filename == "-")
+                      r = xfsx::mk_tlc_reader<xfsx::TLC>(ixxx::util::FD(0));
+                  else
+                      r = xfsx::mk_tlc_reader<xfsx::TLC>(args_.in_filename);
+              }
+          }
+      };
+
+
+      struct Out_Helper {
+          xfsx::Simple_Writer<xfsx::TLC> w;
+          ixxx::util::MMap o;
+          const bed::Arguments &args_;
+
+          Out_Helper(const bed::Arguments &args, const In_Helper &in)
+              :
+                  args_(args)
+          {
+              if (args_.mmap_out) {
+                  assert(args_.out_filename != "-");
+                  assert(args_.fsync == false);
+                  size_t n = in.in.size();
+                  if (!n) {
+                      struct stat st;
+                      ixxx::posix::stat(args_.in_filename, &st);
+                      n = st.st_size;
+                  }
+                  o = ixxx::util::mmap_file(args_.out_filename, false, true, n);
+                  w = xfsx::Simple_Writer<xfsx::TLC>(o.begin(), o.end());
+              } else {
+                  if (args_.out_filename == "-")
+                      w = xfsx::mk_tlc_writer<xfsx::TLC>(ixxx::util::FD(1), args_.fsync);
+                  else
+                      w = xfsx::mk_tlc_writer<xfsx::TLC>(args_.out_filename, args_.fsync);
+              }
+          }
+          void sync()
+          {
+              if (args_.mmap_out && args_.fsync)
+                  o.sync();
+          }
+      };
+
 
     void Write_Identity::execute()
     {
-      auto in = ixxx::util::mmap_file(args_.in_filename);
-      auto out = ixxx::util::mmap_file(args_.out_filename, false, true, in.size());
-
-      xfsx::ber::write_identity(in.begin(), in.end(), out.begin(), out.end());
-
+        In_Helper in(args_);
+        Out_Helper out(args_, in);
+        xfsx::ber::write_identity(in.r, out.w);
+        out.sync();
     }
 
     void Write_Definite::execute()

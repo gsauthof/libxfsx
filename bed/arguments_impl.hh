@@ -64,7 +64,10 @@ namespace bed {
     COMMAND,
     OUTPUT,
     PRETTY_PRINT,
-    PP_FILE
+    PP_FILE,
+    MMAP,
+    MMAP_OUT,
+    NO_FSYNC
   };
 
 } // bed

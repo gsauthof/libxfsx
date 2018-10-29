@@ -29,6 +29,7 @@ Commands:
                 Mainly for testing purposes, i.e. to detect errors in the input
                 file or in the decoding/encoding machinery.
                 This operation has constant memory usage.
+                Supports reading from/writing to stdin/stdout (use - as filename).
 
   write-def     Convert a BER file into one where all constructed tags are
                 definite.
@@ -90,6 +91,13 @@ Arguments:
     -v              increase the verbosity
     -h,--help       display this text
     --version       version string
+
+  write-id:
+
+    --mmap          Memory-map input file
+    --mmap-out      Memory-map output file
+    --no-fsync      skip fsync/msync call after the last write
+
 
   write-xml:
 
@@ -376,7 +384,10 @@ namespace bed {
     { "-o"          , Option::OUTPUT       },
     { "--output"    , Option::OUTPUT       },
     { "--pp"        , Option::PRETTY_PRINT },
-    { "--pp-file"   , Option::PP_FILE      }
+    { "--pp-file"   , Option::PP_FILE      },
+    { "--mmap"      , Option::MMAP         },
+    { "--mmap-out"  , Option::MMAP_OUT     },
+    { "--no-fsync"  , Option::NO_FSYNC     }
   };
 
   static map<Option, pair<unsigned, unsigned> > option_to_argc_map = {
@@ -409,7 +420,10 @@ namespace bed {
      { Option::COMMAND      , { 1, 4 }  },
      { Option::OUTPUT       , { 1, 1 }  },
      { Option::PRETTY_PRINT , { 0, 0 }  },
-     { Option::PP_FILE      , { 1, 1 }  }
+     { Option::PP_FILE      , { 1, 1 }  },
+     { Option::MMAP         , { 0, 0 }  },
+     { Option::MMAP_OUT     , { 0, 0 }  },
+     { Option::NO_FSYNC     , { 0, 0 }  }
   };
 
   static map<Option, set<Command> > option_comp_map = {
@@ -455,7 +469,10 @@ namespace bed {
     { Option::COMMAND   ,  { Command::EDIT }  },
     { Option::OUTPUT    ,  { Command::MK_BASH_COMP } },
     { Option::PRETTY_PRINT,{ Command::WRITE_XML, Command::PRETTY_WRITE_XML } },
-    { Option::PP_FILE   ,  { Command::WRITE_XML, Command::PRETTY_WRITE_XML } }
+    { Option::PP_FILE   ,  { Command::WRITE_XML, Command::PRETTY_WRITE_XML } },
+    { Option::MMAP      ,  { Command::WRITE_IDENTITY } },
+    { Option::MMAP_OUT  ,  { Command::WRITE_IDENTITY } },
+    { Option::NO_FSYNC  ,  { Command::WRITE_IDENTITY } }
   };
 
   static void print_help(const std::string &argv0);
@@ -657,6 +674,21 @@ namespace bed {
   {
     a.pp_filename = argv[i];
   }
+  static void apply_mmap(Arguments &a, unsigned , unsigned&,
+      unsigned, char **)
+  {
+      a.mmap = true;
+  }
+  static void apply_mmap_out(Arguments &a, unsigned , unsigned&,
+      unsigned, char **)
+  {
+      a.mmap_out = true;
+  }
+  static void apply_no_fsync(Arguments &a, unsigned , unsigned&,
+      unsigned, char **)
+  {
+      a.fsync = false;
+  }
 
   static map<Option,void (*)(Arguments &a, unsigned i, unsigned &j,
       unsigned argc, char **argv)> option_to_apply_map = {
@@ -689,7 +721,10 @@ namespace bed {
     { Option::COMMAND      ,  apply_command      },
     { Option::OUTPUT       ,  apply_output       },
     { Option::PRETTY_PRINT ,  apply_pretty_print },
-    { Option::PP_FILE      ,  apply_pp_file      }
+    { Option::PP_FILE      ,  apply_pp_file      },
+    { Option::MMAP         ,  apply_mmap         },
+    { Option::MMAP_OUT     ,  apply_mmap_out     },
+    { Option::NO_FSYNC     ,  apply_no_fsync     }
   };
 
 
@@ -786,7 +821,7 @@ complete -F _)" << name << ' ' << name << '\n';
         throw Argument_Error("Empty argument string");
       } else if (!strcmp(argv[i], "--")) {
         ignore_switches = true;
-      } else if (*argv[i] == '-' && !ignore_switches) {
+      } else if (*argv[i] == '-' && argv[i][1] && !ignore_switches) {
         try {
           auto o = option_map.at(argv[i]);
           auto ac = option_to_argc_map.at(o);
@@ -822,9 +857,11 @@ complete -F _)" << name << ' ' << name << '\n';
       }
     }
     validate();
+    canonicalize();
     autodetect_stuff();
     create_cmd();
   }
+
 
   void Arguments::validate()
   {
@@ -849,6 +886,17 @@ complete -F _)" << name << ' ' << name << '\n';
          && out_filename.empty())
       throw Argument_Error("no output file given");
   }
+
+    void Arguments::canonicalize()
+    {
+        if (mmap && in_filename == "-")
+            mmap = false;
+        if (mmap_out && out_filename == "-")
+            mmap_out = false;
+        if (fsync && out_filename == "-")
+            fsync = false;
+    }
+
 
   void Arguments::autodetect_stuff()
   {

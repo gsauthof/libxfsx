@@ -481,8 +481,9 @@ namespace xfsx {
       }
     }
     tl_size = p-begin;
-    if (size_t(end-p) < length)
-      throw range_error("content overflows");
+    // caller has to check it to allow for streaming reads (cf. scratchpad)
+    // if (size_t(end-p) < length)
+    //   throw range_error("content overflows");
     if (shape == Shape::PRIMITIVE)
       return p + length;
     else
@@ -1088,8 +1089,11 @@ namespace xfsx {
       end_(end),
       skip_zero_(skip_zero)
   {
-    if (begin < end)
+    if (begin < end) {
       begin_ = tlc_.read(begin, end);
+      if (size_t(end-begin) < tlc_.tl_size + tlc_.length)
+          throw range_error("content overflows");
+    }
   }
 
   template <typename T>
@@ -1124,7 +1128,10 @@ namespace xfsx {
     if (begin_ < end_) {
       for (;;) {
         try {
+            size_t n = end_ - begin_;
           begin_ = tlc_.read(begin_, end_);
+          if (n < tlc_.tl_size + tlc_.length)
+              throw range_error("content overflows");
         } catch (const Unexpected_EOC &) {
           if (!skip_zero_)
             throw;

@@ -93,12 +93,15 @@ BOOST_AUTO_TEST_SUITE(xfsx_)
     {
       using namespace xfsx;
       Unit u;
-      const array<u8, 3> a = {
+      const array<u8, 4> a = {
         0b01'0'00101u,
         0b0'000'0010u,
         0u,
       };
-      BOOST_CHECK_THROW(u.read(a.begin(), a.end()), std::range_error);
+      // we don't throw anymore here because we also use the read method
+      // during buffered reading - cf. tlc_reader.hh
+      // BOOST_CHECK_THROW(u.read(a.begin(), a.end()), std::range_error);
+      u.read(a.begin(), a.begin()+3);
       BOOST_CHECK_EQUAL(u.tl_size, 2);
       BOOST_CHECK_EQUAL(u.length, 2);
     }
@@ -570,7 +573,9 @@ BOOST_AUTO_TEST_SUITE(xfsx_)
       }
       {
         Unit u;
-        BOOST_CHECK_THROW(u.read(a.begin(), end), std::range_error);
+        // we don't throw anymore because of tlc_reader
+        // BOOST_CHECK_THROW(u.read(a.begin(), end), std::range_error);
+        u.read(a.begin(), end);
         BOOST_CHECK_EQUAL(u.length, 16258469694287840439lu);
         BOOST_CHECK_EQUAL(u.is_long_definite, true);
         BOOST_CHECK_EQUAL(u.shape, Shape::CONSTRUCTED);
@@ -590,7 +595,9 @@ BOOST_AUTO_TEST_SUITE(xfsx_)
       }
       {
         Unit u;
-        BOOST_CHECK_THROW(u.read(a.begin(), end), std::range_error);
+        // we don't throw anymore because of tlc_reader
+        //BOOST_CHECK_THROW(u.read(a.begin(), end), std::range_error);
+        u.read(a.begin(), end);
         BOOST_CHECK_EQUAL(u.length, 16258469694287840439lu);
         BOOST_CHECK_EQUAL(u.is_long_definite, true);
         BOOST_CHECK_EQUAL(u.shape, Shape::PRIMITIVE);
