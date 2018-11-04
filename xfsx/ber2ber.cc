@@ -116,9 +116,13 @@ namespace xfsx {
       ixxx::util::FD fd(filename, O_CREAT | O_RDWR, 0666);
       size_t n = (iend-ibegin)*2;
       ixxx::posix::ftruncate(fd, n);
-      auto f = ixxx::util::mmap_file(fd, false, true, n);
-      auto r = write_indefinite(ibegin, iend, f.begin(), f.end());
-      n = r - f.begin();
+      {
+          auto f = ixxx::util::mmap_file(fd, false, true, n);
+          auto r = write_indefinite(ibegin, iend, f.begin(), f.end());
+          n = r - f.begin();
+      }
+      // apparently, under newer wine versions (e.g. >= 3.17), ftruncate fails
+      // with Invalid Argument if the mapping is still established
       ixxx::posix::ftruncate(fd, n);
       fd.close();
     }
@@ -188,9 +192,13 @@ namespace xfsx {
       ixxx::util::FD fd(filename, O_CREAT | O_RDWR, 0666);
       size_t n = (iend-ibegin)*2;
       ixxx::posix::ftruncate(fd, n);
-      auto f = ixxx::util::mmap_file(fd, false, true, n);
-      auto r = write_definite(ibegin, iend, f.begin(), f.end());
-      n = r - f.begin();
+      {
+          auto f = ixxx::util::mmap_file(fd, false, true, n);
+          auto r = write_definite(ibegin, iend, f.begin(), f.end());
+          n = r - f.begin();
+      }
+      // apparently, under newer wine versions (e.g. >= 3.17), ftruncate fails
+      // with Invalid Argument if the mapping is still established
       ixxx::posix::ftruncate(fd, n);
       fd.close();
     }
