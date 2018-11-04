@@ -89,13 +89,19 @@ namespace xfsx { namespace bcd { namespace impl { namespace encode {
         // Bytewise: branchfree by creating a mask using normal/bit arithmetic
         ARITH,
         // Bytewise: branchfree by creating a mask using a comparison operator
-        // SIMD: use shuffle as a lookup table
-        DIRECT
+        // SIMD: masked second subtraction
+        DIRECT,
+        // SIMD: shuffle the two possible offsets for one subtraction
+        SATURATE_SHUFFLE,
+        // SIMD: shuffle the three possible offsets for one subtraction
+        SHIFT_SHUFFLE
     };
     enum class Gather {
         // SWAR: copy each even byte
-        // SIMD: use vector instructions (don't actually loop)
+        // SIMD: use vertical multiply and add to pack in one step - don't actually loop
         LOOP,
+        // SIMD: use right-shift/and vector instructions
+        SHIFT_AND,
         // SWAR, SIMD: Bit extract (gather) from a 64 bit source
         // cf. https://en.wikipedia.org/wiki/Bit_Manipulation_Instruction_Sets
         PEXT
@@ -350,6 +356,18 @@ namespace xfsx { namespace bcd { namespace impl { namespace encode {
        moving bytes around in a register. Most other stuff is then
        SSE3 or earlier.
 
+       In contrast to the decoding, the shuffle can't be directly
+       used with a lookup table, because we would need a 32 element
+       table, whereas shuffle only support 16 byte vectors, even
+       with AVX. However, we can map the input ASCII characters
+       to a smaller range (by a saturating subtraction or a right-shift)
+       and then use shuffle to lookup the right offsets. That means
+       we map the ASCII ranges '0'..'9', 'A'..'F', 'a'..'f' to
+       a subset of 0..15 - which are then used as indexes into a
+       offset lookup table. Although, this saves us one or two
+       instructions, it's not necessarily faster as just masking a second
+       subtraction (e.g. not on i7 Skylake).
+
        The AVX extensions increase the register sizes to 256 and
        512 Bit, which alone isn't that useful for many BCD
        use cases where we often just have to deal with 16 digits/8 bytes.
@@ -395,10 +413,25 @@ namespace xfsx { namespace bcd { namespace impl { namespace encode {
        store those 8 bytes into the output string:
            => ab cd ef gh ij kl mn op
 
+       Packed scatter alternative:
+       convert each byte to 4 bits:
+           => x: 0o 0p 0m 0n  0k 0l 0i 0j    0g 0h 0e 0f  0c 0d 0a 0b   
+       vertically multiply each byte with y and add the result into 16 bit components
+       with _mm_maddubs_epi16(), i.e. multiply each odd element by 2*4, i.e. left shift by 4:
+           => y: 0x10 0x01 0x10 0x01 ... 0x10 0x01
+           => x: 00 op 00 mn  00 kl 00 ij    00 gh 00 ef  00 cd 00 ab
+       shuffle every 2nd byte to the lower half with mask:
+           0x80 (8 times), 14, 12, 10, 8, 6, 4, 2, 0
+           => x: 00 00 00 00  00 00 00 00    op mn kl ij  gh ef cd ab
+       store lower half into the output string:
+           => ab cd ef gh ij kl mn op
+
      */
     template <
+        Convert convert = Convert::DIRECT,
 #ifdef __BMI2__
-        Gather gather = Gather::PEXT
+        // mixing SSE with  BMI slows things down
+        Gather gather = Gather::LOOP
 #else
         Gather gather = Gather::LOOP
 #endif
@@ -415,39 +448,111 @@ namespace xfsx { namespace bcd { namespace impl { namespace encode {
         x = _mm_shuffle_epi8(x, scatter_mask);
 
         // Convert
-        // broadcast argument to all 16 byte positions
-        __m128i lower_case_mask = _mm_set1_epi8(0b10'00'00);
-        __m128i gt9_off = _mm_set1_epi8(u8('a')-u8('0')-u8(10));
+        switch (convert) {
+            case Convert::DIRECT: // fastest on Skylake
+            {
+            // broadcast argument to all 16 byte positions
+            __m128i lower_case_mask = _mm_set1_epi8(0b10'00'00);
+            __m128i gt9_off = _mm_set1_epi8(u8('a')-u8('0')-u8(10));
 
-        __m128i v9 = _mm_set1_epi8(u8('9'));
+            __m128i v9 = _mm_set1_epi8(u8('9'));
 #if !(defined(__AVX512VL__) && defined(__AVX512BW__))
-        // byte-wise compare each byte: 0xff if greather than, 0 otherwise
-        // this mask is for zeroing out offsets on some byte positions
-        __m128i gt9_mask = _mm_cmpgt_epi8(x, v9);
+            // byte-wise compare each byte: 0xff if greather than, 0 otherwise
+            // this mask is for zeroing out offsets on some byte positions
+            __m128i gt9_mask = _mm_cmpgt_epi8(x, v9);
 #else
-        // /proc/cpuinfo avx512vl avx512bw, -mavx512vl -mavx512bw
-        // byte-wise compare each byte: result is a 16 bit mask,
-        // i.e. one bit 0/1 per byte
-        // _MM_CMPINT_NLE is the same operator ...
-        __mmask16 gt9_mask = _mm_cmp_epi8_mask(x, v9, _MM_CMPINT_GT);
+            // /proc/cpuinfo avx512vl avx512bw, -mavx512vl -mavx512bw
+            // byte-wise compare each byte: result is a 16 bit mask,
+            // i.e. one bit 0/1 per byte
+            // _MM_CMPINT_NLE is the same operator ...
+            __mmask16 gt9_mask = _mm_cmp_epi8_mask(x, v9, _MM_CMPINT_GT);
 #endif
 
-        // unconditionally make characters lower-case, null-op for '0'..'9'
-        x = _mm_or_si128(x, lower_case_mask);
-        __m128i v0 = _mm_set1_epi8(u8('0'));
-        x = _mm_sub_epi8(x, v0);
+            // unconditionally make characters lower-case, null-op for '0'..'9'
+            x = _mm_or_si128(x, lower_case_mask);
+            __m128i v0 = _mm_set1_epi8(u8('0'));
+            x = _mm_sub_epi8(x, v0);
 #if !(defined(__AVX512VL__) && defined(__AVX512BW__))
-        __m128i m = _mm_and_si128(gt9_off, gt9_mask);
-        x = _mm_sub_epi8(x, m);
+            __m128i m = _mm_and_si128(gt9_off, gt9_mask);
+            x = _mm_sub_epi8(x, m);
 #else
-        // only subtract if corresponding bit in the mask is 1
-        x = _mm_mask_sub_epi8(x, gt9_mask, x, gt9_off);
+            // only subtract if corresponding bit in the mask is 1
+            x = _mm_mask_sub_epi8(x, gt9_mask, x, gt9_off);
 #endif
+            }
+            break;
+            case Convert::SHIFT_SHUFFLE: // slowest on Skylake (not much though)
+            {
+            // we want to right-shift each byte, but SSE/AVX don't provide
+            // such an instruction, the next best thing is to emulate it
+            // shifting each 16 bits and masking the spill from the highest 8 bits 
+            __m128i l2_mask = _mm_set1_epi8(0b11);
+            // shift right by 5 bits, each 16 bit element
+            __m128i off_choice = _mm_srli_epi16(x, 5);
+            // mask the low 2 bits
+            off_choice = _mm_and_si128(off_choice, l2_mask);
+            // arguments left to right are MSB to LSB
+            __m128i off_lut = _mm_set_epi8(0x80, 0x80, 0x80, 0x80,
+                    0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 
+                    u8('a')-10, u8('A')-10 , u8('0') , 0x80);
+            __m128i off = _mm_shuffle_epi8(off_lut, off_choice);
+            x = _mm_sub_epi8(x, off);
+            }
+            break;
+            case Convert::SATURATE_SHUFFLE: // a bit slower on Skylake (not much)
+            {
+            // the lower-case masking allows us to use the saturating
+            // subtraction
+            //
+            // broadcast argument to all 16 byte positions
+            __m128i lower_case_mask = _mm_set1_epi8(0b10'00'00);
+            // unconditionally make characters lower-case, null-op for '0'..'9'
+            x = _mm_or_si128(x, lower_case_mask);
+
+            __m128i cutoff = _mm_set1_epi8(u8('a')-1);
+            // saturating subtract
+            // i.e. each byte is either 0 (for '0'..'9') or 1..6 (for 'a'..'f')
+            __m128i off_choice = _mm_subs_epu8(x, cutoff);
+            // arguments left to right are MSB to LSB
+            __m128i off_lut = _mm_set_epi8(0x80, 0x80, 0x80, 0x80,
+                    0x80, 0x80, 0x80, 0x80,
+                    0x80, u8('a')-10, u8('a')-10, u8('a')-10,
+                          u8('a')-10, u8('a')-10, u8('a')-10, u8('0'));
+            __m128i off = _mm_shuffle_epi8(off_lut, off_choice);
+            x = _mm_sub_epi8(x, off);
+            }
+            break;
+        }
 
         // Gather
-#if defined( __BMI2__)
-        if (gather == Gather::LOOP) {
+        switch (gather) {
+#if !defined( __BMI2__)
+            case Gather::PEXT:
 #endif
+            case Gather::LOOP:
+            {
+            __m128i pack_mask = _mm_set_epi8(0x10, 0x01, 0x10, 0x01,
+                    0x10, 0x01, 0x10, 0x01, 0x10, 0x01, 0x10, 0x01,
+                    0x10, 0x01, 0x10, 0x01); 
+            // vertically multiply (i.e. left shift by 4 or 0) and add
+            // for each 2 8-bit elements - store result in 16 bits
+            // has higher latency and shift/and, but just one instruction
+            __m128i z = _mm_maddubs_epi16(x, pack_mask);
+            // move bytes on even positions to the lower half
+            // for easier unloading
+            // 0x80 inserts a 0, arguments left to right from MSB to LSB
+            __m128i gather_mask = _mm_set_epi8(
+                    0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80,
+                    14, 12, 10, 8, 6, 4, 2, 0);
+            x = _mm_shuffle_epi8(z, gather_mask);
+            // (unaligned) store the lower 8 bytes
+            // same effect as _mm_storeu_si64(),
+            // but GCC <= 8.2, clang < 8 don't provide it
+            _mm_storel_epi64((__m128i*)o, x);
+            }
+            break;
+            case Gather::SHIFT_AND:
+            {
             // shift right logically  by (immediate) 4 bits, for each 2 bytes
             __m128i y = _mm_srli_epi16(x, 4);
             // bit-or both vectors
@@ -463,8 +568,11 @@ namespace xfsx { namespace bcd { namespace impl { namespace encode {
             // same effect as _mm_storeu_si64(),
             // but GCC <= 8.2, clang < 8 don't provide it
             _mm_storel_epi64((__m128i*)o, x);
+            }
+            break;
 #if defined( __BMI2__)
-        } else { // PEXT
+            case Gather::PEXT:
+            {
             uint64_t i[2];
             // (unaligned store) all 16 bytes
             _mm_storeu_si128((__m128i*)i, x);
@@ -474,15 +582,18 @@ namespace xfsx { namespace bcd { namespace impl { namespace encode {
             j[0] =_pext_u64(i[0], bcast<uint64_t>(0xf));
             j[1] =_pext_u64(i[1], bcast<uint64_t>(0xf));
             memcpy(o, j, sizeof j);
-        }
+            }
+            break;
 #endif
+        }
     }
 
 
     template <
         Convert convert = Convert::DIRECT,
 #ifdef __BMI2__
-        Gather gather = Gather::PEXT
+        // Mixing SSE with BMI slows things down
+        Gather gather = Gather::LOOP
 #else
         Gather gather = Gather::LOOP
 #endif
@@ -492,7 +603,7 @@ namespace xfsx { namespace bcd { namespace impl { namespace encode {
         size_t n = end-begin;
         const char *mid = begin + n/16*16;
         for (const char *i = begin; i != mid; i+=16) {
-            encode_ssse3_word(i, o);
+            encode_ssse3_word<convert, gather>(i, o);
             o += 8;
         }
         encode_bytewise<convert>(mid, end, o);
@@ -528,7 +639,7 @@ namespace xfsx { namespace bcd { namespace impl { namespace encode {
                     break;
                 case Type::SIMD:
 #ifdef __SSSE3__
-                    // PEXT perhaps slower
+                    // mixing PEXT with SSE slows things down
                     encode_ssse3<convert, Gather::LOOP>(begin, end, o);
                     break;
 #else

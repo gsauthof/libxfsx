@@ -234,7 +234,6 @@ int main(int argc, char **argv)
       [](const u8 *b, const u8 *e, char *o) {
         using namespace xfsx::bcd;
         decode(b, e, o); }, Decode_Helper());
-
   cerr << '\n';
 
   bench("Default encode", args,
@@ -272,6 +271,16 @@ int main(int argc, char **argv)
       [](const char *b, const char *e, u8 *o) {
         using namespace xfsx::bcd::impl::encode;
         encode_ssse3<Convert::DIRECT, Gather::LOOP>(b, e, o); },
+        Encode_Helper());
+  bench("SIMD SSSE3 shift/and gather", args,
+      [](const char *b, const char *e, u8 *o) {
+        using namespace xfsx::bcd::impl::encode;
+        encode_ssse3<Convert::DIRECT, Gather::SHIFT_AND>(b, e, o); },
+        Encode_Helper());
+  bench("SIMD SSSE3 saturate shuffle convert", args,
+      [](const char *b, const char *e, u8 *o) {
+        using namespace xfsx::bcd::impl::encode;
+        encode_ssse3<Convert::SATURATE_SHUFFLE, Gather::LOOP>(b, e, o); },
         Encode_Helper());
 #if defined(__BMI2__)
   bench("SIMD SSSE3 PEXT", args,

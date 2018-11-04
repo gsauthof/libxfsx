@@ -68,6 +68,21 @@ static const Fn fns[] = {
         encode_ssse3<Convert::DIRECT, Gather::LOOP>(begin, end, o);
         return o + ((end-begin)+1)/2;
     } }
+    ,{ "SIMD SSSE3 shift shuffle convert", [](const char *begin, const char *end, u8 *o) {
+        using namespace xfsx::bcd::impl::encode;
+        encode_ssse3<Convert::SHIFT_SHUFFLE, Gather::LOOP>(begin, end, o);
+        return o + ((end-begin)+1)/2;
+    } }
+    ,{ "SIMD SSSE3 saturate convert", [](const char *begin, const char *end, u8 *o) {
+        using namespace xfsx::bcd::impl::encode;
+        encode_ssse3<Convert::SATURATE_SHUFFLE, Gather::LOOP>(begin, end, o);
+        return o + ((end-begin)+1)/2;
+    } }
+    ,{ "SIMD SSSE3 shift/and gather", [](const char *begin, const char *end, u8 *o) {
+        using namespace xfsx::bcd::impl::encode;
+        encode_ssse3<Convert::DIRECT, Gather::SHIFT_AND>(begin, end, o);
+        return o + ((end-begin)+1)/2;
+    } }
 #ifdef __BMI2__
     ,{ "SIMD SSSE3 PEXT", [](const char *begin, const char *end, u8 *o) {
         using namespace xfsx::bcd::impl::encode;
