@@ -338,7 +338,7 @@ namespace xfsx { namespace bcd { namespace impl { namespace encode {
             encode_swar_word<gather, T>(i, o);
             o += 4;
         }
-        encode_bytewise<convert>(mid, end, o);
+        encode_lookup(mid, end, o);
     }
 
 #ifdef __SSSE3__
@@ -606,7 +606,7 @@ namespace xfsx { namespace bcd { namespace impl { namespace encode {
             encode_ssse3_word<convert, gather>(i, o);
             o += 8;
         }
-        encode_bytewise<convert>(mid, end, o);
+        encode_lookup(mid, end, o);
     }
 #endif // __SSSE3__
 
@@ -615,7 +615,7 @@ namespace xfsx { namespace bcd { namespace impl { namespace encode {
 #if defined(__SSSE3__)
         Type type = Type::SIMD,
 #else
-        Type type = Type::BYTEWISE,
+        Type type = Type::LOOKUP,
 #endif
         Convert convert = Convert::DIRECT,
 #if defined( __BMI2__)

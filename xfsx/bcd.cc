@@ -64,7 +64,6 @@ namespace xfsx {
         char *o)
     {
       impl::decode::decode(begin, end, o);
-      //impl::decode::decode_lookup(begin, end, o);
       return o + (end-begin)*2;
     }
 

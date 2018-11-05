@@ -1457,7 +1457,7 @@ void decode_lookup(const u8* begin, const u8* end, char* o)
                 decode_swar_word<scatter, gather, A, T>(i, o);
                 o += sizeof(T);
             }
-            decode_bytewise<convert, A>(mid, end, o);
+            decode_lookup<convert, A>(mid, end, o);
         }
 
 #ifdef __SSSE3__
@@ -1643,17 +1643,15 @@ void decode_lookup(const u8* begin, const u8* end, char* o)
                 decode_ssse3_word<scatter, convert, A>(i, o);
                 o += sizeof(__m128i);
             }
-            // XXX call decode_swar
-            decode_bytewise<convert, A>(mid, end, o);
+            decode_lookup<convert, A>(mid, end, o);
         }
 #endif // __SSSE3__
 
-    // XXX switch default type from SWAR to LOOKUP?
     template <
 #if defined(__SSSE3__)
         Type type = Type::SIMD,
 #else
-        Type type = Type::SWAR,
+        Type type = Type::LOOKUP,
 #endif
 #if defined(__BMI2__)
         Scatter scatter = Scatter::PDEP,
