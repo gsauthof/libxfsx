@@ -58,6 +58,8 @@ namespace xfsx {
     template <typename Char>
         void Scratchpad<Char>::forget_prelude(size_t k)
         {
+            if (!k)
+                return;
             // Optimally, either k == off_ (i.e. when reading) or
             // or k is just a little bit smaller than off_
             // e.g. k is at a 128k boundary and off_ a few bytes above
@@ -129,8 +131,8 @@ namespace xfsx {
         {
         }
     template <typename Char>
-        Scratchpad_Source_File<Char>::Scratchpad_Source_File(Scratchpad_Source_File &&)
-        =default;
+        Scratchpad_Source_File<Char>::Scratchpad_Source_File(
+                Scratchpad_Source_File &&) = default;
 
     template <typename Char>
         Scratchpad_Source_File<Char> &Scratchpad_Source_File<Char>::operator=(
@@ -140,6 +142,16 @@ namespace xfsx {
         void Scratchpad_Source_File<Char>::set_increment(size_t inc)
         {
             inc_ = inc;
+        }
+    template <typename Char>
+        const Scratchpad<Char> &Scratchpad_Source_File<Char>::pad() const
+        {
+            return pad_;
+        }
+    template <typename Char>
+        bool Scratchpad_Source_File<Char>::eof() const
+        {
+            return eof_;
         }
     template <typename Char>
         std::pair<const Char*, const Char*>
@@ -161,6 +173,7 @@ namespace xfsx {
                 m += n;
                 if (n < inc_) {
                     pad_.remove_tail(l - m);
+                    eof_ = true;
                     break;
                 }
             }

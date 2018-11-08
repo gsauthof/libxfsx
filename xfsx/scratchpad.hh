@@ -99,10 +99,13 @@ namespace xfsx {
                 std::pair<const Char*, const Char*>
                     read_more(size_t forget_cnt, size_t want_cnt);
                 void set_increment(size_t inc);
+                const Scratchpad<Char> &pad() const;
+                bool eof() const;
             private:
                 size_t inc_ {128 * 1024};
                 Scratchpad<Char> pad_;
                 ixxx::util::FD fd_;
+                bool eof_{false};
         };
 
     template <typename Char>
