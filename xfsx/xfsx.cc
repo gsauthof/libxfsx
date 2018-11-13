@@ -733,6 +733,7 @@ namespace xfsx {
       const u8 *end)
   {
     assert(begin < end);
+    (void)end;
     if (shape == Shape::CONSTRUCTED && length) {
       stack_[depth_].length = length;
       conditional_pop();

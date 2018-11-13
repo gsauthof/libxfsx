@@ -411,7 +411,10 @@ namespace xfsx {
 
     inline u8 *write(u8 *begin, u8 *end) const
     {
-      if (size_t(end-begin) < tl_size + length)
+        // with buffered writing, a buffer very well may not
+        // be large enough for all the children of a
+        // definite constructed tag
+      if (shape == Shape::PRIMITIVE && size_t(end-begin) < tl_size + length)
         throw std::overflow_error("write: value too large");
       auto o = Unit::write(begin, end);
       if (shape == Shape::PRIMITIVE && length)
