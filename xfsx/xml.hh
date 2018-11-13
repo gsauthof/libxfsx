@@ -23,14 +23,33 @@
 
 #include <utility>
 #include <string>
+#include <memory>
 
 #include "comment.hh"
 
 //#include <boost/algorithm/string/find_iterator.hpp>
 
 namespace xfsx {
-
+    namespace scratchpad {
+        template <typename Char> class Reader;
+    }
   namespace xml {
+
+    class Reader {
+        public:
+            Reader(std::unique_ptr<scratchpad::Reader<char>> &&src);
+
+            bool next();
+            std::pair<const char*, const char*> tag() const;
+            std::pair<const char*, const char*> value() const;
+        private:
+            std::unique_ptr<scratchpad::Reader<char>> src_;
+            std::pair<const char *, const char *> p_ {nullptr, nullptr};
+            size_t inc_ {128 * 1024};
+            std::pair<size_t, size_t> k_ {0, 0};
+            size_t low_{0};
+    };
+
 
     // Limitaton: does not allow '>' in attribute values
     // where the XML spec does allow it.
@@ -38,6 +57,7 @@ namespace xfsx {
     //
     // http://www.w3.org/TR/REC-xml/#NT-AttValue
     //
+    // XXX deprecated  - replace with Reader
     class Element_Finder {
       private:
         const std::pair<const char *, const char*> p_;
@@ -66,6 +86,7 @@ namespace xfsx {
 
     // Limitation:
     // Comments must not be placed between primitve open/close tags
+    // XXX deprecated  - replace with Reader
     class Element_Traverser {
       private:
         std::pair<
@@ -97,8 +118,11 @@ namespace xfsx {
     };
 
 
+    bool is_start_tag(const std::pair<const char*, const char*> &p);
     bool is_end_tag(const std::pair<const char*, const char*> &p);
     bool is_start_end_tag(const std::pair<const char*, const char*> &p);
+    bool is_decl(const std::pair<const char*, const char*> &p);
+    bool is_comment(const std::pair<const char*, const char*> &p);
 
     std::pair<const char*, const char*> element_name(
         const std::pair<const char*, const char*> &p);

@@ -26,12 +26,73 @@
 #include <cassert>
 
 #include "s_pair.hh"
+#include "scratchpad.hh"
 
 using namespace std;
 
 namespace xfsx {
 
   namespace xml {
+
+        static char empty_s[0];
+
+        Reader::Reader(std::unique_ptr<scratchpad::Reader<char>> &&src)
+            :
+                src_(std::move(src))
+        {
+        }
+        bool Reader::next()
+        {
+            const char *x;
+            for (;;) {
+                x = std::find(p_.first + k_.second, p_.second, '<');
+                if (x == p_.second) {
+                    if (src_->eof())
+                        return false;
+                    p_ = src_->read_more(low_, inc_);
+                    k_.first -= low_;
+                    k_.second -= low_;
+                    low_ = 0;
+                    continue;
+                }
+                break;
+            }
+            k_.first = x - p_.first + 1; // excluding the <
+            const char *y;
+            for (;;) {
+                y = std::find(p_.first + k_.second, p_.second, '>');
+                if (y == p_.second) {
+                    if (src_->eof())
+                        throw range_error("file ends within a tag");
+                    p_ = src_->read_more(low_, inc_);
+                    k_.first -= low_;
+                    k_.second -= low_;
+                    low_ = 0;
+                    continue;
+                }
+                break;
+            }
+            low_ = k_.second;
+            k_.second = y - p_.first + 1; // including the >
+            return true;
+        }
+        std::pair<const char*, const char*> Reader::tag() const
+        {
+            assert(k_.first < k_.second);
+            return make_pair(p_.first + k_.first, p_.first + k_.second - 1);
+        }
+        std::pair<const char*, const char*> Reader::value() const
+        {
+            //assert(k_.first);
+            if (k_.first)
+                return make_pair(p_.first + low_, p_.first + k_.first - 1);
+            else
+                return make_pair(static_cast<const char*>(empty_s),
+                        static_cast<const char*>(empty_s));
+        }
+
+
+
 
     Element_Finder::Element_Finder(const char *begin, const char *end)
       :
@@ -174,6 +235,10 @@ namespace xfsx {
     }
 
 
+    bool is_start_tag(const std::pair<const char*, const char*> &p)
+    {
+      return p.first < p.second && *p.first != '/';
+    }
     bool is_end_tag(const std::pair<const char*, const char*> &p)
     {
       return p.first < p.second && *p.first == '/';
@@ -181,6 +246,17 @@ namespace xfsx {
     bool is_start_end_tag(const std::pair<const char*, const char*> &p)
     {
       return p.first < p.second && p.second[-1] == '/';
+    }
+    bool is_decl(const std::pair<const char*, const char*> &p)
+    {
+        return p.first < p.second && *p.first == '?';
+    }
+    bool is_comment(const std::pair<const char*, const char*> &p)
+    {
+        // XML comments: <!--  -->
+        // we assume that there are no legitimate element names that
+        // start with ! and that comments don't cross other elements
+        return p.first < p.second && *p.first == '!';
     }
 
     std::pair<const char*, const char*> element_name(
