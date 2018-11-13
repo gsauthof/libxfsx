@@ -10,6 +10,8 @@
 
 namespace xfsx {
 
+    namespace scratchpad {
+
     // Buffer class for efficient buffered reading/writing.
     //
     // When reading objects like TLV/line objects we are in the situation that we
@@ -85,16 +87,16 @@ namespace xfsx {
         };
 
     template <typename Char>
-        class Scratchpad_Source_File {
+        class Source_File {
             public:
-                Scratchpad_Source_File();
-                Scratchpad_Source_File(const char *filename);
-                Scratchpad_Source_File(const std::string &filename);
-                Scratchpad_Source_File(ixxx::util::FD &&fd);
-                Scratchpad_Source_File(const Scratchpad_Source_File &) =delete;
-                Scratchpad_Source_File &operator=(const Scratchpad_Source_File &) =delete;
-                Scratchpad_Source_File(Scratchpad_Source_File &&);
-                Scratchpad_Source_File &operator=(Scratchpad_Source_File &&);
+                Source_File();
+                Source_File(const char *filename);
+                Source_File(const std::string &filename);
+                Source_File(ixxx::util::FD &&fd);
+                Source_File(const Source_File &) =delete;
+                Source_File &operator=(const Source_File &) =delete;
+                Source_File(Source_File &&);
+                Source_File &operator=(Source_File &&);
 
                 std::pair<const Char*, const Char*>
                     read_more(size_t forget_cnt, size_t want_cnt);
@@ -108,23 +110,82 @@ namespace xfsx {
                 bool eof_{false};
         };
 
+
+    // We use virtual inheritance such that code can construct
+    // a Simple_Reader with different backends at runtime without
+    // that changing its instantiation (i.e. type)
     template <typename Char>
-        class Scratchpad_Sink_File {
+        class Reader {
             public:
-                Scratchpad_Sink_File();
-                ~Scratchpad_Sink_File();
-                Scratchpad_Sink_File(const char *filename);
-                Scratchpad_Sink_File(const std::string &filename);
-                Scratchpad_Sink_File(ixxx::util::FD &&fd);
-                Scratchpad_Sink_File(Scratchpad_Sink_File &&);
-                Scratchpad_Sink_File &operator=(Scratchpad_Sink_File &&);
-                Scratchpad_Sink_File(const Scratchpad_Sink_File &) =delete;
-                Scratchpad_Sink_File &operator=(const Scratchpad_Sink_File &) =delete;
+                virtual ~Reader();
+                // function returns updated begin end,
+                // 1st argument specifies how many prefix bytes can be discarded
+                // 2nd argument specifies minimum read-size - which is
+                //     respected by the function unless it encounters EOF before,
+                //     which isn't an error
+                virtual std::pair<const Char*, const Char*>
+                    read_more(size_t forget_cnt, size_t want_cnt) = 0;
+                virtual bool eof() const = 0;
+        };
+    template <typename Char>
+        class Memory_Reader : public Reader<Char> {
+            public:
+                Memory_Reader();
+                Memory_Reader(const Char *begin, const Char *end);
+                std::pair<const Char*, const Char*>
+                    read_more(size_t forget_cnt, size_t want_cnt) override;
+                bool eof() const override;
+            protected:
+                const Char *begin_{nullptr};
+                const Char *end_  {nullptr};
+            private:
+                bool eof_{false};
+        };
+    template <typename Char>
+        class Mapped_Reader : public Memory_Reader<Char> {
+            public:
+                Mapped_Reader(const char *filename);
+                Mapped_Reader(const std::string &filename);
+            private:
+                ixxx::util::MMap m_; 
+        };
+    template <typename Char>
+        class File_Reader : public Reader<Char> {
+            public:
+                File_Reader(const File_Reader &) =delete;
+                File_Reader &operator=(const File_Reader &) =delete;
+                File_Reader(File_Reader &&);
+                File_Reader &operator=(File_Reader &&);
+                File_Reader();
+
+                File_Reader(const std::string &filename);
+                File_Reader(ixxx::util::FD &&fd);
+                std::pair<const Char*, const Char*>
+                    read_more(size_t forget_cnt, size_t want_cnt) override;
+                bool eof() const override;
+            private:
+                Source_File<Char> source_;
+        };
+
+
+    template <typename Char>
+        class Sink_File {
+            public:
+                Sink_File();
+                ~Sink_File();
+                Sink_File(const char *filename);
+                Sink_File(const std::string &filename);
+                Sink_File(ixxx::util::FD &&fd);
+                Sink_File(Sink_File &&);
+                Sink_File &operator=(Sink_File &&);
+                Sink_File(const Sink_File &) =delete;
+                Sink_File &operator=(const Sink_File &) =delete;
 
                 std::pair<Char*, Char*> prepare_write(size_t forget_cnt, size_t want_cnt);
                 std::pair<Char*, Char*> write_some(size_t forget_cnt);
 
                 void flush();
+                void sync();
                 void set_increment(size_t inc);
                 void set_sync(bool b);
             private:
@@ -133,6 +194,111 @@ namespace xfsx {
                 ixxx::util::FD fd_;
                 bool sync_{false};
         };
+
+    template <typename Char>
+        class Writer {
+            public:
+                virtual ~Writer();
+
+                // we split this into prepare_write() and write_some() because the Simple_Writer
+                // writes just after prepare_write() returns over the block boundary,
+                // thus, very likely we just have to move a few bytes when write_some is called
+
+                // function returns updated begin end
+                // 1st argument specifies head bytes that can be written
+                // 2nd argument specifies minimum bytes needed at the back,
+                //     function may provide more
+                virtual std::pair<Char*, Char*> prepare_write(
+                        size_t forget_cnt, size_t want_cnt) = 0;
+
+                // function returns updated begin end
+                virtual std::pair<Char*, Char*> write_some(size_t forget_cnt) = 0;
+
+
+                // completely flush the buffer
+                virtual void flush() = 0;
+
+                virtual void set_sync(bool b) = 0;
+                virtual void sync() = 0;
+
+                // only useful for scratchpad writer
+                virtual void clear();
+        };
+
+    // e.g. for writing into a memory mapped file
+    template <typename Char>
+        class Memory_Writer : public Writer<Char> {
+            public:
+                Memory_Writer();
+                Memory_Writer(Char *begin, Char *end);
+                std::pair<Char*, Char*> prepare_write(size_t forget_cnt,
+                        size_t want_cnt) override;
+                std::pair<Char*, Char*> write_some(size_t forget_cnt) override;
+                void flush() override;
+                void sync() override;
+                void set_sync(bool b) override;
+            protected:
+                Char *begin_{nullptr};
+                Char *end_  {nullptr};
+        };
+
+    template <typename Char>
+        class Mapped_Writer : public Memory_Writer<Char> {
+            public:
+                Mapped_Writer(ixxx::util::MMap &&m);
+                Mapped_Writer(const std::string &filename, size_t size);
+
+                void sync() override;
+                void set_sync(bool b) override;
+            private:
+                ixxx::util::MMap m_;
+                bool sync_{false};
+        };
+
+    // i.e. the [prelude..begin) pad range contains everything written
+    template <typename Char>
+        class Scratchpad_Writer : public Writer<Char> {
+            public:
+                std::pair<Char*, Char*> prepare_write(size_t forget_cnt,
+                        size_t want_cnt) override;
+                std::pair<Char*, Char*> write_some(size_t forget_cnt) override;
+                void flush() override;
+                void sync() override;
+                void set_sync(bool b) override;
+                void clear() override;
+
+                Scratchpad<Char> &pad();
+                void set_increment(size_t inc);
+
+            private:
+                Scratchpad<Char> pad_;
+                size_t inc_ {128 * 1024};
+        };
+
+    template <typename Char>
+        class File_Writer : public Writer<Char> {
+            public:
+                File_Writer();
+                File_Writer(const std::string &filename);
+                File_Writer(ixxx::util::FD &&fd);
+                File_Writer(const File_Writer &) =delete;
+                File_Writer &operator=(const File_Writer &) =delete;
+                File_Writer(File_Writer &&);
+                File_Writer &operator=(File_Writer &&);
+
+                std::pair<Char*, Char*> prepare_write(size_t forget_cnt,
+                        size_t want_cnt) override;
+                std::pair<Char*, Char*> write_some(size_t forget_cnt) override;
+                void flush() override;
+                void sync() override;
+                void set_sync(bool b) override;
+
+                Sink_File<Char> &sink();
+            private:
+                Sink_File<Char> sink_;
+        };
+
+    } // namespace scratchpad
 
 } // namespace xfsx
 

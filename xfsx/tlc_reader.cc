@@ -11,16 +11,11 @@ using namespace std;
 
 namespace xfsx {
 
-    template <typename Char>
-        Simple_Reader_Backend<Char>::~Simple_Reader_Backend() =default;
-
-    template class Simple_Reader_Backend<u8>;
-
 
     template <typename T>
         Simple_Reader<T>::Simple_Reader()
         :
-            backend_(new Memory_Reader<u8>(begin_, end_))
+            backend_(new scratchpad::Memory_Reader<u8>(begin_, end_))
     {
     }
     template <typename T>
@@ -66,21 +61,26 @@ namespace xfsx {
         :
             begin_(begin),
             end_(end),
-            backend_(new Memory_Reader<u8>(begin_, end_))
+            backend_(new scratchpad::Memory_Reader<u8>(begin_, end_))
     {
     }
     template <typename T>
         Simple_Reader<T>::Simple_Reader(
-                std::unique_ptr<Simple_Reader_Backend<u8>> &&read_more_fn)
+                std::unique_ptr<scratchpad::Reader<u8>> &&backend)
         :
             begin_(nullptr),
             end_(nullptr),
-            backend_(std::move(read_more_fn))
+            backend_(std::move(backend))
     {
     }
 
     template <typename T>
         const T &Simple_Reader<T>::tlc() const
+        {
+            return tlc_;
+        }
+    template <typename T>
+        T &Simple_Reader<T>::tlc()
         {
             return tlc_;
         }
@@ -119,51 +119,6 @@ namespace xfsx {
 
     template class Simple_Reader<TLC>;
 
-    template <typename Char>
-        Memory_Reader<Char>::Memory_Reader(const Char *begin, const Char *end)
-        :
-            begin_(begin),
-            end_(end)
-    {
-    }
-    template <typename Char>
-        std::pair<const Char*, const Char*>
-        Memory_Reader<Char>::read_more(size_t forget_cnt, size_t want_cnt)
-        {
-            (void)want_cnt;
-            begin_ += forget_cnt;
-            return make_pair(begin_, end_);
-        }
-
-    template class Memory_Reader<u8>;
-
-    template <typename Char>
-        Scratchpad_Reader<Char>::Scratchpad_Reader(Scratchpad_Reader &&) =default;
-    template <typename Char>
-        Scratchpad_Reader<Char> &Scratchpad_Reader<Char>::operator=(Scratchpad_Reader &&)
-        =default;
-    template <typename Char>
-        Scratchpad_Reader<Char>::Scratchpad_Reader() =default;
-    template <typename Char>
-        Scratchpad_Reader<Char>::Scratchpad_Reader(const std::string &filename)
-        :
-            source_(filename)
-    {
-    }
-    template <typename Char>
-        Scratchpad_Reader<Char>::Scratchpad_Reader(ixxx::util::FD &&fd)
-        :
-            source_(std::move(fd))
-        {
-        }
-    template <typename Char>
-        std::pair<const Char*, const Char*>
-        Scratchpad_Reader<Char>::read_more(size_t forget_cnt, size_t want_cnt)
-        {
-            return source_.read_more(forget_cnt, want_cnt);
-        }
-
-    template class Scratchpad_Reader<u8>;
 
 
 } // namespace xfsx

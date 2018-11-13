@@ -21,6 +21,8 @@ using namespace std;
 
 namespace xfsx {
 
+    namespace scratchpad {
+
     template <typename Char>
         Scratchpad<Char>::Scratchpad() =default;
     template <typename Char>
@@ -110,52 +112,52 @@ namespace xfsx {
 
 
     template <typename Char>
-        Scratchpad_Source_File<Char>::Scratchpad_Source_File() =default;
+        Source_File<Char>::Source_File() =default;
     template <typename Char>
-        Scratchpad_Source_File<Char>::Scratchpad_Source_File(const char *filename)
+        Source_File<Char>::Source_File(const char *filename)
         :
             fd_(filename, O_RDONLY)
     {
     }
     template <typename Char>
-        Scratchpad_Source_File<Char>::Scratchpad_Source_File(
+        Source_File<Char>::Source_File(
                 const std::string &filename)
         :
             fd_(filename, O_RDONLY)
     {
     }
     template <typename Char>
-        Scratchpad_Source_File<Char>::Scratchpad_Source_File(ixxx::util::FD &&fd)
+        Source_File<Char>::Source_File(ixxx::util::FD &&fd)
         :
             fd_(std::move(fd))
         {
         }
     template <typename Char>
-        Scratchpad_Source_File<Char>::Scratchpad_Source_File(
-                Scratchpad_Source_File &&) = default;
+        Source_File<Char>::Source_File(
+                Source_File &&) = default;
 
     template <typename Char>
-        Scratchpad_Source_File<Char> &Scratchpad_Source_File<Char>::operator=(
-                Scratchpad_Source_File &&) =default;
+        Source_File<Char> &Source_File<Char>::operator=(
+                Source_File &&) =default;
 
     template <typename Char>
-        void Scratchpad_Source_File<Char>::set_increment(size_t inc)
+        void Source_File<Char>::set_increment(size_t inc)
         {
             inc_ = inc;
         }
     template <typename Char>
-        const Scratchpad<Char> &Scratchpad_Source_File<Char>::pad() const
+        const Scratchpad<Char> &Source_File<Char>::pad() const
         {
             return pad_;
         }
     template <typename Char>
-        bool Scratchpad_Source_File<Char>::eof() const
+        bool Source_File<Char>::eof() const
         {
             return eof_;
         }
     template <typename Char>
         std::pair<const Char*, const Char*>
-        Scratchpad_Source_File<Char>::read_more(
+        Source_File<Char>::read_more(
                 size_t forget_cnt, size_t want_cnt)
         {
             pad_.remove_head(forget_cnt);
@@ -181,30 +183,30 @@ namespace xfsx {
         }
 
 
-    template class Scratchpad_Source_File<u8>;
-    template class Scratchpad_Source_File<char>;
+    template class Source_File<u8>;
+    template class Source_File<char>;
 
 
     template <typename Char>
-        Scratchpad_Sink_File<Char>::Scratchpad_Sink_File(const char *filename)
+        Sink_File<Char>::Sink_File(const char *filename)
         :
             fd_(filename, O_WRONLY | O_CREAT | O_TRUNC, 0644)
     {
     }
     template <typename Char>
-        Scratchpad_Sink_File<Char>::Scratchpad_Sink_File(const std::string &filename)
+        Sink_File<Char>::Sink_File(const std::string &filename)
         :
             fd_(filename, O_WRONLY | O_CREAT | O_TRUNC, 0644)
     {
     }
     template <typename Char>
-        Scratchpad_Sink_File<Char>::Scratchpad_Sink_File(ixxx::util::FD &&fd)
+        Sink_File<Char>::Sink_File(ixxx::util::FD &&fd)
         :
             fd_(std::move(fd))
     {
     }
     template <typename Char>
-        Scratchpad_Sink_File<Char>::~Scratchpad_Sink_File()
+        Sink_File<Char>::~Sink_File()
         {
             try {
                 flush();
@@ -214,27 +216,27 @@ namespace xfsx {
         }
 
     template <typename Char>
-        Scratchpad_Sink_File<Char>::Scratchpad_Sink_File() =default;
+        Sink_File<Char>::Sink_File() =default;
     template <typename Char>
-        Scratchpad_Sink_File<Char>::Scratchpad_Sink_File(Scratchpad_Sink_File &&)
+        Sink_File<Char>::Sink_File(Sink_File &&)
         =default;
     template <typename Char>
-        Scratchpad_Sink_File<Char>  &Scratchpad_Sink_File<Char>::operator=(
-                Scratchpad_Sink_File &&) =default;
+        Sink_File<Char>  &Sink_File<Char>::operator=(
+                Sink_File &&) =default;
 
     template <typename Char>
-        void Scratchpad_Sink_File<Char>::set_increment(size_t inc)
+        void Sink_File<Char>::set_increment(size_t inc)
         {
             inc_ = inc;
         }
     template <typename Char>
-        void Scratchpad_Sink_File<Char>::set_sync(bool b)
+        void Sink_File<Char>::set_sync(bool b)
         {
             sync_ = b;
         }
     template <typename Char>
         std::pair<Char*, Char*>
-        Scratchpad_Sink_File<Char>::prepare_write(size_t forget_cnt, size_t want_cnt)
+        Sink_File<Char>::prepare_write(size_t forget_cnt, size_t want_cnt)
         {
             pad_.increment_head(forget_cnt);
 
@@ -246,7 +248,7 @@ namespace xfsx {
 
     template <typename Char>
         std::pair<Char*, Char*>
-        Scratchpad_Sink_File<Char>::write_some(size_t forget_cnt)
+        Sink_File<Char>::write_some(size_t forget_cnt)
         {
             pad_.increment_head(forget_cnt);
             auto begin = pad_.prelude();
@@ -267,7 +269,7 @@ namespace xfsx {
         }
 
     template <typename Char>
-        void Scratchpad_Sink_File<Char>::flush()
+        void Sink_File<Char>::flush()
         {
             auto begin = pad_.prelude();
             auto end   = pad_.begin();
@@ -280,12 +282,288 @@ namespace xfsx {
             if (begin != end) {
                 ixxx::util::write_all(fd_, begin, end-begin);
             }
+            pad_.clear();
+        }
+    template <typename Char>
+        void Sink_File<Char>::sync()
+        {
             if (sync_)
                 ixxx::posix::fsync(fd_);
+        }
+
+    template class Sink_File<u8>;
+    template class Sink_File<char>;
+
+    template <typename Char> Reader<Char>::~Reader() =default;
+
+    template class Reader<u8>;
+    template class Reader<char>;
+
+    template <typename Char>
+        Memory_Reader<Char>::Memory_Reader(const Char *begin, const Char *end)
+        :
+            begin_(begin),
+            end_(end)
+    {
+    }
+    template <typename Char> Memory_Reader<Char>::Memory_Reader() =default;
+    template <typename Char>
+        std::pair<const Char*, const Char*>
+        Memory_Reader<Char>::read_more(size_t forget_cnt, size_t want_cnt)
+        {
+            (void)want_cnt;
+            begin_ += forget_cnt;
+            eof_ = true;
+            return make_pair(begin_, end_);
+        }
+    template <typename Char>
+        bool Memory_Reader<Char>::eof() const
+        {
+            return eof_;
+        }
+
+    template class Memory_Reader<u8>;
+    template class Memory_Reader<char>;
+
+    template <typename Char>
+        Mapped_Reader<Char>::Mapped_Reader(const char *filename)
+        :
+            m_(ixxx::util::mmap_file(filename))
+    {
+        this->begin_ = reinterpret_cast<const Char*>(m_.begin());
+        this->end_   = reinterpret_cast<const Char*>(m_.end());
+    }
+    template <typename Char>
+        Mapped_Reader<Char>::Mapped_Reader(const std::string &filename)
+        :
+            m_(ixxx::util::mmap_file(filename))
+    {
+        this->begin_ = reinterpret_cast<const Char*>(m_.begin());
+        this->end_   = reinterpret_cast<const Char*>(m_.end());
+    }
+
+    template class Mapped_Reader<u8>;
+    template class Mapped_Reader<char>;
+
+    template <typename Char>
+        File_Reader<Char>::File_Reader(File_Reader &&) =default;
+    template <typename Char>
+        File_Reader<Char> &File_Reader<Char>::operator=(File_Reader &&)
+        =default;
+    template <typename Char>
+        File_Reader<Char>::File_Reader() =default;
+    template <typename Char>
+        File_Reader<Char>::File_Reader(const std::string &filename)
+        :
+            source_(filename)
+    {
+    }
+    template <typename Char>
+        File_Reader<Char>::File_Reader(ixxx::util::FD &&fd)
+        :
+            source_(std::move(fd))
+        {
+        }
+    template <typename Char>
+        std::pair<const Char*, const Char*>
+        File_Reader<Char>::read_more(size_t forget_cnt, size_t want_cnt)
+        {
+            return source_.read_more(forget_cnt, want_cnt);
+        }
+    template <typename Char> bool
+        File_Reader<Char>::eof() const
+        {
+            return source_.eof();
+        }
+
+    template class File_Reader<u8>;
+    template class File_Reader<char>;
+
+
+
+    template <typename Char>
+    Writer<Char>::~Writer() =default;
+
+    template <typename Char>
+        void Writer<Char>::clear()
+        {
+        }
+
+    template class Writer<u8>;
+    template class Writer<char>;
+
+    template <typename Char> Memory_Writer<Char>::Memory_Writer() =default;
+    template <typename Char>
+        Memory_Writer<Char>::Memory_Writer(Char *begin, Char *end)
+        :
+            begin_(begin),
+            end_(end)
+    {
+    }
+    template <typename Char>
+        std::pair<Char*, Char*> Memory_Writer<Char>::prepare_write(size_t forget_cnt, size_t want_cnt)
+        {
+            (void)want_cnt;
+            begin_ += forget_cnt;
+            return make_pair(begin_, end_);
+        }
+    template <typename Char>
+        std::pair<Char*, Char*> Memory_Writer<Char>::write_some(size_t forget_cnt)
+        {
+            begin_ += forget_cnt;
+            return make_pair(begin_, end_);
+        }
+    template <typename Char>
+        void Memory_Writer<Char>::flush()
+        {
+        }
+    template <typename Char>
+        void Memory_Writer<Char>::sync()
+        {
+        }
+    template <typename Char>
+        void Memory_Writer<Char>::set_sync(bool)
+        {
+        }
+
+    template class Memory_Writer<u8>;
+    template class Memory_Writer<char>;
+
+    template <typename Char>
+        Mapped_Writer<Char>::Mapped_Writer(ixxx::util::MMap &&m)
+        :
+            m_(std::move(m))
+    {
+        this->begin_ = reinterpret_cast<Char*>(m_.begin());
+        this->end_   = reinterpret_cast<Char*>(m_.end());
+    }
+    template <typename Char>
+        Mapped_Writer<Char>::Mapped_Writer(const std::string &filename, size_t size)
+        :
+            m_(ixxx::util::mmap_file(filename, false, true, size))
+        {
+            this->begin_ = reinterpret_cast<Char*>(m_.begin());
+            this->end_   = reinterpret_cast<Char*>(m_.end());
+        }
+    template <typename Char>
+        void Mapped_Writer<Char>::sync()
+        {
+            if (sync_)
+                m_.sync();
+        }
+    template <typename Char>
+        void Mapped_Writer<Char>::set_sync(bool b)
+        {
+            sync_ = b;
+        }
+
+    template class Mapped_Writer<u8>;
+    template class Mapped_Writer<char>;
+
+    template <typename Char>
+        std::pair<Char*, Char*> 
+        Scratchpad_Writer<Char>::prepare_write(size_t forget_cnt, size_t want_cnt)
+        {
+            pad_.increment_head(forget_cnt);
+            size_t k = (want_cnt + inc_ - 1)/inc_*inc_;
+            pad_.add_tail(k);
+            return make_pair(pad_.begin(), pad_.end());
+        }
+    template <typename Char>
+        std::pair<Char*, Char*> 
+        Scratchpad_Writer<Char>::write_some(size_t forget_cnt)
+        {
+            pad_.increment_head(forget_cnt);
+            return make_pair(pad_.begin(), pad_.end());
+        }
+    template <typename Char>
+        void Scratchpad_Writer<Char>::flush()
+        {
+        }
+    template <typename Char>
+        void Scratchpad_Writer<Char>::sync()
+        {
+        }
+    template <typename Char>
+        void Scratchpad_Writer<Char>::set_sync(bool)
+        {
+        }
+    template <typename Char>
+        Scratchpad<Char> & Scratchpad_Writer<Char>::pad()
+        {
+            return pad_;
+        }
+    template <typename Char>
+        void Scratchpad_Writer<Char>::set_increment(size_t inc)
+        {
+            inc_ = inc;
+        }
+
+    template <typename Char>
+        void Scratchpad_Writer<Char>::clear()
+        {
             pad_.clear();
         }
 
-    template class Scratchpad_Sink_File<u8>;
-    template class Scratchpad_Sink_File<char>;
+    template class Scratchpad_Writer<u8>;
+    template class Scratchpad_Writer<char>;
+
+    template <typename Char>
+        File_Writer<Char>::File_Writer(const std::string &filename)
+        :
+            sink_(filename)
+    {
+    }
+    template <typename Char>
+        File_Writer<Char>::File_Writer(ixxx::util::FD &&fd)
+        :
+            sink_(std::move(fd))
+    {
+    }
+    template <typename Char>
+        File_Writer<Char>::File_Writer(File_Writer &&) =default;
+    template <typename Char>
+        File_Writer<Char> & File_Writer<Char>::operator=(File_Writer &&) =default;
+
+    template <typename Char>
+        std::pair<Char*, Char*> 
+        File_Writer<Char>::prepare_write(size_t forget_cnt, size_t want_cnt)
+        {
+            return sink_.prepare_write(forget_cnt, want_cnt);
+        }
+    template <typename Char>
+        std::pair<Char*, Char*> 
+        File_Writer<Char>::write_some(size_t forget_cnt)
+        {
+            return sink_.write_some(forget_cnt);
+        }
+    template <typename Char>
+        void 
+        File_Writer<Char>::flush()
+        {
+            sink_.flush();
+        }
+    template <typename Char>
+        void 
+        File_Writer<Char>::sync()
+        {
+            sink_.sync();
+        }
+    template <typename Char>
+        void File_Writer<Char>::set_sync(bool b)
+        {
+            sink_.set_sync(b);
+        }
+    template <typename Char>
+        Sink_File<Char> & File_Writer<Char>::sink()
+        {
+            return sink_;
+        }
+
+    template class File_Writer<u8>;
+    template class File_Writer<char>;
+
+
+    } // namespace scratchpad
 
 } // namespace xfsx
