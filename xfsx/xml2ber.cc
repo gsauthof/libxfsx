@@ -22,11 +22,22 @@
 
 #include "xml.hh"
 #include "xfsx.hh"
-#include "ber_writer.hh"
 
-#include <stdlib.h>
-#include <stack>
 #include <algorithm>
+
+
+#include <assert.h>
+#include "ber_writer_arguments.hh"
+#include <stdexcept>
+#include <xfsx/scratchpad.hh>
+#include <xfsx/xml.hh>
+#include <xfsx/s_pair.hh>
+#include <xfsx/tap.hh>
+#include <xfsx/ber_writer_arguments.hh>
+#include <xfsx/tlc_writer.hh>
+#include <xfsx/integer.hh>
+
+using namespace xfsx;
 
 
 
@@ -37,136 +48,311 @@ namespace xfsx {
   namespace xml {
 
 
-    class BER_Writer : public BER_Writer_Base {
-      private:
-      protected:
-        Element_Traverser t;
-        std::pair<const char*, const char*> e;
-        std::pair<const char*, const char*> name;
+struct Attributes {
+        uint8_t l_size         {0    };
+        bool    uint2int       {false};
+        bool    tag_present    {false};
+        bool    full_tag       {false};
+};
 
-        void ignore_xml_decl();
-        void read_tag();
-        void read_attributes();
-        void write_primitive_tag();
-        void write_constructed_tag();
-      public:
-        BER_Writer(const char *begin, const char *end,
-            const BER_Writer_Arguments &args
-            );
-        void write();
-        void write(const string &filename);
-        void write(Raw_Vector<u8> &v);
-    };
+class Xml2Ber {
+    public:
+        Xml2Ber(std::unique_ptr<scratchpad::Reader<char>> &&in,
+                std::unique_ptr<scratchpad::Writer<u8>> &&out,
+                const BER_Writer_Arguments &args
+                );
 
-    BER_Writer::BER_Writer(const char *begin, const char *end,
+        void process();
+    private:
+        void process_tag();
+        // if constructed and indefinite: write TL part
+        // otherwise: write nothing
+        void write_start();
+        // if primitive: write to the top buffer
+        // if constructed definite: write TL part and copy top+1 buffer
+        // if constructed indefinite: copy top+1 buffer
+        void write_end(bool is_empty);
+
+        xml::Reader r_;
+        Attributes attributes_;
+        const BER_Writer_Arguments &args_;
+
+        // top of the stack is the current tag
+        // either primitive or constructed
+        // the active rest of the stack are constructed tags
+        std::deque<TLV> tlv_stack_;
+        size_t tlv_stack_top_{0};
+
+        // writers are reused to avoid unnecessary object reconstructions
+        // (thus no std::stack nor down-resize calls)
+        // first writer directly writes to a file
+        // for each definitive constructed a scratchpad writer is pushed
+        std::deque<xfsx::Simple_Writer<TLV>> writer_stack_;
+        size_t writer_stack_top_{0};
+
+        TLV eoc_{Unit::EOC()};
+
+        size_t inc_{128*1024};
+};
+
+Xml2Ber::Xml2Ber(std::unique_ptr<scratchpad::Reader<char>> &&in,
+        std::unique_ptr<scratchpad::Writer<u8>> &&out,
         const BER_Writer_Arguments &args
         )
-      :
-        BER_Writer_Base(args),
-        t(begin, end)
-    {
+    :
+        r_(std::move(in)),
+        args_(args)
+{
+    writer_stack_.emplace_back(std::move(out));
+    ++writer_stack_top_;
+}
+void Xml2Ber::process()
+{
+    if (r_.next()) {
+        if (!xml::is_decl(r_.tag()))
+            process_tag();
     }
-
-    void BER_Writer::ignore_xml_decl()
-    {
-      if (t.has_more()) {
-        if (*(*t).first == '?')
-          ++t;
-      }
+    while (r_.next()) {
+        process_tag();
     }
+    if (writer_stack_top_ != 1)
+        throw runtime_error("unexpected writer stack - unbalanced tags?");
+    if (tlv_stack_top_)
+        throw runtime_error("unexpected tlv stack - unbalanced tags?");
 
-    void BER_Writer::write()
-    {
-      ignore_xml_decl();
-      for (; t.has_more(); ++t) {
-        e = *t;
-        tlv = TLV();
-        if (xml::is_end_tag(e)) {
-          write_end_tag();
-          continue;
+#ifndef NDEBUG
+    writer_stack_[1].flush();
+    auto be = dynamic_cast<scratchpad::Scratchpad_Writer<u8>*>(
+                writer_stack_[1].backend());
+    auto b = be->pad().prelude();
+    auto e = be->pad().begin();
+    assert(e-b == 0);
+#endif // NDEBUG
+
+    // writer_stack_[0] is already written out in last write_end() call
+    // we just need to flush
+    writer_stack_[0].flush();
+}
+// return: full-initialized
+static bool read_tag(const std::pair<const char*, const char*> &name,
+        TLV &tlv, const BER_Writer_Arguments &args)
+{
+    if (!args.translator.empty()) {
+        try {
+            auto shape_klasse_tag = args.translator.translate(name);
+            tlv.shape = std::get<0>(shape_klasse_tag);
+            tlv.klasse = std::get<1>(shape_klasse_tag);
+            tlv.init_tag(std::get<2>(shape_klasse_tag));
+            return true;
+        } catch (const std::out_of_range &e) {
+            // pass
         }
-        read_tag();
-        read_attributes();
-        switch (tlv.shape) {
-          case Shape::PRIMITIVE:
-            write_primitive_tag();
-            break;
-          case Shape::CONSTRUCTED:
-            write_constructed_tag();
-            break;
+    }
+    if (s_pair::size(name) == 1) {
+        switch (*name.first) {
+            case 'i': tlv.shape = Shape::CONSTRUCTED;
+                      tlv.is_indefinite = true;
+                      break;
+            case 'c': tlv.shape = Shape::CONSTRUCTED; break;
+            case 'p': tlv.shape = Shape::PRIMITIVE; break;
+            default:
+                      throw runtime_error("Unknown tag name: " + s_pair::mk_string(name));
         }
-      }
+    } else {
+        throw runtime_error("Unknown tag name: " + s_pair::mk_string(name));
+    }
+    return false;
+}
+static void read_attribute(
+        const std::pair<const char*, const char*> &name,
+        const std::pair<const char*, const char*> &value,
+        TLV &tlv, Attributes &a)
+{
+    if (s_pair::equal(name, "tag", 3)) {
+        tlv.init_tag(integer::range_to_uint32(value));
+        a.tag_present = true;
+    } else if (s_pair::equal(name, "class", 5)) {
+        tlv.klasse = str_to_klasse(value);
+    } else if (s_pair::equal(name, "indefinite", 10)) {
+        if (tlv.shape == Shape::PRIMITIVE)
+            throw runtime_error("a primitive tag must not be indefinite");
+        if (s_pair::equal(value, "true", 4))
+            tlv.is_indefinite = true;
+    } else if (s_pair::equal(name, "definite", 8)) {
+        if (tlv.shape == Shape::PRIMITIVE)
+            throw runtime_error("a primitive tag must not be indefinite");
+        if (s_pair::equal(value, "false", 5))
+            tlv.is_indefinite = true;
+    } else if (s_pair::equal(name, "l_size", 6)) {
+        a.l_size = integer::range_to_uint32(value);
+    } else if (s_pair::equal(name, "uint2int", 8)) {
+        a.uint2int = s_pair::equal(value, "true", 4);
+    }
+}
+static Attributes read_attributes(
+        const std::pair<const char*, const char*> &tag,
+        const std::pair<const char*, const char*> &name,
+        TLV &tlv)
+{
+    Attributes a;
+    xml::Attribute_Traverser at(tag, name);
+    for (; at.has_more(); ++at) {
+        auto k = at.name();
+        auto v = at.value();
+        read_attribute(k, v, tlv, a);
+    }
+    return a;
+}
+
+void Xml2Ber::process_tag()
+{
+    using xfsx::s_pair::mk_string;
+
+    auto t = r_.tag();
+    if (xml::is_comment(t))
+        return;
+    if (xml::is_start_tag(t)) {
+        TLV tlv;
+        auto name = xml::element_name(t);
+        bool full_tag = read_tag(name, tlv, args_);
+        attributes_ = read_attributes(t, name, tlv);
+        attributes_.full_tag = full_tag;
+        // we have to init_indefinite() after a possible tag change
+        if (tlv.is_indefinite)
+            tlv.init_indefinite();
+        if (attributes_.l_size)
+            tlv.tl_size = tlv.t_size + 1 + attributes_.l_size;
+        if (!full_tag && !attributes_.tag_present)
+            throw runtime_error("element is missing mandatory tag attribute");
+        if (tlv_stack_top_ >= tlv_stack_.size())
+            tlv_stack_.push_back(std::move(tlv));
+        else
+            tlv_stack_[tlv_stack_top_] = std::move(tlv);
+        ++tlv_stack_top_;
+        write_start();
+        if (xml::is_start_end_tag(t))
+            write_end(true);
+    } else if (xml::is_end_tag(t)) {
+        write_end(false);
+    }
+}
+void Xml2Ber::write_start()
+{
+    TLV &tlv = tlv_stack_[tlv_stack_top_-1];
+    if (tlv.shape == Shape::CONSTRUCTED) {
+        if (tlv.is_indefinite) {
+            writer_stack_[writer_stack_top_-1].write(tlv);
+        } else {
+
+            if (writer_stack_top_ >= writer_stack_.size())
+                writer_stack_.emplace_back(
+                        std::unique_ptr<scratchpad::Writer<u8>>(
+                            new scratchpad::Scratchpad_Writer<u8>()
+                            )
+                        );
+            else {
+                auto b  = dynamic_cast<scratchpad::Scratchpad_Writer<u8>*>(
+                        writer_stack_[writer_stack_top_].backend());
+                (void)b;
+                assert(b->pad().begin() - b->pad().prelude() == 0);
+            }
+            ++writer_stack_top_;
+        }
+    }
+}
+static void add_content(const std::pair<const char*, const char*> &value,
+        TLV &tlv, const Attributes &as, const BER_Writer_Arguments &args)
+{
+    auto content = value;
+    if (!as.full_tag)
+        tlv = XML_Content(std::move(content));
+    else {
+        auto kt = args.dereferencer.dereference(tlv.klasse, tlv.tag);
+        Type type = args.typifier.typify(kt);
+        switch (type) {
+            case Type::INT_64:
+                if (as.uint2int) {
+                    Int64_Content c(value);
+                    c.uint_to_int();
+                    tlv = c;
+                } else
+                    tlv = Int64_Content(value);
+                break;
+            case Type::BCD:
+                tlv = BCD_Content(std::move(content));
+                break;
+            case Type::STRING:
+            case Type::OCTET_STRING:
+                tlv = XML_Content(std::move(content));
+                break;
+        }
+    }
+}
+void Xml2Ber::write_end(bool is_empty)
+{
+    if (!tlv_stack_top_)
+        throw underflow_error("tlv stack underflow - unbalanced tags?");
+    TLV &tlv = tlv_stack_[tlv_stack_top_-1];
+
+
+    if (tlv.shape == Shape::CONSTRUCTED) {
+        if (tlv.is_indefinite) {
+            writer_stack_[writer_stack_top_-1].write(eoc_);
+        } else {
+
+            --writer_stack_top_;
+            assert(tlv_stack_top_);
+
+            size_t n = writer_stack_[writer_stack_top_].pos();
+            tlv.init_length(n);
+
+            assert(tlv.tl_size);
+
+            writer_stack_[writer_stack_top_-1].write(tlv);
+
+            writer_stack_[writer_stack_top_].flush();
+            auto &pad = dynamic_cast<scratchpad::Scratchpad_Writer<u8>*>(
+                    writer_stack_[writer_stack_top_].backend())->pad();
+            auto b = pad.prelude();
+            auto e = pad.begin();
+            // the top-level writer usually is a buffered file writer,
+            // thus, we have to be careful write out larger buffers
+            // in 128 kb chunks - otherwise we would create just
+            // another large buffer for no good reason
+            if (writer_stack_top_ == 1) {
+                size_t k = (e-b)/inc_;
+                for (size_t i = 0; i < k; ++i) {
+                    writer_stack_[writer_stack_top_-1].write(b, b+inc_);
+                    b += inc_;
+                }
+                writer_stack_[writer_stack_top_-1].write(b, e);
+            } else {
+                writer_stack_[writer_stack_top_-1].write(b, e);
+            }
+            writer_stack_[writer_stack_top_].clear();
+        }
+    } else { // Shape::PRIMITIVE
+        if (is_empty)
+            tlv = XML_Content();
+        else {
+            auto v = r_.value();
+            add_content(v, tlv, attributes_, args_);
+        }
+        writer_stack_[writer_stack_top_-1].write(tlv);
     }
 
-    void BER_Writer::write(const std::string &filename)
+    assert(tlv_stack_top_);
+    --tlv_stack_top_;
+}
+
+    void write_ber(std::unique_ptr<scratchpad::Reader<char>> &&in,
+                std::unique_ptr<scratchpad::Writer<u8>> &&out,
+                const BER_Writer_Arguments &args
+            )
     {
-      write();
-      store(filename);
+        Xml2Ber x2b(std::move(in), std::move(out), args);
+        x2b.process();
     }
-
-    void BER_Writer::write(Raw_Vector<u8> &v)
-    {
-      write();
-      store(v);
-    }
-
-
-    void BER_Writer::read_tag()
-    {
-      name = xml::element_name(e);
-      BER_Writer_Base::read_tag(name);
-    }
-
-    void BER_Writer::read_attributes()
-    {
-      Attribute_Traverser at(e, name);
-      for (; at.has_more(); ++at) {
-        read_attribute(at.name(), at.value());
-      }
-    }
-
-
-    void BER_Writer::write_primitive_tag()
-    {
-      if (xml::is_start_end_tag(e)) {
-        std::pair<const char*, const char*> empty_content(e.second, e.second);
-        BER_Writer_Base::write_primitive_tag(empty_content);
-      } else {
-        auto p = *t;
-        ++t;
-        if (!t.has_more())
-          throw runtime_error("document can't end with a primitive tag");
-        BER_Writer_Base::write_primitive_tag(xml::content(p, *t));
-      }
-    }
-
-
-    void BER_Writer::write_constructed_tag()
-    {
-      BER_Writer_Base::write_constructed_tag(xml::is_start_end_tag(e));
-    }
-
-
-    void write_ber(const char *begin, const char *end,
-        const std::string &filename,
-        const BER_Writer_Arguments &args
-        )
-    {
-      BER_Writer w(begin, end, args);
-      w.write(filename);
-    }
-
-    void write_ber(const char *begin, const char *end,
-        Raw_Vector<u8> &v,
-        const BER_Writer_Arguments &args
-        )
-    {
-      BER_Writer w(begin, end, args);
-      w.write(v);
-    }
-
-
-
 
   }
 

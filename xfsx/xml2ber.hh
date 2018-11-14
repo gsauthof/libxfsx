@@ -21,33 +21,28 @@
 #ifndef XFSX_XML2BER_HH
 #define XFSX_XML2BER_HH
 
-#include "xfsx.hh"
-#include "ber_writer_arguments.hh"
-#include "raw_vector.hh"
 
-#include <string>
-#include <unordered_map>
+#include <memory>
 
-//#include <byte.hh>
+#include "octet.hh"
 
 namespace xfsx {
+    namespace scratchpad {
+        template <typename Char> class Reader;
+        template <typename Char> class Writer;
+    }
+    class BER_Writer_Arguments;
 
-  namespace xml {
+    namespace xml {
 
 
-    //void write_ber(const char *begin, const char *end,
-    //    byte::writer::Base &w);
+        // XXX don't move in/out
+        void write_ber(std::unique_ptr<scratchpad::Reader<char>> &&in,
+                std::unique_ptr<scratchpad::Writer<u8>> &&out,
+                const BER_Writer_Arguments &args
+                );
 
-    void write_ber(const char *begin, const char *end,
-        const std::string &filename,
-        const BER_Writer_Arguments &args = default_ber_writer_arguments);
-
-    void write_ber(const char *begin, const char *end,
-        Raw_Vector<u8> &v,
-        const BER_Writer_Arguments &args
-        );
-
-  }
+    }
 
 }
 

@@ -32,6 +32,8 @@
 #include <iostream>
 
 
+#include <xfsx/scratchpad.hh>
+#include <xfsx/ber_writer_arguments.hh>
 #include <xfsx/ber2xml.hh>
 #include <xfsx/xml2ber.hh>
 #include <xfsx/xfsx.hh>
@@ -93,8 +95,13 @@ static void basic_check_xmlber_back(const xfsx::BER_Writer_Arguments &args,
   }
   BOOST_TEST_CHECKPOINT("write: " << out_ber);
   {
-    auto f = ixxx::util::mmap_file(out_xml.generic_string());
-    xfsx::xml::write_ber(f.s_begin(), f.s_end(), out_ber.generic_string(), args);
+      using namespace xfsx;
+      xfsx::xml::write_ber(unique_ptr<scratchpad::Reader<char>>(
+                  new scratchpad::File_Reader<char>(out_xml.generic_string())),
+              unique_ptr<scratchpad::Writer<u8>>(
+                  new scratchpad::File_Writer<u8>(out_ber.generic_string())),
+              args);
+
   }
   BOOST_TEST_CHECKPOINT("write: " << out_xml2);
   {
@@ -209,8 +216,15 @@ BOOST_AUTO_TEST_SUITE(xfsx_)
         BOOST_TEST_CHECKPOINT("Create directories: " << out);
         bf::create_directories(out.parent_path());
         BOOST_TEST_CHECKPOINT("Writing: " << out);
+        using namespace xfsx;
+        unique_ptr<scratchpad::Reader<char>> in(
+                new scratchpad::Memory_Reader<char>(
+                    inp, inp+sizeof inp - 1));
+        unique_ptr<scratchpad::Writer<u8>> o(
+                new scratchpad::File_Writer<u8>(out.generic_string()));
         BOOST_CHECK_THROW(
-            xfsx::xml::write_ber(inp, inp+sizeof(inp)-1, out.generic_string()),
+            xfsx::xml::write_ber(std::move(in), std::move(o),
+                default_ber_writer_arguments),
             std::runtime_error
             );
       }
@@ -237,8 +251,15 @@ BOOST_AUTO_TEST_SUITE(xfsx_)
         BOOST_TEST_CHECKPOINT("Create directories: " << out);
         bf::create_directories(out.parent_path());
         BOOST_TEST_CHECKPOINT("Writing: " << out);
+        using namespace xfsx;
+        unique_ptr<scratchpad::Reader<char>> in(
+                new scratchpad::Memory_Reader<char>(
+                    inp, inp+sizeof inp - 1));
+        unique_ptr<scratchpad::Writer<u8>> o(
+                new scratchpad::File_Writer<u8>(out.generic_string()));
         BOOST_CHECK_THROW(
-            xfsx::xml::write_ber(inp, inp+sizeof(inp)-1, out.generic_string()),
+            xfsx::xml::write_ber(std::move(in), std::move(o),
+                default_ber_writer_arguments),
             std::runtime_error
             );
       }
