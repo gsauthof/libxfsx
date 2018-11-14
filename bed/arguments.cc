@@ -98,6 +98,10 @@ Arguments:
     --mmap-out      Memory-map output file
     --no-fsync      skip fsync/msync call after the last write
 
+  write-indef:
+
+    --mmap          Memory-map input file
+    --no-fsync      skip fsync/msync call after the last write
 
   write-xml:
 
@@ -151,6 +155,8 @@ Arguments:
     --asn-path DIR  see above
     --asn-cfg FILE  see above
     --no-detect     Disable autodetect
+    --mmap          Memory-map input file
+    --no-fsync      skip fsync/msync call after the last write
 
   search:
 
@@ -470,9 +476,11 @@ namespace bed {
     { Option::OUTPUT    ,  { Command::MK_BASH_COMP } },
     { Option::PRETTY_PRINT,{ Command::WRITE_XML, Command::PRETTY_WRITE_XML } },
     { Option::PP_FILE   ,  { Command::WRITE_XML, Command::PRETTY_WRITE_XML } },
-    { Option::MMAP      ,  { Command::WRITE_IDENTITY } },
+    { Option::MMAP      ,  { Command::WRITE_IDENTITY, Command::WRITE_INDEFINITE,
+                             Command::WRITE_BER } },
     { Option::MMAP_OUT  ,  { Command::WRITE_IDENTITY } },
-    { Option::NO_FSYNC  ,  { Command::WRITE_IDENTITY } }
+    { Option::NO_FSYNC  ,  { Command::WRITE_IDENTITY, Command::WRITE_INDEFINITE,
+                             Command::WRITE_BER } }
   };
 
   static void print_help(const std::string &argv0);
@@ -900,7 +908,8 @@ complete -F _)" << name << ' ' << name << '\n';
 
   void Arguments::autodetect_stuff()
   {
-    if (!(autodetect && asn_filenames.empty()))
+      // XXX support auto-detection with stdin
+    if (!(autodetect && asn_filenames.empty() && in_filename != "-"))
       return;
 
     try {

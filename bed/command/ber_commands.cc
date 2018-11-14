@@ -59,69 +59,111 @@ namespace bed {
 
   namespace command {
 
-      struct In_Helper {
+      static xfsx::Simple_Reader<xfsx::TLC> mk_tlc_reader(
+              const bed::Arguments &args)
+      {
           xfsx::Simple_Reader<xfsx::TLC> r;
-          ixxx::util::MMap in; 
-
-          In_Helper(const bed::Arguments &args)
-          {
-              auto &args_ = args;
-              if (args_.mmap) {
-                  // bed::Arguments::canonicalize() protects us from this
-                  assert(args_.in_filename != "-");
-                  in = ixxx::util::mmap_file(args_.in_filename);
-                  r = xfsx::Simple_Reader<xfsx::TLC>(in.begin(), in.end());
-              } else {
-                  if (args_.in_filename == "-")
-                      r = xfsx::mk_tlc_reader<xfsx::TLC>(ixxx::util::FD(0));
-                  else
-                      r = xfsx::mk_tlc_reader<xfsx::TLC>(args_.in_filename);
-              }
+          auto &args_ = args;
+          if (args_.mmap) {
+              // bed::Arguments::canonicalize() protects us from this
+              assert(args_.in_filename != "-");
+              r = xfsx::mk_tlc_reader_mapped<xfsx::TLC>(args_.in_filename);
+          } else {
+              if (args_.in_filename == "-")
+                  r = xfsx::mk_tlc_reader<xfsx::TLC>(ixxx::util::FD(0));
+              else
+                  r = xfsx::mk_tlc_reader<xfsx::TLC>(args_.in_filename);
           }
-      };
+          return r;
+      }
 
+      static std::unique_ptr<xfsx::scratchpad::Reader<char>> mk_char_reader(
+              const bed::Arguments &args)
+      {
+          using namespace xfsx;
+          unique_ptr<scratchpad::Reader<char>> r;
+          auto &args_ = args;
+          if (args_.mmap) {
+              // bed::Arguments::canonicalize() protects us from this
+              assert(args_.in_filename != "-");
+              r = unique_ptr<scratchpad::Reader<char>>(
+                      new scratchpad::Mapped_Reader<char>(args_.in_filename));
+          } else {
+              if (args_.in_filename == "-")
+                  r = unique_ptr<scratchpad::Reader<char>>(
+                          new scratchpad::File_Reader<char>(ixxx::util::FD(0)));
+              else
+                  r = unique_ptr<scratchpad::Reader<char>>(
+                          new scratchpad::File_Reader<char>(args_.in_filename));
+          }
+          return r;
+      }
 
-      struct Out_Helper {
+      static xfsx::Simple_Writer<xfsx::TLC> mk_tlc_writer(
+              const bed::Arguments &args)
+      {
           xfsx::Simple_Writer<xfsx::TLC> w;
-          ixxx::util::MMap o;
-          const bed::Arguments &args_;
-
-          Out_Helper(const bed::Arguments &args, const In_Helper &in)
-              :
-                  args_(args)
-          {
-              if (args_.mmap_out) {
-                  assert(args_.out_filename != "-");
-                  assert(args_.fsync == false);
-                  size_t n = in.in.size();
-                  if (!n) {
-                      struct stat st;
-                      ixxx::posix::stat(args_.in_filename, &st);
-                      n = st.st_size;
-                  }
-                  o = ixxx::util::mmap_file(args_.out_filename, false, true, n);
-                  w = xfsx::Simple_Writer<xfsx::TLC>(o.begin(), o.end());
-              } else {
-                  if (args_.out_filename == "-")
-                      w = xfsx::mk_tlc_writer<xfsx::TLC>(ixxx::util::FD(1), args_.fsync);
-                  else
-                      w = xfsx::mk_tlc_writer<xfsx::TLC>(args_.out_filename, args_.fsync);
+          auto &args_ = args;
+          if (args_.mmap_out) {
+              assert(args_.out_filename != "-");
+              assert(args_.fsync == false);
+              size_t n = 0;
+              if (!n) {
+                  struct stat st;
+                  ixxx::posix::stat(args_.in_filename, &st);
+                  n = st.st_size;
               }
+              w = xfsx::mk_tlc_writer_mapped<xfsx::TLC>(args_.out_filename, n);
+          } else {
+              if (args_.out_filename == "-")
+                  w = xfsx::mk_tlc_writer<xfsx::TLC>(ixxx::util::FD(1));
+              else
+                  w = xfsx::mk_tlc_writer<xfsx::TLC>(args_.out_filename);
           }
-          void sync()
-          {
-              if (args_.mmap_out && args_.fsync)
-                  o.sync();
+          if (args_.fsync)
+              w.set_sync(true);
+          return w;
+      }
+
+      static std::unique_ptr<xfsx::scratchpad::Writer<xfsx::u8>> mk_u8_writer(
+              const bed::Arguments &args)
+      {
+          using namespace xfsx;
+          unique_ptr<scratchpad::Writer<u8>> w;
+          auto &args_ = args;
+          if (args_.mmap_out) {
+              assert(args_.out_filename != "-");
+              assert(args_.fsync == false);
+              size_t n = 0;
+              if (!n) {
+                  struct stat st;
+                  ixxx::posix::stat(args_.in_filename, &st);
+                  n = st.st_size;
+              }
+              w = std::unique_ptr<scratchpad::Writer<u8>>(
+                      new scratchpad::Mapped_Writer<u8>(args_.out_filename, n)
+                      );
+          } else {
+              if (args_.out_filename == "-")
+                  w = std::unique_ptr<scratchpad::Writer<u8>>(
+                          new scratchpad::File_Writer<u8>(ixxx::util::FD(1))
+                          );
+              else
+                  w = unique_ptr<scratchpad::Writer<u8>>(
+                          new scratchpad::File_Writer<u8>(args_.out_filename));
           }
-      };
+          if (args_.fsync)
+              w->set_sync(true);
+          return w;
+      }
 
 
     void Write_Identity::execute()
     {
-        In_Helper in(args_);
-        Out_Helper out(args_, in);
-        xfsx::ber::write_identity(in.r, out.w);
-        out.sync();
+        auto r = mk_tlc_reader(args_);
+        auto w = mk_tlc_writer(args_);
+        xfsx::ber::write_identity(r, w);
+        w.sync();
     }
 
     void Write_Definite::execute()
@@ -133,9 +175,11 @@ namespace bed {
 
     void Write_Indefinite::execute()
     {
-      auto in = ixxx::util::mmap_file(args_.in_filename);
-
-      xfsx::ber::write_indefinite(in.begin(), in.end(), args_.out_filename);
+        // XXX support mmap output
+        auto r = mk_tlc_reader(args_);
+        auto w = mk_tlc_writer(args_);
+        xfsx::ber::write_indefinite(r, w);
+        w.sync();
     }
 
 
@@ -321,8 +365,11 @@ namespace bed {
     {
       xfsx::BER_Writer_Arguments args;
       xfsx::tap::apply_grammar(args_.asn_filenames, args);
-      auto f = ixxx::util::mmap_file(args_.in_filename);
-      xfsx::xml::write_ber(f.s_begin(), f.s_end(), args_.out_filename, args);
+
+      // XXX support mmap output -> the output file needs to be truncated then
+      // note that for windows, the output must be unmapped before the final
+      // truncate
+      xfsx::xml::write_ber(mk_char_reader(args_), mk_u8_writer(args_), args);
     }
 
 
