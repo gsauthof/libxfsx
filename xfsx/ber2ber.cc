@@ -55,76 +55,62 @@ namespace xfsx {
         write_identity(r, w);
     }
 
+      void write_indefinite(Simple_Reader<TLC> &r, Simple_Writer<TLC> &w)
+      {
+          // we only put the length of each definite constructed tag on it
+          // primitive and indefinite constructed tags can be written
+          // immediately
+          deque<size_t> length_stack;
+          length_stack.push_back(0); // such that catch-all root isn't popped
+          // this counts against the length_stack
+          // when both top elements are equal than the constructed tag
+          // is done and we have to emit an EOC
+          deque<size_t> written_stack;
+          written_stack.push_back(0); // catch-all root
+          array<u8, 2> eoc = {0, 0};
+          while (r.next()) {
+              TLC &tlc = r.tlc();
+              if (tlc.shape == Shape::PRIMITIVE) {
+                  w.write(tlc);
+                  written_stack.back() += tlc.tl_size + tlc.length;
+              } else { // CONSTRUCTED
+                  written_stack.back() += tlc.tl_size;
+                  if (!tlc.is_indefinite) {
+                      length_stack.push_back(tlc.length);
+                      written_stack.push_back(0);
+                      tlc.init_indefinite();
+                  }
+                  w.write(tlc);
+              }
+              while (!length_stack.empty()
+                      && length_stack.back() == written_stack.back()) {
+                  w.write(eoc.begin(), eoc.end());
+                  assert(length_stack.size() > 1);
+                  assert(written_stack.size() > 1);
+                  written_stack[written_stack.size()-2] += length_stack.back();
+                  length_stack.resize(length_stack.size()-1);
+                  written_stack.resize(written_stack.size()-1);
+              }
+          }
+          w.flush();
+      }
+
 
     u8 *write_indefinite(const u8 *ibegin, const u8 *iend,
         u8 *begin, u8 *end)
     {
-      u8 *p = begin;
-      Vertical_Reader r(ibegin, iend);
-      uint32_t last_height = 0;
-      stack<bool> marker_stack;
-      for (auto &tlc : r) {
-        Unit &u = tlc;
-        if (tlc.height < last_height) {
-          Unit eoc{Unit::EOC()};
-          assert(marker_stack.size() >= last_height - tlc.height);
-          for (unsigned i = 0; i < last_height - tlc.height; ++i) {
-            if (marker_stack.top())
-              p = eoc.write(p, end);
-            marker_stack.pop();
-          }
-        }
-        last_height = tlc.height;
-        switch (u.shape) {
-          case Shape::PRIMITIVE:
-            p = u.write(p, end);
-            p = copy(tlc.begin + u.tl_size, tlc.begin + u.tl_size + u.length,
-                p);
-            break;
-          case Shape::CONSTRUCTED:
-            if (u.is_indefinite) {
-              p = u.write(p, end);
-              marker_stack.push(false);
-            } else {
-              if (u.length) {
-                u.init_indefinite();
-                p = u.write(p, end);
-                marker_stack.push(true);
-              } else {
-                u.init_indefinite();
-                p = u.write(p, end);
-                Unit eoc{Unit::EOC()};
-                p = eoc.write(p, end);
-              }
-            }
-            break;
-        }
-      }
-      Unit eoc{Unit::EOC()};
-      assert(marker_stack.size() >= last_height);
-      for (unsigned i = 0; i < last_height; ++i) {
-        if (marker_stack.top())
-          p = eoc.write(p, end);
-        marker_stack.pop();
-      }
-      return p;
+        Simple_Reader<TLC> r(ibegin, iend);
+        Simple_Writer<TLC> w(begin, end);
+        write_indefinite(r, w);
+        return begin + w.pos();
     }
 
     void write_indefinite(const u8 *ibegin, const u8 *iend,
         const std::string &filename)
     {
-      ixxx::util::FD fd(filename, O_CREAT | O_RDWR, 0666);
-      size_t n = (iend-ibegin)*2;
-      ixxx::posix::ftruncate(fd, n);
-      {
-          auto f = ixxx::util::mmap_file(fd, false, true, n);
-          auto r = write_indefinite(ibegin, iend, f.begin(), f.end());
-          n = r - f.begin();
-      }
-      // apparently, under newer wine versions (e.g. >= 3.17), ftruncate fails
-      // with Invalid Argument if the mapping is still established
-      ixxx::posix::ftruncate(fd, n);
-      fd.close();
+        Simple_Reader<TLC> r(ibegin, iend);
+        auto w = mk_tlc_writer<TLC>(filename);
+        write_indefinite(r, w);
     }
 
 

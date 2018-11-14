@@ -39,6 +39,7 @@ namespace xfsx {
     void write_identity(const u8 *ibegin, const u8 *iend,
         u8 *begin, u8 *end);
 
+      void write_indefinite(Simple_Reader<TLC> &r, Simple_Writer<TLC> &w);
 
     u8 *write_indefinite(const u8 *ibegin, const u8 *iend,
         u8 *begin, u8 *end);
