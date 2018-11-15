@@ -273,10 +273,13 @@ boost::unit_test::test_suite *create_ber2ber_suite()
   auto indef       = BOOST_TEST_SUITE("indef");
   auto def         = BOOST_TEST_SUITE("def");
 
-  ber2ber->add(BOOST_PARAM_TEST_CASE(&compare_identity,
-        filenames.begin(), filenames.end()));
-  ber2ber->add(BOOST_PARAM_TEST_CASE(&compare_identity,
-        bad_filenames_lexi.begin(), bad_filenames_lexi.end()));
+  {
+      // with newer boost versions, such paremetrized cases
+      // must be added in one call - otherwise, we get duplicates
+      vector<const char*> v(filenames.begin(), filenames.end());
+      v.insert(v.end(), bad_filenames_lexi.begin(), bad_filenames_lexi.end());
+      ber2ber->add(BOOST_PARAM_TEST_CASE(&compare_identity, v.begin(), v.end()));
+  }
 
   ber2ber_flat->add(BOOST_PARAM_TEST_CASE(&compare_identity,
         bad_but_flat_ok_filenames.begin(), bad_but_flat_ok_filenames.end()));
@@ -286,10 +289,12 @@ boost::unit_test::test_suite *create_ber2ber_suite()
   ber_no_fail->add(BOOST_PARAM_TEST_CASE(&check_flat_no_throw,
         bad_but_flat_ok_filenames.begin(), bad_but_flat_ok_filenames.end()));
 
-  indef->add(BOOST_PARAM_TEST_CASE(&compare_indefinite,
-        filenames.begin(), filenames.end()));
-  indef->add(BOOST_PARAM_TEST_CASE(&compare_indefinite,
-        bad_filenames_lexi.begin(), bad_filenames_lexi.end()));
+  {
+      vector<const char*> v(filenames.begin(), filenames.end());
+      v.insert(v.end(), bad_filenames_lexi.begin(), bad_filenames_lexi.end());
+      indef->add(BOOST_PARAM_TEST_CASE(&compare_indefinite, v.begin(), v.end()));
+  }
+
   def->add(BOOST_PARAM_TEST_CASE(&compare_definite,
         filenames.begin(), filenames.end()));
 
