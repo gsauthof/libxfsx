@@ -98,6 +98,11 @@ Arguments:
     --mmap-out      Memory-map output file
     --no-fsync      skip fsync/msync call after the last write
 
+  write-def:
+
+    --mmap          Memory-map input file
+    --no-fsync      skip fsync/msync call after the last write
+
   write-indef:
 
     --mmap          Memory-map input file
@@ -477,10 +482,10 @@ namespace bed {
     { Option::PRETTY_PRINT,{ Command::WRITE_XML, Command::PRETTY_WRITE_XML } },
     { Option::PP_FILE   ,  { Command::WRITE_XML, Command::PRETTY_WRITE_XML } },
     { Option::MMAP      ,  { Command::WRITE_IDENTITY, Command::WRITE_INDEFINITE,
-                             Command::WRITE_BER } },
+                             Command::WRITE_DEFINITE, Command::WRITE_BER } },
     { Option::MMAP_OUT  ,  { Command::WRITE_IDENTITY } },
     { Option::NO_FSYNC  ,  { Command::WRITE_IDENTITY, Command::WRITE_INDEFINITE,
-                             Command::WRITE_BER } }
+                             Command::WRITE_DEFINITE, Command::WRITE_BER } }
   };
 
   static void print_help(const std::string &argv0);

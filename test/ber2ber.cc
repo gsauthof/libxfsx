@@ -14,6 +14,9 @@
 
 #include <xfsx/ber2ber.hh>
 #include <xfsx/xfsx.hh>
+#include <xfsx/tlc_reader.hh>
+#include <xfsx/tlc_writer.hh>
+#include <xfsx/scratchpad.hh>
 
 #include "test.hh"
 
@@ -197,9 +200,23 @@ static void compare_definite(const char *rel_filename_str)
   check_reference("definite", write_def, rel_filename_str);
 }
 
+static void compare_definite_throw(const char *rel_filename_str)
+{
+    using namespace xfsx;
+    string filename(test::path::in());
+    filename += '/';
+    filename += rel_filename_str;
+    auto r = mk_tlc_reader<TLC>(filename);
+    auto w = Simple_Writer<TLC>(std::unique_ptr<scratchpad::Writer<u8>>(
+                       new scratchpad::Scratchpad_Writer<u8>()
+                        ));
+    BOOST_CHECK_THROW(ber::write_definite(r, w), std::runtime_error);
+  
+}
+
 boost::unit_test::test_suite *create_ber2ber_suite()
 {
-  const array<const char *, 15> filenames = {
+  const array<const char *, 13> filenames = {
       "asn1c/asn1c/tests/data-62/data-62-01.ber",
       "asn1c/asn1c/tests/data-62/data-62-10.ber",
       "asn1c/asn1c/tests/data-62/data-62-11.ber",
@@ -212,12 +229,15 @@ boost::unit_test::test_suite *create_ber2ber_suite()
       "asn1c/asn1c/tests/data-62/data-62-32.ber",
       "asn1c/examples/sample.source.LDAP3/sample-LDAPMessage-1.ber",
       "asn1c/examples/sample.source.PKIX1/sample-Certificate-1.der",
-      "asn1c/examples/sample.source.TAP3/sample-DataInterChange-1.ber",
+      "asn1c/examples/sample.source.TAP3/sample-DataInterChange-1.ber"
+
+  };
+  const array<const char *, 2> bad_filenames_lexi = {
       // bad, but still readable on a lexical level
       "asn1c/asn1c/tests/data-62/data-62-13-B.ber",
       "asn1c/asn1c/tests/data-62/data-62-15-B.ber"
-
   };
+
   const array<const char*, 13> bad_filenames = {
     "asn1c/asn1c/tests/data-62/data-62-02-B.ber",
     "asn1c/asn1c/tests/data-62/data-62-03-B.ber",
@@ -255,6 +275,8 @@ boost::unit_test::test_suite *create_ber2ber_suite()
 
   ber2ber->add(BOOST_PARAM_TEST_CASE(&compare_identity,
         filenames.begin(), filenames.end()));
+  ber2ber->add(BOOST_PARAM_TEST_CASE(&compare_identity,
+        bad_filenames_lexi.begin(), bad_filenames_lexi.end()));
 
   ber2ber_flat->add(BOOST_PARAM_TEST_CASE(&compare_identity,
         bad_but_flat_ok_filenames.begin(), bad_but_flat_ok_filenames.end()));
@@ -266,8 +288,14 @@ boost::unit_test::test_suite *create_ber2ber_suite()
 
   indef->add(BOOST_PARAM_TEST_CASE(&compare_indefinite,
         filenames.begin(), filenames.end()));
+  indef->add(BOOST_PARAM_TEST_CASE(&compare_indefinite,
+        bad_filenames_lexi.begin(), bad_filenames_lexi.end()));
   def->add(BOOST_PARAM_TEST_CASE(&compare_definite,
         filenames.begin(), filenames.end()));
+
+  def->add(BOOST_PARAM_TEST_CASE(&compare_definite_throw,
+        bad_filenames_lexi.begin(), bad_filenames_lexi.end()));
+
   xfsx_->add(ber2ber);
   xfsx_->add(ber2ber_flat);
   xfsx_->add(ber_fail);

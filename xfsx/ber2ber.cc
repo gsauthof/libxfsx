@@ -21,7 +21,9 @@
 #include "ber2ber.hh"
 
 #include "xfsx.hh"
-#include "ber_node.hh"
+
+#include "tlc_reader.hh"
+#include "tlc_writer.hh"
 
 #include <ixxx/ixxx.hh>
 #include <ixxx/util.hh>
@@ -113,80 +115,179 @@ namespace xfsx {
         write_indefinite(r, w);
     }
 
+    class Ber2Def {
+        public:
+            Ber2Def(Simple_Reader<TLC> &r, Simple_Writer<TLC> &w);
+
+            void process();
+        private:
+            void process_tag();
+            void write_primitive();
+            void write_constructed();
+            void pop_constructed();
+
+            Simple_Reader<TLC> &r_;
+
+            // stack for constructed tags - primitive tags are never
+            // pushed
+            std::deque<TLC> cons_stack_;
+            size_t cons_stack_top_{0};
+            // contains the lengths of definite constructed input tags
+            std::deque<size_t> length_stack_;
+            // counts against the length_stack, if top elements are equal
+            // then the definite tag is finished
+            std::deque<size_t> written_stack_;
+
+            // writers are reused to avoid unnecessary object reconstructions
+            // (thus no std::stack nor down-resize calls)
+            // first writer directly writes to a file
+            // for each definitive constructed a scratchpad writer is pushed
+            std::deque<xfsx::Simple_Writer<TLC>*> writer_stack_;
+            size_t writer_stack_top_{0};
+            // temporary non-root writers
+            std::deque<xfsx::Simple_Writer<TLC>> writers_;
+
+            size_t inc_{128*1024};
+    };
+
+    Ber2Def::Ber2Def(Simple_Reader<TLC> &r, Simple_Writer<TLC> &w)
+        :
+            r_(r)
+    {
+        writer_stack_.push_back(&w);
+        ++writer_stack_top_;
+        length_stack_.push_back(0); // for symmetry to catch all
+        written_stack_.push_back(0); // catch all such that it's never popped
+    }
+    void Ber2Def::process()
+    {
+        while (r_.next()) {
+            process_tag();
+        }
+        if (writer_stack_top_ != 1)
+            throw runtime_error("unexpected writer stack - unbalanced tags?");
+        if (cons_stack_top_)
+            throw runtime_error("unexpected tlv stack - unbalanced tags?");
+
+#ifndef NDEBUG
+        writer_stack_[1]->flush();
+        auto be = dynamic_cast<scratchpad::Scratchpad_Writer<u8>*>(
+                    writer_stack_[1]->backend());
+        auto b = be->pad().prelude();
+        auto e = be->pad().begin();
+        assert(e-b == 0);
+#endif // NDEBUG
+
+        writer_stack_[0]->flush();
+    }
+    void Ber2Def::pop_constructed()
+    {
+        cons_stack_[cons_stack_top_-1].init_length(
+                writer_stack_[writer_stack_top_-1]->pos()
+                );
+
+        assert(writer_stack_top_ > 1);
+        --writer_stack_top_;
+
+        writer_stack_[writer_stack_top_]->flush();
+        writer_stack_[writer_stack_top_-1]->write(cons_stack_[cons_stack_top_-1]);
+        assert(cons_stack_top_);
+        --cons_stack_top_;
+
+        auto &pad = dynamic_cast<scratchpad::Scratchpad_Writer<u8>*>(
+                writer_stack_[writer_stack_top_]->backend())->pad();
+        auto b = pad.prelude();
+        auto e = pad.begin();
+        // the top-level writer usually is a buffered file writer,
+        // thus, we have to be careful write out larger buffers
+        // in 128 kb chunks - otherwise we would create just
+        // another large buffer for no good reason
+        if (writer_stack_top_ == 1) {
+            size_t k = (e-b)/inc_;
+            for (size_t i = 0; i < k; ++i) {
+                writer_stack_[writer_stack_top_-1]->write(b, b+inc_);
+                b += inc_;
+            }
+            writer_stack_[writer_stack_top_-1]->write(b, e);
+        } else {
+            writer_stack_[writer_stack_top_-1]->write(b, e);
+        }
+        writer_stack_[writer_stack_top_]->clear();
+    }
+    void Ber2Def::write_primitive()
+    {
+        auto &tlc = r_.tlc();
+        written_stack_.back() += tlc.tl_size + tlc.length;
+        if (tlc.is_eoc()) {
+            pop_constructed();
+        } else { // non-eoc primitive
+            // we can write it as-is
+            writer_stack_[writer_stack_top_-1]->write(tlc.begin,
+                    tlc.begin+tlc.tl_size+tlc.length);
+        }
+    }
+    void Ber2Def::write_constructed()
+    {
+        auto &tlc = r_.tlc();
+        written_stack_.back() += tlc.tl_size;
+        if (!tlc.is_indefinite) {
+            length_stack_.push_back(tlc.length);
+            written_stack_.push_back(0);
+        }
+        if (cons_stack_top_ >= cons_stack_.size())
+            cons_stack_.push_back(tlc);
+        else
+            cons_stack_[cons_stack_top_] = tlc;
+        ++cons_stack_top_;
+        if (writer_stack_top_ >= writer_stack_.size()) {
+            writers_.emplace_back(
+                    std::unique_ptr<scratchpad::Writer<u8>>(
+                        new scratchpad::Scratchpad_Writer<u8>()
+                        ));
+            writer_stack_.push_back(&writers_.back());
+        }
+        ++writer_stack_top_;
+    }
+    void Ber2Def::process_tag()
+    {
+        auto &tlc = r_.tlc();
+        if (tlc.shape == Shape::PRIMITIVE) {
+            write_primitive();
+        } else { // Constructed
+            write_constructed();
+        }
+        while (!length_stack_.empty()
+                && length_stack_.back() == written_stack_.back()) {
+            pop_constructed();
+            assert(length_stack_.size() > 1);
+            assert(written_stack_.size() > 1);
+            written_stack_[written_stack_.size()-2] += length_stack_.back();
+            written_stack_.resize(written_stack_.size()-1);
+            length_stack_.resize(length_stack_.size()-1);
+        }
+    }
+
+    void write_definite(Simple_Reader<TLC> &r, Simple_Writer<TLC> &w)
+    {
+        Ber2Def x2b(r, w);
+        x2b.process();
+    }
 
     u8 *write_definite(const u8 *ibegin, const u8 *iend,
         u8 *begin, u8 *end)
     {
-      Skip_EOC_Reader r(ibegin, iend);
-      uint32_t last_height = 0;
-
-      TLC root_tlc;
-      root_tlc.shape = Shape::CONSTRUCTED;
-      TLC_Node root(std::move(root_tlc));
-      stack<TLC_Node*> node_stack;
-      node_stack.push(&root);
-      for (auto &tlc : r) {
-        if (tlc.height < last_height) {
-          for (unsigned i = 0; i < last_height - tlc.height; ++i) {
-            assert(!node_stack.empty());
-            auto l = node_stack.top()->init_length();
-            node_stack.top()->mk_vector();
-            node_stack.pop();
-            node_stack.top()->add_to_length(l);
-          }
-        }
-        last_height = tlc.height;
-        switch (tlc.shape) {
-          case Shape::PRIMITIVE:
-            node_stack.top()->push(make_unique<TLC_Node>(std::move(tlc)));
-            break;
-          case Shape::CONSTRUCTED:
-            if (tlc.is_indefinite) {
-              tlc.is_indefinite = false;
-              node_stack.push(
-                  node_stack.top()->push(make_unique<TLC_Node>(std::move(tlc))));
-            } else {
-              if (tlc.length) {
-                node_stack.push(
-                    node_stack.top()->push(
-                      make_unique<TLC_Node>(std::move(tlc))));
-              } else {
-                node_stack.top()->add_to_length(tlc.tl_size);
-                node_stack.top()->push(make_unique<TLC_Node>(std::move(tlc)));
-              }
-            }
-            break;
-        }
-      }
-      for (unsigned i = 0; i < last_height; ++i) {
-        assert(!node_stack.empty());
-        auto l = node_stack.top()->init_length();
-        node_stack.top()->mk_vector();
-        node_stack.pop();
-        node_stack.top()->add_to_length(l);
-      }
-      assert(!node_stack.empty());
-      u8 *p = begin;
-      for (auto &child : root.children())
-        p = child->write(p, end);
-      return p;
+        auto r = Simple_Reader<TLC>(ibegin, iend);
+        auto w = Simple_Writer<TLC>(begin, end);
+        write_definite(r, w);
+        return begin + w.pos();
     }
 
     void write_definite(const u8 *ibegin, const u8 *iend,
         const std::string &filename)
     {
-      ixxx::util::FD fd(filename, O_CREAT | O_RDWR, 0666);
-      size_t n = (iend-ibegin)*2;
-      ixxx::posix::ftruncate(fd, n);
-      {
-          auto f = ixxx::util::mmap_file(fd, false, true, n);
-          auto r = write_definite(ibegin, iend, f.begin(), f.end());
-          n = r - f.begin();
-      }
-      // apparently, under newer wine versions (e.g. >= 3.17), ftruncate fails
-      // with Invalid Argument if the mapping is still established
-      ixxx::posix::ftruncate(fd, n);
-      fd.close();
+        auto r = Simple_Reader<TLC>(ibegin, iend);
+        auto w = mk_tlc_writer<TLC>(filename);
+        write_definite(r, w);
     }
 
 

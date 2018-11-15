@@ -168,9 +168,11 @@ namespace bed {
 
     void Write_Definite::execute()
     {
-      auto in = ixxx::util::mmap_file(args_.in_filename);
-
-      xfsx::ber::write_definite(in.begin(), in.end(), args_.out_filename);
+        // XXX support mmap output
+        auto r = mk_tlc_reader(args_);
+        auto w = mk_tlc_writer(args_);
+        xfsx::ber::write_definite(r, w);
+        w.sync();
     }
 
     void Write_Indefinite::execute()
