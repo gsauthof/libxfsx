@@ -298,6 +298,53 @@ namespace xfsx {
                 Sink_File<Char> sink_;
         };
 
+    template <typename Char>
+        class Simple_Writer {
+            public:
+                Simple_Writer();
+                // this allows to write to a large enough memory mapped file
+                // that is then truncated to global_pos
+                Simple_Writer(Char *begin, Char *end);
+                Simple_Writer(std::unique_ptr<scratchpad::Writer<Char>> &&backend);
+                Simple_Writer(Simple_Writer &&);
+                Simple_Writer &operator=(Simple_Writer &&);
+                Simple_Writer(const Simple_Writer &) =delete;
+                Simple_Writer &operator=(const Simple_Writer &) =delete;
+
+                ~Simple_Writer();
+
+                void write(const Char *begin, const Char *end);
+
+                // tell the writer to prepare a buffer large enough for k bytes
+                // returns pointer to that buffer
+                Char *begin_write(size_t k);
+                //  must be called after the buffer returned by begin_write()
+                //  is filled - with the same k
+                //  a smaller k is ok, but then there is the risk that the
+                //  buffer grows to the next increment
+                void commit_write(size_t k);
+
+                void flush();
+                void sync();
+                void set_sync(bool b);
+
+                void clear();
+
+                size_t   pos() const;
+
+                scratchpad::Writer<Char> *backend();
+
+            private:
+                size_t  local_pos_  {0};
+                size_t  global_pos_ {0};
+                Char   *begin_      {nullptr};
+                Char   *end_        {nullptr};
+                bool    do_write_   {false};
+                std::unique_ptr<scratchpad::Writer<Char>> backend_;
+        };
+
+        // XXX move Simple_Reader, as well
+
     } // namespace scratchpad
 
 } // namespace xfsx

@@ -13,6 +13,10 @@
 namespace xfsx {
 
 
+    // XXX derive from scratchpad::Simple_Writer
+    // or just provide a generic write function, e.g.:
+    // template<typename TLC>
+    //     void write_tag(scratchpad::Simple_Writer<u8> &w, const TLC &tlc);
     template <typename T>
         class Simple_Writer {
             public:

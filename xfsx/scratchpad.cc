@@ -564,6 +564,169 @@ namespace xfsx {
     template class File_Writer<char>;
 
 
+
+
+    template <typename Char>
+        Simple_Writer<Char>::Simple_Writer()
+        :
+            backend_(new scratchpad::Memory_Writer<Char>(nullptr, nullptr))
+    {
+    }
+
+    template <typename Char>
+        Simple_Writer<Char>::Simple_Writer(Char *begin, Char *end)
+        :
+            begin_(begin),
+            end_(end),
+            backend_(new scratchpad::Memory_Writer<Char>(begin, end))
+    {
+    }
+
+    template <typename Char>
+        Simple_Writer<Char>::Simple_Writer(
+                std::unique_ptr<scratchpad::Writer<Char>> &&backend)
+        :
+            backend_(std::move(backend))
+    {
+    }
+    template <typename Char>
+        Simple_Writer<Char>::~Simple_Writer()
+        {
+            try {
+                flush();
+            } catch (...) {
+                // don't abort the program on error ...
+            }
+        }
+    template <typename Char>
+        Simple_Writer<Char>::Simple_Writer(Simple_Writer &&o)
+        :
+            local_pos_(o.local_pos_),
+            begin_(o.begin_),
+            end_(o.end_),
+            backend_(std::move(o.backend_))
+    {
+        o.local_pos_  = 0;
+        o.global_pos_ = 0;
+        o.begin_      = nullptr;
+        o.end_        = nullptr;
+    }
+    template <typename Char>
+        Simple_Writer<Char> &Simple_Writer<Char>::operator=(Simple_Writer &&o)
+        {
+            local_pos_        = o.local_pos_;
+            begin_            = o.begin_;
+            end_              = o.end_;
+            backend_          = std::move(o.backend_);
+
+            o.local_pos_      = 0;
+            o.global_pos_     = 0;
+            o.begin_          = nullptr;
+            o.end_            = nullptr;
+            return *this;
+        }
+
+    template <typename Char>
+        size_t Simple_Writer<Char>::pos() const
+        {
+            return global_pos_;
+        }
+
+    template <typename Char>
+        void Simple_Writer<Char>::write(const Char *begin, const Char *end)
+        {
+            size_t k = end-begin;
+
+            bool do_write = false;
+            if (size_t(end_ - begin_) < k) {
+                std::tie(begin_, end_) = backend_->prepare_write(local_pos_,
+                        k - size_t(end_ - begin_));
+                local_pos_ = 0;
+                do_write = true;
+                if (size_t(end_ - begin_) < k) {
+                    throw range_error("not enough room for write");
+                }
+            }
+
+            begin_ = std::copy(begin, end, begin_);
+            local_pos_  += k;
+            global_pos_ += k;
+
+            if (do_write) {
+                std::tie(begin_, end_) = backend_->write_some(local_pos_);
+                local_pos_ = 0;
+            }
+        }
+    template <typename Char>
+        Char *Simple_Writer<Char>::begin_write(size_t k)
+        {
+            if (size_t(end_ - begin_) < k) {
+                std::tie(begin_, end_) = backend_->prepare_write(local_pos_,
+                        k - size_t(end_ - begin_));
+                local_pos_ = 0;
+                do_write_ = true;
+                if (size_t(end_ - begin_) < k) {
+                    throw range_error("not enough room for write");
+                }
+            }
+            return begin_;
+        }
+    template <typename Char>
+        void Simple_Writer<Char>::commit_write(size_t k)
+        {
+            begin_      += k;
+            local_pos_  += k;
+            global_pos_ += k;
+
+            if (do_write_) {
+                std::tie(begin_, end_) = backend_->write_some(local_pos_);
+                local_pos_ = 0;
+                do_write_ = false;
+            }
+        }
+    template <typename Char>
+        void Simple_Writer<Char>::flush()
+        {
+            if (backend_) {
+                backend_->write_some(local_pos_);
+                local_pos_ = 0;
+                backend_->flush();
+            }
+        }
+    template <typename Char>
+        void Simple_Writer<Char>::clear()
+        {
+            if (backend_) {
+                local_pos_ = 0;
+                global_pos_ = 0;
+                begin_ = nullptr;
+                end_ = nullptr;
+                backend_->clear();
+            }
+        }
+    template <typename Char>
+        scratchpad::Writer<Char> *Simple_Writer<Char>::backend()
+        {
+            return backend_.get();
+        }
+    template <typename Char>
+        void Simple_Writer<Char>::sync()
+        {
+            if (backend_) {
+                backend_->sync();
+            }
+        }
+    template <typename Char>
+        void Simple_Writer<Char>::set_sync(bool b)
+        {
+            if (backend_) {
+                backend_->set_sync(b);
+            }
+        }
+
+    template class Simple_Writer<char>;
+    template class Simple_Writer<u8>;
+
     } // namespace scratchpad
 
 } // namespace xfsx
