@@ -105,6 +105,7 @@ namespace xfsx {
                     std::tie(begin_, end_) = backend_->read_more(local_pos_,
                             k - size_t(end_ - begin_));
                     local_pos_ = 0;
+                    // XXX fix this when T=Unit
                     tlc_.begin = begin_;
                 }
                 if (size_t(end_ - begin_) < k) {
@@ -118,6 +119,7 @@ namespace xfsx {
         }
 
     template class Simple_Reader<TLC>;
+    //template class Simple_Reader<Unit>;
 
 
 

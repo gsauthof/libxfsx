@@ -52,8 +52,12 @@
 #include "traverser/matcher.hh"
 #include "traverser/tlc.hh"
 #include "path.hh"
+#include "tlc_reader.hh"
 
 #include <ixxx/ixxx.hh>
+
+// XXX
+#include <iostream>
 
 using namespace std;
 
@@ -77,28 +81,36 @@ namespace xfsx {
       w  << "\">\n";
     }
 
+    void write_unber_tl(Simple_Reader<TLC> &r,
+        byte::writer::Base &w)
+    {
+        size_t off = 0;
+        while (r.next()) {
+            const Unit &u = r.tlc();
+            write_unber_tl(w, u, off);
+            off = r.pos();
+        }
+    }
+
     void write_unber_tl(
         const u8 *begin, const u8 *end,
         byte::writer::Base &w)
     {
-      Reader r(begin, end);
-      auto i = r.begin();
-      for (; i!= r.end(); ++i) {
-        const TLC &tlc = *i;
-        const Unit &u = tlc;
-        write_unber_tl(w, u, tlc.begin - begin);
-      }
-      w.flush();
+        Simple_Reader<TLC> r(begin, end);
+        write_unber_tl(r, w);
+        w.w.flush();
     }
 
     void write_unber_tl(
         const u8 *begin, const u8 *end,
         const char *filename)
     {
-      ixxx::util::FD fd(filename, O_CREAT | O_WRONLY | O_TRUNC, 0666);
-      byte::writer::File w{fd};
+        scratchpad::Simple_Writer<char> x(unique_ptr<scratchpad::Writer<char>>(
+                    new scratchpad::File_Writer<char>(filename)));
+        byte::writer::Base w(x);
+
       write_unber_tl(begin, end, w);
-      w.flush();
+      x.flush();
     }
     void write_unber_tl(
         const u8 *begin, const u8 *end,
@@ -108,25 +120,73 @@ namespace xfsx {
     }
 
 
+    void write_indent_unber_tl(Simple_Reader<TLC> &r,
+        byte::writer::Base &w)
+    {
+        size_t off = 0;
+        size_t indent = 0;
+        stack<size_t> length_stack;
+        length_stack.push(0);
+        stack<size_t> written_stack;
+        written_stack.push(0);
+        while (r.next()) {
+            const Unit &u = r.tlc();
+            written_stack.top() += u.tl_size;
+            if (u.shape == Shape::PRIMITIVE)
+                written_stack.top() += u.length;
+            if (u.is_eoc()) {
+                if (indent < 4)
+                    throw underflow_error("superfluous EOC?");
+                indent -= 4;
+            }
+            w.fill(indent);
+            write_unber_tl(w, u, off);
+            off = r.pos();
+            if (u.shape == Shape::CONSTRUCTED) {
+                indent += 4;
+                if (!u.is_indefinite) {
+                    length_stack.push(u.length);
+                    written_stack.push(0);
+                }
+            }
+            while (!length_stack.empty()
+                    && length_stack.top() == written_stack.top()) {
+                auto t = length_stack.top();
+                length_stack.pop();
+                written_stack.pop();
+                written_stack.top() += t;
+                if (indent < 4)
+                    throw underflow_error("indent underflow during def ending");
+                indent -= 4;
+            }
+        }
+    }
+
     void write_indent_unber_tl(
         const u8 *begin, const u8 *end,
         byte::writer::Base &w)
     {
+        Simple_Reader<TLC> r(begin, end);
+        write_indent_unber_tl(r, w);
+        w.w.flush();
+#if 0
       Vertical_Reader r(begin, end);
       for (auto &tlc : r) {
         const Unit &u = tlc;
         w.fill(size_t(tlc.height) * 4);
         write_unber_tl(w, u, tlc.begin - begin);
       }
+#endif
     }
     void write_indent_unber_tl(
         const u8 *begin, const u8 *end,
         const char *filename)
     {
-      ixxx::util::FD fd(filename, O_CREAT | O_WRONLY | O_TRUNC, 0666);
-      byte::writer::File w{fd};
+        scratchpad::Simple_Writer<char> x(unique_ptr<scratchpad::Writer<char>>(
+                    new scratchpad::File_Writer<char>(filename)));
+        byte::writer::Base w(x);
       write_indent_unber_tl(begin, end, w);
-      w.flush();
+      x.flush();
     }
     void write_indent_unber_tl(
         const u8 *begin, const u8 *end,
@@ -233,11 +293,12 @@ namespace xfsx {
       size_t n = hex::decoded_size<hex::Style::XML>(
           tlc->begin + tlc->tl_size, tlc->begin + tlc->tl_size + tlc->length
           );
-      auto o = w.obtain_chunk(n);
+      auto o = w.w.begin_write(n);
       auto r = hex::decode<hex::Style::XML>(
           tlc->begin + tlc->tl_size, tlc->begin + tlc->tl_size + tlc->length,
           o);
       (void)r;
+      w.w.commit_write(n);
     }
     void Writer::write_hex_dump()
     {
@@ -247,11 +308,12 @@ namespace xfsx {
       size_t n = hex::decoded_size<hex::Style::Raw>(
           tlc->begin + tlc->tl_size, tlc->begin + tlc->tl_size + tlc->length
           );
-      auto o = w.obtain_chunk(n);
+      auto o = w.w.begin_write(n);
       auto r = hex::decode<hex::Style::Raw>(
           tlc->begin + tlc->tl_size, tlc->begin + tlc->tl_size + tlc->length,
           o);
       (void)r;
+      w.w.commit_write(n);
       w << "'";
     }
     void Writer::write_attributes()
@@ -426,10 +488,13 @@ namespace xfsx {
         const char *filename,
         const Writer_Arguments &args)
     {
-      ixxx::util::FD fd(filename, O_CREAT | O_WRONLY | O_TRUNC, 0666);
-      byte::writer::File w{fd};
+        scratchpad::Simple_Writer<char> x(unique_ptr<scratchpad::Writer<char>>(
+                    new scratchpad::File_Writer<char>(filename)));
+        byte::writer::Base w(x);
+
+
       write(begin, end, w, args);
-      w.flush();
+      x.flush();
     }
     void write(
         const u8 *begin, const u8 *end,
@@ -770,10 +835,11 @@ namespace xfsx {
         const std::string &filename,
         const Pretty_Writer_Arguments &args)
     {
-        ixxx::util::FD fd(filename, O_CREAT | O_WRONLY | O_TRUNC, 0666);
-        xfsx::byte::writer::File w{fd};
+        scratchpad::Simple_Writer<char> x(unique_ptr<scratchpad::Writer<char>>(
+                    new scratchpad::File_Writer<char>(filename)));
+        byte::writer::Base w(x);
         pretty_write(begin, end, w, args);
-        w.flush();
+        x.flush();
     }
 
   }

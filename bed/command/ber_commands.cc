@@ -40,6 +40,8 @@
 #include <xfsx/tlc_reader.hh>
 #include <xfsx/tlc_writer.hh>
 #include <xfsx/xfsx.hh>
+#include <xfsx/scratchpad.hh>
+#include <xfsx/byte.hh>
 
 #include <ixxx/util.hh>
 #include <ixxx/ixxx.hh>
@@ -191,11 +193,12 @@ namespace bed {
       apply_arguments(args_, args);
       auto in = ixxx::util::mmap_file(args_.in_filename);
       if (args_.out_filename.empty()) {
-        ixxx::util::FD fd(1);
-        fd.set_keep_open(true);
-        xfsx::byte::writer::File w(fd, 4096);
+          using namespace xfsx;
+        scratchpad::Simple_Writer<char> x(unique_ptr<scratchpad::Writer<char>>(
+                    new scratchpad::File_Writer<char>(ixxx::util::FD(1))));
+        byte::writer::Base w(x);
         xfsx::xml::write(in.begin(), in.end(), w, args);
-        w.flush();
+        x.flush();
       } else {
         xfsx::xml::write(in.begin(), in.end(), args_.out_filename, args);
       }
@@ -209,11 +212,12 @@ namespace bed {
       apply_arguments(args_, args);
 
       if (args_.out_filename.empty()) {
-        ixxx::util::FD fd(1);
-        fd.set_keep_open(true);
-        xfsx::byte::writer::File w(fd, 4096);
+          using namespace xfsx;
+        scratchpad::Simple_Writer<char> x(unique_ptr<scratchpad::Writer<char>>(
+                    new scratchpad::File_Writer<char>(ixxx::util::FD(1))));
+        byte::writer::Base w(x);
         xfsx::xml::pretty_write(in.begin(), in.end(), w, args);
-        w.flush();
+        x.flush();
       } else {
         xfsx::xml::pretty_write(in.begin(), in.end(), args_.out_filename, args);
       }

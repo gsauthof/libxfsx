@@ -25,6 +25,8 @@
 #include "raw_vector.hh"
 #include <ixxx/util.hh>
 
+#include "scratchpad.hh"
+
 namespace xfsx {
 
   namespace byte {
@@ -93,87 +95,30 @@ namespace xfsx {
       template <> char *encode(const std::string &s, char *o, size_t n);
       template <> char *encode(const Raw_Vector<char> &v, char *o, size_t n);
 
-      class Base {
-        protected:
-          char *cur_ {nullptr};
-          size_t written_ {0};
 
-          virtual void make_room_for(size_t n) = 0;
-          virtual void flush_it() = 0;
-
-        public:
-          Base();
-          Base(const Base &) =delete;
-          Base(Base &&other);
-          virtual ~Base();
-
-          void flush();
-
-          char *obtain_chunk(size_t n);
-          virtual void write(const char *begin, const char *end);
-          virtual void rewind(size_t n) = 0;
-
-          void fill(size_t n, char value = ' ');
-
-          size_t written() const;
-
+      struct Base {
+          scratchpad::Simple_Writer<char> &w;
+          Base(scratchpad::Simple_Writer<char> &w) : w(w) {}
+          void fill(size_t n);
       };
       template <typename T>
-        inline
-        Base &operator<<(Base &b, T t)
+        inline Base &operator<<(Base &b, T t)
         {
           size_t n = encoded_length(t);
-          char *o = b.obtain_chunk(n);
+          char  *o = b.w.begin_write(n);
           encode(t, o, n);
+          b.w.commit_write(n);
           return b;
         }
-
-      class Memory : public Base {
-        private:
-
-        protected:
-          Raw_Vector<char> v_;
-          size_t increment_;
-
-          void make_room_for(size_t n) override;
-          void flush_it() override;
-        public:
-          Memory(size_t n = 8u * 1024u, size_t increment = 4u * 1024u);
-
-          const char *begin() const;
-          const char *end() const;
-
-          void rewind(size_t n) override;
-
-          void clear();
-      };
-
-      class File : public Memory{
-        private:
-          ixxx::util::FD &fd_;
-        protected:
-          void make_room_for(size_t n) override;
-          void flush_it() override;
-        public:
-          File(ixxx::util::FD &fd, size_t n = 128u * 1024u);
-          ~File();
-          void write(const char *begin, const char *end) override;
-
-
-      };
-
       struct Indent {
         unsigned i;
         Indent(unsigned i) : i(i) {}
         Indent operator()(unsigned k) const { return i*k; }
       };
-      inline Base &operator<<(Base &o, const Indent &i)
-      {
-        o.fill(i.i);
-        return o;
-      }
+      Base &operator<<(Base &b, const Indent &i);
 
-    } // memory
+
+    } // writer
 
   } // byte
 

@@ -32,6 +32,7 @@
 namespace xfsx {
 
 
+    // XXX deprecated cf. ber2ber
     class BER_Writer_Base {
       private:
       protected:

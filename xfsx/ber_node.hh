@@ -32,6 +32,7 @@ namespace xfsx {
 
   namespace ber {
 
+      // XXX deprecated - cf. ber2ber
     template <typename T>
     class Node {
       private:

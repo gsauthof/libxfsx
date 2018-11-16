@@ -270,6 +270,7 @@ the encoding format) grammar.
 #include <boost/lexical_cast.hpp>
 #include <boost/filesystem.hpp>
 
+#include <xfsx/scratchpad.hh>
 #include <xfsx_config.hh>
 #include <xfsx/detector.hh>
 #include <xfsx/byte.hh>
@@ -746,10 +747,17 @@ namespace bed {
     void Mk_Bash_Comp::execute()
     {
       string name(boost::filesystem::path(args_.argv0).stem().string());
-      ixxx::util::FD fd = args_.out_filename.empty()
-        ? ixxx::util::FD(1, true)
-        : ixxx::util::FD(args_.out_filename, O_CREAT|O_WRONLY|O_TRUNC, 0666);
-      xfsx::byte::writer::File w(fd);
+
+      using namespace xfsx;
+      unique_ptr<scratchpad::Writer<char>> y;
+      if (args_.out_filename.empty())
+          y = unique_ptr<scratchpad::Writer<char>>(
+                  new scratchpad::File_Writer<char>(ixxx::util::FD(1)));
+      else
+          y = unique_ptr<scratchpad::Writer<char>>(
+                  new scratchpad::File_Writer<char>(args_.out_filename));
+      scratchpad::Simple_Writer<char> x(std::move(y));
+      byte::writer::Base w(x);
       w <<
 "function _" << name << R"(()
 {
@@ -796,7 +804,7 @@ namespace bed {
   fi
 }
 complete -F _)" << name << ' ' << name << '\n';
-      w.flush();
+      x.flush();
     }
   }
 

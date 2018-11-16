@@ -23,10 +23,12 @@
 
 #include <stdint.h>
 
-#include <xfsx/byte.hh>
+//#include <xfsx/byte.hh>
 #include <xfsx/xml_writer_arguments.hh>
 
 namespace xfsx {
+    namespace byte { namespace writer { class Base; } }
+    template <typename T> class Simple_Reader;
 
   namespace xml {
 
@@ -39,6 +41,8 @@ namespace xfsx {
     struct Writer_Arguments;
     struct Pretty_Writer_Arguments;
 
+    void write_unber_tl(Simple_Reader<TLC> &r,
+        byte::writer::Base &w);
     void write_unber_tl(
         const u8 *begin, const u8 *end,
         byte::writer::Base &w

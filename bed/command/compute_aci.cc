@@ -25,6 +25,7 @@
 #include <xfsx/traverser/tlc.hh>
 #include <xfsx/xfsx.hh>
 #include <xfsx/byte.hh>
+#include <xfsx/scratchpad.hh>
 #include <bed/arguments.hh>
 
 #include <ixxx/util.hh>
@@ -35,14 +36,6 @@ using namespace std;
 namespace bed {
 
   namespace command {
-
-    /*
-    ostream &operator<<(ostream &o, const Indent &i)
-    {
-      std::fill_n(std::ostreambuf_iterator<char>(o), i.i, ' ');
-      return o;
-    }
-    */
 
     void Compute_ACI::execute()
     {
@@ -62,9 +55,13 @@ namespace bed {
       } else
         fd = ixxx::util::FD(args_.out_filename, O_CREAT | O_WRONLY | O_TRUNC,
             0666);
-      xfsx::byte::writer::File o(fd);
+      using namespace xfsx;
+      scratchpad::Simple_Writer<char> x(unique_ptr<scratchpad::Writer<char>>(
+                  new scratchpad::File_Writer<char>(std::move(fd))));
+      byte::writer::Base w(x);
 
-      aci.print(o, args_.indent_size);
+      aci.print(w, args_.indent_size);
+      x.flush();
 
     }
 

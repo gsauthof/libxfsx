@@ -38,6 +38,8 @@
 
 #include <xfsx/ber2xml.hh>
 #include <xfsx/octet.hh>
+#include <xfsx/scratchpad.hh>
+#include <xfsx/byte.hh>
 
 #include "test.hh"
 
@@ -332,7 +334,9 @@ BOOST_AUTO_TEST_SUITE(xfsx_)
         auto r = u.write(a.begin(), a.end());
         BOOST_CHECK_EQUAL(r-a.begin(), 10);
 
-        xfsx::byte::writer::Memory w;
+        scratchpad::Simple_Writer<char> x(unique_ptr<scratchpad::Writer<char>>(
+                    new scratchpad::Scratchpad_Writer<char>()));
+        byte::writer::Base w(x);
         BOOST_CHECK_THROW(xfsx::xml::write(a.begin(), a.end(), w),
             std::range_error);
       }

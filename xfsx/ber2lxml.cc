@@ -27,6 +27,7 @@
 #include "byte.hh"
 #include "hex.hh"
 #include "string.hh"
+#include "scratchpad.hh"
 
 #include <xxxml/xxxml.hh>
 
@@ -50,7 +51,7 @@ namespace xfsx {
           TLC *tlc {nullptr};
           xxxml::doc::Ptr doc_;
           xfsx::BCD_String bcd_;
-          byte::writer::Memory memw_;
+          scratchpad::Simple_Writer<char> memw_;
 
 
           void pop_until(size_t h);
@@ -77,7 +78,9 @@ namespace xfsx {
         :
           args_(args),
           reader_(begin + args.skip, end),
-          doc_(std::move(doc))
+          doc_(std::move(doc)),
+          memw_(unique_ptr<scratchpad::Writer<char>>(
+                    new scratchpad::Scratchpad_Writer<char>()))
       {
         rank_stack_.push(0);
       }
@@ -98,8 +101,12 @@ namespace xfsx {
         if (!args_.dump_rank)
           return;
         memw_.clear();
-        memw_ << rank_stack_.top() << '\0';
-        xxxml::new_prop(node, "rank", memw_.begin());
+        byte::writer::Base w(memw_);
+        w << rank_stack_.top() << '\0';
+        memw_.flush();
+        const auto &pad = dynamic_cast<scratchpad::Scratchpad_Writer<char>*>(
+                memw_.backend())->pad();
+        xxxml::new_prop(node, "rank", pad.prelude());
       }
 
       void Tree_Generator::gen_indefinite(xmlNode *node)
@@ -114,16 +121,21 @@ namespace xfsx {
         if (!args_.hex_dump)
           return;
         memw_.clear();
+        byte::writer::Base w(memw_);
         size_t n = hex::decoded_size<hex::Style::Raw>(
             tlc->begin + tlc->tl_size, tlc->begin + tlc->tl_size + tlc->length
             );
-        auto o = memw_.obtain_chunk(n);
+        auto o = memw_.begin_write(n);
         auto r = hex::decode<hex::Style::Raw>(
             tlc->begin + tlc->tl_size, tlc->begin + tlc->tl_size + tlc->length,
             o);
         (void)r;
-        memw_ << '\0';
-        xxxml::new_prop(node, "hex", memw_.begin());
+        memw_.commit_write(n);
+        w << '\0';
+        memw_.flush();
+        const auto &pad = dynamic_cast<scratchpad::Scratchpad_Writer<char>*>(
+                memw_.backend())->pad();
+        xxxml::new_prop(node, "hex", pad.prelude());
       }
 
       void Tree_Generator::gen_primitive()
@@ -145,9 +157,13 @@ namespace xfsx {
               int64_t v {0};
               xfsx::decode(tlc->begin + tlc->tl_size, tlc->length, v);
               memw_.clear();
-              memw_ << v;
+              byte::writer::Base w(memw_);
+              w << v;
+              memw_.flush();
+                const auto &pad = dynamic_cast<scratchpad::Scratchpad_Writer<char>*>(
+                        memw_.backend())->pad();
               xxxml::node_add_content(node,
-                  memw_.begin(), memw_.written());
+                  pad.prelude(), pad.begin()-pad.prelude());
             }
             break;
           case Type::BCD:

@@ -226,157 +226,19 @@ namespace xfsx {
         return copy(v.first, v.first + n, o);
       }
 
-      Base::Base(Base &&o)
-        :
-          cur_(o.cur_)
-      {
-        o.cur_ = nullptr;
-      }
 
-      Base::Base()  =default;
-      Base::~Base() =default;
-
-      size_t Base::written() const
+      Base &operator<<(Base &b, const Indent &i)
       {
-        return written_;
+          char  *o = b.w.begin_write(i.i);
+          fill(o, o + i.i, ' ');
+          b.w.commit_write(i.i);
+          return b;
       }
-
-      char *Base::obtain_chunk(size_t n)
+      void Base::fill(size_t n)
       {
-        make_room_for(n);
-        auto r = cur_;
-        cur_ += n;
-        written_ += n;
-        return r;
-      }
-
-      void Base::write(const char *begin, const char *end)
-      {
-        auto o = obtain_chunk(end-begin);
-        copy(begin, end, o);
-      }
-      void Base::fill(size_t n, char value)
-      {
-        auto o = obtain_chunk(n);
-        fill_n(o, n, value);
-      }
-
-      void Base::flush()
-      {
-        flush_it();
-      }
-
-
-      Memory::Memory(size_t n, size_t increment)
-        :
-          v_(n),
-          increment_(increment)
-      {
-        cur_ = v_.data();
-      }
-      void Memory::make_room_for(size_t n)
-      {
-        size_t occupied = cur_ - v_.data();
-        size_t available = v_.size() - occupied;
-        if (n <= available)
-          return;
-        size_t delta = n - available;
-        v_.resize(occupied + ((delta+increment_-1u)/increment_)*increment_  );
-        cur_ = v_.data() + occupied;
-      }
-      void Memory::rewind(size_t n)
-      {
-        size_t occupied = cur_ - v_.data();
-        if (n > occupied)
-          throw runtime_error("Cannot rewind over the beginning");
-        cur_ -= n;
-        written_ -= n;
-      }
-      void Memory::clear()
-      {
-        cur_ = v_.data();
-        written_ = 0u;
-      }
-      void Memory::flush_it()
-      {
-      }
-      const char *Memory::begin() const
-      {
-        return v_.data();
-      }
-      const char *Memory::end() const
-      {
-        return cur_;
-      }
-
-      File::File(ixxx::util::FD &fd, size_t n)
-        :
-          Memory(n, n),
-          fd_(fd)
-      {
-      }
-      File::~File()
-      {
-        try {
-          // we explicitly call this object's flush_it() because
-          // otherwise we could end up call the version from a
-          // derived class, which already is destructed, thus
-          // would be undefined
-          File::flush_it();
-        } catch (...) {
-        }
-      }
-      void File::make_room_for(size_t n)
-      {
-        size_t m = cur_ - v_.data();
-        if (m >= increment_) {
-          size_t i = 0;
-          for (i = 0; i < m / increment_ * increment_; i += increment_) {
-            auto r = ixxx::posix::write(fd_, v_.data() + i, increment_);
-            if (size_t(r) != increment_)
-              throw runtime_error("less bytes written than expected");
-          }
-          copy(v_.data() + i, cur_, v_.data());
-          cur_ -= i;
-        }
-        Memory::make_room_for(n);
-      }
-      void File::write(const char *begin, const char *end)
-      {
-        size_t n = end-begin;
-        size_t m = cur_ - v_.data();
-
-        if (increment_ - m % increment_ > n) {
-          Base::write(begin, end);
-        } else {
-          const char *next_begin = begin +
-            (m % increment_ ?  increment_ - m % increment_ : 0);
-          cur_ = copy(begin, next_begin, cur_);
-          for (const char *x = v_.data(); x < cur_; x += increment_) {
-            auto r = ixxx::posix::write(fd_, x, increment_);
-            if (size_t(r) != increment_)
-              throw runtime_error("less bytes written than expected");
-          }
-          written_ += next_begin - begin;;
-          cur_ = v_.data();
-          for (const char *x = next_begin; x + increment_ <= end; x += increment_) {
-            auto r = ixxx::posix::write(fd_, x, increment_);
-            if (size_t(r) != increment_)
-              throw runtime_error("less bytes written than expected");
-          }
-          size_t a = end - next_begin;
-          written_ += a / increment_ * increment_;
-          size_t rest = a % increment_;
-          Base::write(end-rest, end);
-        }
-      }
-      void File::flush_it()
-      {
-        size_t m = cur_ - v_.data();
-        auto r = ixxx::posix::write(fd_, v_.data(), m);
-        if (size_t(r) != m)
-          throw runtime_error("less bytes written than expected");
-        cur_ = v_.data();
+          char  *o = w.begin_write(n);
+          std::fill(o, o + n, ' ');
+          w.commit_write(n);
       }
 
 

@@ -24,6 +24,7 @@
 #include <boost/filesystem.hpp>
 
 #include <xfsx/byte.hh>
+#include <xfsx/scratchpad.hh>
 
 #include <string>
 #include <array>
@@ -42,43 +43,69 @@ BOOST_AUTO_TEST_SUITE(xfsx_)
 
       BOOST_AUTO_TEST_CASE(mem)
       {
+          using namespace xfsx;
+        scratchpad::Simple_Writer<char> x(unique_ptr<scratchpad::Writer<char>>(
+                    new scratchpad::Scratchpad_Writer<char>()));
+        byte::writer::Base w(x);
         const char inp[] = "Hello";
-        Memory w(4096, 1024);
-        w.write(inp, inp + sizeof(inp)-1);
-        BOOST_CHECK_EQUAL(string(w.begin(), w.end()), "Hello");
+        x.write(inp, inp + sizeof(inp)-1);
+        x.flush();
+        const auto &pad = dynamic_cast<scratchpad::Scratchpad_Writer<char>*>(
+                x.backend())->pad();
+        BOOST_CHECK_EQUAL(string(pad.prelude(), pad.begin()), "Hello");
         w << " World";
-        BOOST_CHECK_EQUAL(string(w.begin(), w.end()), "Hello World");
-        auto r = w.obtain_chunk(3);
+        x.flush();
+        BOOST_CHECK_EQUAL(string(pad.prelude(), pad.begin()), "Hello World");
+        auto r = x.begin_write(3);
         const char inp2[] = " 23";
         copy(inp2, inp2 + sizeof(inp2) - 1, r);
-        BOOST_CHECK_EQUAL(string(w.begin(), w.end()), "Hello World 23");
+        x.commit_write(3);
+        x.flush();
+        BOOST_CHECK_EQUAL(string(pad.prelude(), pad.begin()), "Hello World 23");
       }
 
       BOOST_AUTO_TEST_CASE(mem_small)
       {
-        Memory w(5, 5);
+          using namespace xfsx;
+        scratchpad::Simple_Writer<char> x(unique_ptr<scratchpad::Writer<char>>(
+                    new scratchpad::Scratchpad_Writer<char>()));
+        auto be = dynamic_cast<scratchpad::Scratchpad_Writer<char>*>(
+                x.backend());
+        be->set_increment(5);
+        const auto &pad = dynamic_cast<scratchpad::Scratchpad_Writer<char>*>(
+                x.backend())->pad();
+        byte::writer::Base w(x);
         const char inp[] = "Hello";
-        w.write(inp, inp + sizeof(inp)-1);
-        BOOST_CHECK_EQUAL(string(w.begin(), w.end()), "Hello");
+        x.write(inp, inp + sizeof(inp)-1);
+        x.flush();
+        BOOST_CHECK_EQUAL(string(pad.prelude(), pad.begin()), "Hello");
         w << "World";
-        // not significant
-        w.flush();
-        BOOST_CHECK_EQUAL(string(w.begin(), w.end()), "HelloWorld");
-        auto r = w.obtain_chunk(3);
+        x.flush();
+        BOOST_CHECK_EQUAL(string(pad.prelude(), pad.begin()), "HelloWorld");
+        auto r = x.begin_write(3);
         const char inp2[] = " 23";
         copy(inp2, inp2 + sizeof(inp2) - 1, r);
-        BOOST_CHECK_EQUAL(string(w.begin(), w.end()), "HelloWorld 23");
+        x.commit_write(3);
+        x.flush();
+        BOOST_CHECK_EQUAL(string(pad.prelude(), pad.begin()), "HelloWorld 23");
       }
 
       BOOST_AUTO_TEST_CASE(ints)
       {
-        Memory w(4096, 1024);
+          using namespace xfsx;
+        scratchpad::Simple_Writer<char> x(unique_ptr<scratchpad::Writer<char>>(
+                    new scratchpad::Scratchpad_Writer<char>()));
+        const auto &pad = dynamic_cast<scratchpad::Scratchpad_Writer<char>*>(
+                x.backend())->pad();
+        byte::writer::Base w(x);
         w << "Hello " << (-23) << " World " << 23u << '\n';
-        BOOST_CHECK_EQUAL(string(w.begin(), w.end()), "Hello -23 World 23\n");
+        x.flush();
+        BOOST_CHECK_EQUAL(string(pad.prelude(), pad.begin()), "Hello -23 World 23\n");
       }
 
       BOOST_AUTO_TEST_CASE(file)
       {
+          using namespace xfsx;
         bf::path out_path(test::path::out());
         out_path /= "writer";
         bf::path out(out_path);
@@ -90,20 +117,18 @@ BOOST_AUTO_TEST_SUITE(xfsx_)
 
         {
           BOOST_TEST_CHECKPOINT("Open: " << out);
-          ixxx::util::FD fd(out.generic_string(), O_CREAT | O_WRONLY, 0666);
+            scratchpad::Simple_Writer<char> x(unique_ptr<scratchpad::Writer<char>>(
+                        new scratchpad::File_Writer<char>(out.generic_string())));
           BOOST_TEST_CHECKPOINT("Writing: " << out);
-          File w(fd, 5);
+          byte::writer::Base w(x);
           const char inp[] = "Hello";
-          w.write(inp, inp + sizeof(inp)-1);
-          BOOST_CHECK_EQUAL(string(w.begin(), w.end()), "");
+          x.write(inp, inp + sizeof(inp)-1);
           w << "Worl";
-          BOOST_CHECK_EQUAL(string(w.begin(), w.end()), "Worl");
-          auto r = w.obtain_chunk(3);
+          auto r = x.begin_write(3);
           const char inp2[] = " 23";
           copy(inp2, inp2 + sizeof(inp2) - 1, r);
-          BOOST_CHECK_EQUAL(string(w.begin(), w.end()), "Worl 23");
-          // also called at scope exit, but here it is allowed to throw
-          w.flush();
+          x.commit_write(3);
+          x.flush();
         }
         BOOST_TEST_CHECKPOINT("Comparing: " << out);
         {
@@ -114,77 +139,135 @@ BOOST_AUTO_TEST_SUITE(xfsx_)
 
       BOOST_AUTO_TEST_CASE(literals)
       {
+          using namespace xfsx;
+        scratchpad::Simple_Writer<char> x(unique_ptr<scratchpad::Writer<char>>(
+                    new scratchpad::Scratchpad_Writer<char>()));
+        const auto &pad = dynamic_cast<scratchpad::Scratchpad_Writer<char>*>(
+                x.backend())->pad();
+        byte::writer::Base w(x);
+
         const char inp[] = "Hello";
-        Memory w(4096, 1024);
         w << make_pair(inp, sizeof(inp)-1);
-        BOOST_CHECK_EQUAL(string(w.begin(), w.end()), "Hello");
+        x.flush();
+        BOOST_CHECK_EQUAL(string(pad.prelude(), pad.begin()), "Hello");
         w << make_pair(" World", 6);
-        BOOST_CHECK_EQUAL(string(w.begin(), w.end()), "Hello World");
+        x.flush();
+        BOOST_CHECK_EQUAL(string(pad.prelude(), pad.begin()), "Hello World");
       }
 
       BOOST_AUTO_TEST_CASE(ranges)
       {
+          using namespace xfsx;
+        scratchpad::Simple_Writer<char> x(unique_ptr<scratchpad::Writer<char>>(
+                    new scratchpad::Scratchpad_Writer<char>()));
+        const auto &pad = dynamic_cast<scratchpad::Scratchpad_Writer<char>*>(
+                x.backend())->pad();
+        byte::writer::Base w(x);
+
         const char inp[] = "Hello";
-        Memory w(4096, 1024);
         w << make_pair(inp, inp + sizeof(inp)-1);
-        BOOST_CHECK_EQUAL(string(w.begin(), w.end()), "Hello");
+        x.flush();
+        BOOST_CHECK_EQUAL(string(pad.prelude(), pad.begin()), "Hello");
         const char inp2[] = " World";
         w << make_pair(inp2, inp2 + sizeof(inp2)-1);
-        BOOST_CHECK_EQUAL(string(w.begin(), w.end()), "Hello World");
+        x.flush();
+        BOOST_CHECK_EQUAL(string(pad.prelude(), pad.begin()), "Hello World");
       }
 
       BOOST_AUTO_TEST_CASE(fill)
       {
+          using namespace xfsx;
+        scratchpad::Simple_Writer<char> x(unique_ptr<scratchpad::Writer<char>>(
+                    new scratchpad::Scratchpad_Writer<char>()));
+        const auto &pad = dynamic_cast<scratchpad::Scratchpad_Writer<char>*>(
+                x.backend())->pad();
+        byte::writer::Base w(x);
+
         const char inp[] = "Hello";
-        Memory w(4096, 1024);
         w << make_pair(inp, inp + sizeof(inp)-1);
-        BOOST_CHECK_EQUAL(string(w.begin(), w.end()), "Hello");
-        w.fill(5);
+        x.flush();
+        BOOST_CHECK_EQUAL(string(pad.prelude(), pad.begin()), "Hello");
+        Indent i(5);
+        w << i;
         const char inp2[] = "World";
         w << make_pair(inp2, inp2 + sizeof(inp2)-1);
-        BOOST_CHECK_EQUAL(string(w.begin(), w.end()), "Hello     World");
+        x.flush();
+        BOOST_CHECK_EQUAL(string(pad.prelude(), pad.begin()), "Hello     World");
       }
 
       BOOST_AUTO_TEST_CASE(newline)
       {
+          using namespace xfsx;
         bf::path out_path(test::path::out());
         out_path /= "writer";
         bf::path out(out_path);
         out /= "newline";
         BOOST_TEST_CHECKPOINT("Removing: " << out);
         bf::remove(out);
-        ixxx::util::FD fd(out.generic_string(), O_CREAT | O_WRONLY, 0666);
-        xfsx::byte::writer::File w{fd};
+            scratchpad::Simple_Writer<char> x(unique_ptr<scratchpad::Writer<char>>(
+                        new scratchpad::File_Writer<char>(out.generic_string())));
+          byte::writer::Base w(x);
         w << "Hello\n";
         w << "World\n";
-        w.flush();
+        x.flush();
         BOOST_CHECK_EQUAL(boost::filesystem::file_size(out), 12);
       }
 
       BOOST_AUTO_TEST_CASE(directly_write_inc_multiples)
       {
+          using namespace xfsx;
         bf::path out_path(test::path::out());
         out_path /= "writer";
         bf::path out(out_path);
-        out /= "newline";
+        out /= "inc_mult";
         BOOST_TEST_CHECKPOINT("Removing: " << out);
         bf::remove(out);
         {
-        ixxx::util::FD fd(out.generic_string(), O_CREAT | O_WRONLY, 0666);
-        xfsx::byte::writer::File w{fd, 3};
+            scratchpad::Simple_Writer<char> x(unique_ptr<scratchpad::Writer<char>>(
+                        new scratchpad::File_Writer<char>(out.generic_string())));
+            auto be = dynamic_cast<scratchpad::File_Writer<char>*>(x.backend());
+            be->sink().set_increment(3);
+          byte::writer::Base w(x);
         const char inp1[] = "Hello World";
         const char inp2[] = "foobar23";
-        w.write(inp1, inp1 + sizeof(inp1)-1);
-        BOOST_CHECK_EQUAL(w.written(), sizeof(inp1)-1);
-        BOOST_CHECK_EQUAL(string(w.begin(), w.end()), "ld");
-        w.write(inp2, inp2 + sizeof(inp2)-1);
-        BOOST_CHECK_EQUAL(w.written(), sizeof(inp1)-1+sizeof(inp2)-1);
-        BOOST_CHECK_EQUAL(string(w.begin(), w.end()), "3");
-        w.flush();
+        x.write(inp1, inp1 + sizeof(inp1)-1);
+        BOOST_CHECK_EQUAL(x.pos(), sizeof(inp1)-1);
+        BOOST_CHECK_EQUAL(boost::filesystem::file_size(out), 9);
+
+        x.write(inp2, inp2 + sizeof(inp2)-1);
+        BOOST_CHECK_EQUAL(x.pos(), sizeof(inp1)-1+sizeof(inp2)-1);
+        BOOST_CHECK_EQUAL(boost::filesystem::file_size(out), 18);
+        x.flush();
         }
         BOOST_CHECK_EQUAL(boost::filesystem::file_size(out), 19);
         auto f = ixxx::util::mmap_file(out.generic_string());
         BOOST_CHECK_EQUAL(string(f.s_begin(), f.s_end()), "Hello Worldfoobar23");
+      }
+
+      BOOST_AUTO_TEST_CASE(write_without_flush)
+      {
+          using namespace xfsx;
+        bf::path out_path(test::path::out());
+        out_path /= "writer";
+        bf::path out(out_path);
+        out /= "woflush";
+        BOOST_TEST_CHECKPOINT("Removing: " << out);
+        bf::remove(out);
+        {
+            scratchpad::Simple_Writer<char> x(unique_ptr<scratchpad::Writer<char>>(
+                        new scratchpad::File_Writer<char>(out.generic_string())));
+            byte::writer::Base w(x);
+            static const char foo[] = "Hello\n";
+            w << foo;
+            w.fill(4);
+            BOOST_CHECK_EQUAL(boost::filesystem::file_size(out), 0);
+
+            static const char bar[] = "World\n";
+            w << bar;
+            BOOST_CHECK_EQUAL(boost::filesystem::file_size(out), 0);
+            // no x.flush()!
+        }
+        BOOST_CHECK_EQUAL(boost::filesystem::file_size(out), 16);
       }
 
 
