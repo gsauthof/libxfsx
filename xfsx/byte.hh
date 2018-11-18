@@ -110,6 +110,12 @@ namespace xfsx {
           b.w.commit_write(n);
           return b;
         }
+      template <size_t N>
+        inline Base &operator<<(Base &b, const char (&s)[N])
+        {
+            b.w.write(s);
+            return b;
+        }
       struct Indent {
         unsigned i;
         Indent(unsigned i) : i(i) {}

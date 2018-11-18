@@ -7,6 +7,7 @@
 #include "raw_vector.hh"
 
 #include <ixxx/util.hh>
+#include <assert.h>
 
 namespace xfsx {
 
@@ -314,6 +315,13 @@ namespace xfsx {
                 ~Simple_Writer();
 
                 void write(const Char *begin, const Char *end);
+                // write string literals, i.e. assuming 0 termination
+                template <size_t N>
+                    void write(const Char (&s)[N])
+                    {
+                        assert(N);
+                        this->write(s, s+N-1);
+                    }
 
                 // tell the writer to prepare a buffer large enough for k bytes
                 // returns pointer to that buffer
