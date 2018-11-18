@@ -132,12 +132,13 @@ namespace xfsx {
         while (r.next()) {
             const Unit &u = r.tlc();
             written_stack.top() += u.tl_size;
-            if (u.shape == Shape::PRIMITIVE)
+            if (u.shape == Shape::PRIMITIVE) {
                 written_stack.top() += u.length;
-            if (u.is_eoc()) {
-                if (indent < 4)
-                    throw underflow_error("superfluous EOC?");
-                indent -= 4;
+                if (u.is_eoc()) {
+                    if (indent < 4)
+                        throw underflow_error("superfluous EOC?");
+                    indent -= 4;
+                }
             }
             w.fill(indent);
             write_unber_tl(w, u, off);
