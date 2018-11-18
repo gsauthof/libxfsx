@@ -88,7 +88,7 @@ namespace xfsx {
         bool Simple_Reader<T>::next()
         {
 
-            if (backend_ && (end_ - begin_) < 20) {
+            if (backend_ && (end_ - begin_) < 20 && !backend_->eof()) {
                 std::tie(begin_, end_) = backend_->read_more(local_pos_, 20);
                 local_pos_ = 0;
             }
