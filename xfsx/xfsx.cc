@@ -1202,6 +1202,7 @@ namespace xfsx {
   void Tag_Translator::push(Klasse klasse,
       std::unordered_map<uint32_t, std::string> &&m)
   {
+    count_ += m.size();
     k_trans_.at(klasse_to_index(klasse)) = std::move(m);
   }
   const std::string &Tag_Translator::translate(
@@ -1213,6 +1214,20 @@ namespace xfsx {
       throw range_error("Incomplete ASN.1 file - can't translate tag: "
           + std::to_string(tag));
     }
+  }
+  const std::string *Tag_Translator::find(
+      Klasse klasse, Tag_Int tag) const
+  {
+      auto &m = k_trans_.at(klasse_to_index(klasse));
+      auto i = m.find(tag);
+      if (i == m.end())
+          return nullptr;
+      else
+          return &i->second;
+  }
+  bool Tag_Translator::empty() const
+  {
+      return count_ == 0;
   }
 
   Tag_Dereferencer::Tag_Dereferencer()

@@ -118,12 +118,15 @@ namespace xfsx {
   class Tag_Translator {
     private:
       std::vector<std::unordered_map<uint32_t, std::string> > k_trans_;
+      size_t count_{0};
     public:
       Tag_Translator();
       Tag_Translator(Klasse klasse,
           std::unordered_map<uint32_t, std::string> &&m);
       void push(Klasse klasse, std::unordered_map<uint32_t, std::string> &&m);
       const std::string &translate(Klasse klasse, Tag_Int tag) const;
+      const std::string *find(Klasse klasse, Tag_Int tag) const;
+      bool empty() const;
   };
   class Tag_Dereferencer {
     private:
