@@ -351,7 +351,7 @@ namespace xfsx {
         throw std::range_error("Cannot copy from CONSTRUCTED tag");
       decode(begin + tl_size, length, t);
     }
-    template <typename T> T lexical_cast()
+    template <typename T> T lexical_cast() const
     {
       T t;
       copy_content<T>(t);
