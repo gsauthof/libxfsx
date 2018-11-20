@@ -11,6 +11,42 @@ using namespace std;
 
 namespace xfsx {
 
+    template<> bool read_next(scratchpad::Simple_Reader<u8> &r, TLC &tlc)
+    {
+        bool t = r.next(20);
+        if (!t)
+            return false;
+
+        tlc.read(r.window().first, r.window().second);
+
+        size_t k = tlc.tl_size;
+        if (tlc.shape == Shape::PRIMITIVE) {
+            k += tlc.length;
+            auto i = r.next(k);
+            r.check_available(k);
+            if (i == 2)
+                tlc.begin = r.window().first;
+        }
+        r.forget(k);
+        return true;
+    }
+    template<> bool read_next(scratchpad::Simple_Reader<u8> &r, Unit &tlc)
+    {
+        bool t = r.next(20);
+        if (!t)
+            return false;
+
+        tlc.read(r.window().first, r.window().second);
+
+        size_t k = tlc.tl_size;
+        if (tlc.shape == Shape::PRIMITIVE) {
+            k += tlc.length;
+            r.next(k);
+            r.check_available(k);
+        }
+        r.forget(k);
+        return true;
+    }
 
     template <typename T>
         Simple_Reader<T>::Simple_Reader()
@@ -55,6 +91,11 @@ namespace xfsx {
         size_t Simple_Reader<T>::pos() const
         {
             return global_pos_;
+        }
+    template <typename T>
+        void Simple_Reader<T>::set_pos(size_t k)
+        {
+            global_pos_ = k;
         }
     template <typename T>
         Simple_Reader<T>::Simple_Reader(const u8 *begin, const u8 *end)

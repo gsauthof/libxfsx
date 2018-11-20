@@ -11,7 +11,16 @@
 #include <xfsx/scratchpad.hh>
 
 namespace xfsx {
+    class TLC;
+    class Unit;
 
+    template<typename T> bool read_next(scratchpad::Simple_Reader<u8> &r,
+            T &tlc);
+    template<> bool read_next(scratchpad::Simple_Reader<u8> &r, TLC &tlc);
+    template<> bool read_next(scratchpad::Simple_Reader<u8> &r, Unit &tlc);
+
+    // XXX replace/use scratchpad::Simple_Reader
+    // or just just simple template<typename TLC>bool read_next(const TLC &tlc)
     template <typename T>
         class Simple_Reader { // new Basic_Reader
             public:
@@ -27,6 +36,7 @@ namespace xfsx {
                 const T &tlc() const;
                       T &tlc();
                 size_t   pos() const;
+                void set_pos(size_t pos);
             private:
                 T         tlc_;
                 size_t    global_pos_ {0};
