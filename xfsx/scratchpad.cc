@@ -359,6 +359,12 @@ namespace xfsx {
     {
     }
     template <typename Char>
+        File_Reader<Char>::File_Reader(const char *filename)
+        :
+            source_(filename)
+    {
+    }
+    template <typename Char>
         File_Reader<Char>::File_Reader(ixxx::util::FD &&fd)
         :
             source_(std::move(fd))
@@ -379,6 +385,100 @@ namespace xfsx {
     template class File_Reader<u8>;
     template class File_Reader<char>;
 
+
+    template <typename Char>
+        Simple_Reader<Char>::Simple_Reader() =default;
+    template <typename Char>
+        Simple_Reader<Char>::Simple_Reader(Simple_Reader &&o)
+        :
+            p_(std::move(o.p_)),
+            global_pos_(o.global_pos_),
+            local_pos_(o.local_pos_),
+            backend_(std::move(o.backend_))
+    {
+        o.p_.first    = nullptr;
+        o.p_.second   = nullptr;
+        o.global_pos_ = 0;
+        o.local_pos_  = 0;
+    }
+    template <typename Char>
+        Simple_Reader<Char> &Simple_Reader<Char>::operator=(Simple_Reader &&o)
+        {
+            p_            = std::move(o.p_);
+            global_pos_   = o.global_pos_;
+            local_pos_    = o.local_pos_;
+            backend_      = std::move(o.backend_);
+
+            o.p_.first    = nullptr;
+            o.p_.second   = nullptr;
+            o.global_pos_ = 0;
+            o.local_pos_  = 0;
+            return *this;
+        }
+    template <typename Char>
+        size_t Simple_Reader<Char>::pos() const
+        {
+            return global_pos_;
+        }
+    template <typename Char>
+        void Simple_Reader<Char>::set_pos(size_t pos)
+        {
+            global_pos_ = pos;
+        }
+    template <typename Char>
+        Simple_Reader<Char>::Simple_Reader(const Char *begin, const Char *end)
+        :
+            p_(begin, end)
+    {
+    }
+    template <typename Char>
+        Simple_Reader<Char>::Simple_Reader(
+                std::unique_ptr<scratchpad::Reader<Char>> &&backend)
+        :
+            backend_(std::move(backend))
+    {
+    }
+
+    // moved to the header such that it can be inlined
+    /*
+    template <typename Char>
+        const std::pair<const Char*, const Char*> &
+        Simple_Reader<Char>::window() const
+    {
+        return p_;
+    }
+    */
+    template <typename Char>
+        void Simple_Reader<Char>::forget(size_t kk)
+        {
+            auto k = min(kk, size_t(p_.second - p_.first));
+            local_pos_  += k;
+            global_pos_ += k;
+            p_.first    += k;
+        }
+    template <typename Char>
+        void Simple_Reader<Char>::check_available(size_t k)
+        {
+            if (size_t(p_.second - p_.first) < k)
+                throw range_error("content overflows");
+        }
+    template <typename Char>
+        uint8_t Simple_Reader<Char>::next(size_t want_cnt)
+        {
+            if (backend_ && size_t(p_.second - p_.first) < want_cnt
+                    && !backend_->eof()) {
+                p_ = backend_->read_more(local_pos_, want_cnt - size_t(p_.second-p_.first));
+                local_pos_ = 0;
+                if (p_.first == p_.second)
+                    return 0;
+                else
+                    return 2;
+            }
+            return p_.first != p_.second;
+        }
+
+    template class Simple_Reader<u8>;
+    template class Simple_Reader<char>;
 
 
     template <typename Char>

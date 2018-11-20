@@ -159,6 +159,7 @@ namespace xfsx {
                 File_Reader &operator=(File_Reader &&);
                 File_Reader();
 
+                File_Reader(const char *filename);
                 File_Reader(const std::string &filename);
                 File_Reader(ixxx::util::FD &&fd);
                 std::pair<const Char*, const Char*>
@@ -167,6 +168,60 @@ namespace xfsx {
             private:
                 Source_File<Char> source_;
         };
+
+    template <typename Char>
+        class Simple_Reader { // new Basic_Reader
+            public:
+                Simple_Reader(const Char *begin, const Char *end);
+                Simple_Reader(std::unique_ptr<scratchpad::Reader<Char>> &&backend);
+                Simple_Reader();
+                Simple_Reader(const Simple_Reader &) =delete;
+                Simple_Reader &operator=(const Simple_Reader &) =delete;
+                Simple_Reader(Simple_Reader &&);
+                Simple_Reader &operator=(Simple_Reader &&);
+
+                // return 0: no more, 1: next one, old pointers still valid,
+                // 2: next one, old window pointers are invalidated
+                uint8_t  next(size_t want);
+                // throw range_error if less than k bytes are part of the window
+                void     check_available(size_t k);
+                // i.e. window.begin is incremented
+                // and those bytes are possible freed with the next next() call
+                void     forget(size_t k);
+                size_t   pos() const;
+                void set_pos(size_t pos);
+                const std::pair<const Char*, const Char*> &window() const
+                {
+                    return p_;
+                }
+
+            private:
+                std::pair<const Char*, const Char*> p_{nullptr, nullptr};
+                size_t    global_pos_ {0};
+                size_t    local_pos_  {0};
+                // This decouples the reader from backends like Scratchpad
+                // if it's empty then the begin/end range includes the complete file
+                std::unique_ptr<scratchpad::Reader<Char>> backend_;
+        };
+
+    template <typename Char>
+        Simple_Reader<Char> mk_simple_reader(const std::string &filename)
+        {
+            return Simple_Reader<Char>(std::unique_ptr<scratchpad::Reader<Char>>(
+                        new scratchpad::File_Reader<Char>(filename)));
+        }
+    template <typename Char>
+        Simple_Reader<Char> mk_simple_reader_mapped(const std::string &filename)
+        {
+            return Simple_Reader<Char>(std::unique_ptr<scratchpad::Reader<Char>>(
+                        new scratchpad::Mapped_Reader<Char>(filename)));
+        }
+    template <typename Char>
+        Simple_Reader<Char> mk_simple_reader(ixxx::util::FD &&fd)
+        {
+            return Simple_Reader<Char>(std::unique_ptr<scratchpad::Reader<char>>(
+                        new scratchpad::File_Reader<Char>(std::move(fd))));
+        }
 
 
     template <typename Char>
@@ -352,6 +407,28 @@ namespace xfsx {
         };
 
         // XXX move Simple_Reader, as well
+
+    template <typename Char>
+        Simple_Writer<Char> mk_simple_writer(const std::string &filename)
+        {
+            return Simple_Writer<Char>(std::unique_ptr<scratchpad::Writer<Char>>(
+                       new scratchpad::File_Writer<Char>(filename)
+                        ));
+        }
+    template <typename Char>
+        Simple_Writer<Char> mk_simple_writer(ixxx::util::FD &&fd)
+        {
+            return Simple_Writer<Char>(std::unique_ptr<scratchpad::Writer<Char>>(
+                        new scratchpad::File_Writer<Char>(std::move(fd))
+                        ));
+        }
+    template <typename Char>
+        Simple_Writer<Char> mk_simple_writer_mapped(const std::string &filename, size_t size)
+        {
+            return Simple_Writer<Char>(std::unique_ptr<scratchpad::Writer<Char>>(
+                       new scratchpad::Mapped_Writer<Char>(filename, size)
+                        ));
+        }
 
     } // namespace scratchpad
 
