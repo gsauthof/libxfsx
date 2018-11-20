@@ -126,14 +126,13 @@ namespace xfsx {
             r.clear();
             return;
         }
-        Raw_Vector<char> s(r.get());
+        Raw_Vector<char> &s = r.get();
         s.resize(size*2);
         const u8 *end = begin + size;
         char *x = &s[0];
         bcd::decode(begin, end, x);
         if (s.back() == 'f')
             s.resize(s.size()-1);
-        r = std::move(s);
     }
     template <typename Style_Tag, typename H>
         void decode_hex(const u8 *begin, size_t size,
@@ -143,12 +142,11 @@ namespace xfsx {
                 r.clear();
                 return;
             }
-            Raw_Vector<char> s(std::move(r.get()));
+            Raw_Vector<char> &s = r.get();
             const u8 *end = begin + size;
             s.resize(hex::decoded_size<Style_Tag>(begin, end));
             char *x = &s[0];
             hex::decode<Style_Tag>(begin, end, x);
-            r = std::move(s);
         }
     template<> void decode(const u8 *begin, size_t size,
             Hex_String &r)
