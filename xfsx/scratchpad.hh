@@ -205,6 +205,11 @@ namespace xfsx {
         };
 
     template <typename Char>
+        Simple_Reader<Char> mk_simple_reader(const Char *begin, const Char *end)
+        {
+            return Simple_Reader<Char>(begin, end);
+        }
+    template <typename Char>
         Simple_Reader<Char> mk_simple_reader(const std::string &filename)
         {
             return Simple_Reader<Char>(std::unique_ptr<scratchpad::Reader<Char>>(
@@ -219,7 +224,7 @@ namespace xfsx {
     template <typename Char>
         Simple_Reader<Char> mk_simple_reader(ixxx::util::FD &&fd)
         {
-            return Simple_Reader<Char>(std::unique_ptr<scratchpad::Reader<char>>(
+            return Simple_Reader<Char>(std::unique_ptr<scratchpad::Reader<Char>>(
                         new scratchpad::File_Reader<Char>(std::move(fd))));
         }
 
