@@ -26,7 +26,7 @@ BOOST_AUTO_TEST_SUITE(bed_)
         const char ref[] = "\n";
         compare_bed_output("tap_3_12_strip.asn1",
             "tap_3_12_valid_att.ber", "search_skip.xml",
-            { "search", "//Sender", "--skip", "741" },
+            { "search", "//Sender", "--skip", "741", "--first" },
             ref, ref+sizeof(ref)-1);
       }
 

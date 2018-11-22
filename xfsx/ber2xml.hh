@@ -29,6 +29,10 @@
 namespace xfsx {
     namespace byte { namespace writer { class Base; } }
     template <typename T> class Simple_Reader;
+    namespace scratchpad {
+        template<typename Char> class Simple_Reader;
+        template<typename Char> class Simple_Writer;
+    }
 
   namespace xml {
 
@@ -54,6 +58,8 @@ namespace xfsx {
         const u8 *begin, const u8 *end,
         const char *filename);
 
+    void write_indent_unber_tl(Simple_Reader<TLC> &r,
+        byte::writer::Base &w);
     void write_indent_unber_tl(
         const u8 *begin, const u8 *end,
         byte::writer::Base &w);
@@ -64,32 +70,19 @@ namespace xfsx {
         const u8 *begin, const u8 *end,
         const char *filename);
 
-
-    void write(
-        const u8 *begin, const u8 *end,
-        byte::writer::Base &w,
-        const Writer_Arguments &args = default_writer_arguments
-        );
-    void write(
-        const u8 *begin, const u8 *end,
-        const std::string &filename,
-        const Writer_Arguments &args = default_writer_arguments
-        );
-    void write(
-        const u8 *begin, const u8 *end,
-        const char *filename,
-        const Writer_Arguments &args = default_writer_arguments
-        );
-
+    void pretty_write(scratchpad::Simple_Reader<u8> &r,
+            scratchpad::Simple_Writer<char> &w,
+            const Pretty_Writer_Arguments &args);
     void pretty_write(
         const u8 *begin, const u8 *end,
-        byte::writer::Base &w,
+        scratchpad::Simple_Writer<char> &w,
         const Pretty_Writer_Arguments &args);
     void pretty_write(
         const u8 *begin, const u8 *end,
         const std::string &filename,
         const Pretty_Writer_Arguments &args);
-  }
+
+  } // xml
 
 }
 

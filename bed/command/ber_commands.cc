@@ -101,6 +101,24 @@ namespace bed {
           return r;
       }
 
+      template <typename Char>
+      xfsx::scratchpad::Simple_Reader<Char> mk_simple_reader(const bed::Arguments &args)
+      {
+          using namespace xfsx;
+          if (args.mmap) {
+              // bed::Arguments::canonicalize() protects us from this
+              assert(args.in_filename != "-");
+              return scratchpad::mk_simple_reader_mapped<Char>(args.in_filename);
+          } else {
+              if (args.in_filename == "-")
+                  return scratchpad::mk_simple_reader<Char>(ixxx::util::FD(0));
+              else
+                  return scratchpad::mk_simple_reader<Char>(args.in_filename);
+          }
+      }
+
+
+
       static xfsx::Simple_Writer<xfsx::TLC> mk_tlc_writer(
               const bed::Arguments &args)
       {
@@ -159,6 +177,32 @@ namespace bed {
           return w;
       }
 
+      template<typename Char>
+      xfsx::scratchpad::Simple_Writer<Char> mk_simple_writer(const bed::Arguments &args)
+      {
+          using namespace xfsx;
+          scratchpad::Simple_Writer<Char> w;
+          if (args.mmap_out) {
+              assert(args.out_filename != "-");
+              assert(args.fsync == false);
+              size_t n = 0;
+              if (!n) {
+                  struct stat st;
+                  ixxx::posix::stat(args.in_filename, &st);
+                  n = st.st_size;
+              }
+              w = scratchpad::mk_simple_writer_mapped<Char>(args.out_filename, n);
+          } else {
+              if (args.out_filename == "-")
+                  w = scratchpad::mk_simple_writer<Char>(ixxx::util::FD(1));
+              else
+                  w = scratchpad::mk_simple_writer<Char>(args.out_filename);
+          }
+          if (args.fsync)
+              w.set_sync(true);
+          return w;
+      }
+
 
     void Write_Identity::execute()
     {
@@ -187,40 +231,27 @@ namespace bed {
     }
 
 
+    // XXX eliminate in favour of just Pretty_Write?
     void Write_XML::execute()
     {
-      xfsx::xml::Writer_Arguments args;
+      xfsx::xml::Pretty_Writer_Arguments args;
       apply_arguments(args_, args);
-      auto in = ixxx::util::mmap_file(args_.in_filename);
-      if (args_.out_filename.empty()) {
-          using namespace xfsx;
-        scratchpad::Simple_Writer<char> x(unique_ptr<scratchpad::Writer<char>>(
-                    new scratchpad::File_Writer<char>(ixxx::util::FD(1))));
-        byte::writer::Base w(x);
-        xfsx::xml::write(in.begin(), in.end(), w, args);
-        x.flush();
-      } else {
-        xfsx::xml::write(in.begin(), in.end(), args_.out_filename, args);
-      }
+
+      auto r = mk_simple_reader<xfsx::u8>(args_);
+      auto w = mk_simple_writer<char>(args_);
+      xfsx::xml::pretty_write(r, w, args);
+      w.flush();
     }
 
     void Pretty_Write_XML::execute()
     {
-      auto in = ixxx::util::mmap_file(args_.in_filename);
-
       xfsx::xml::Pretty_Writer_Arguments args(args_.asn_filenames);
       apply_arguments(args_, args);
 
-      if (args_.out_filename.empty()) {
-          using namespace xfsx;
-        scratchpad::Simple_Writer<char> x(unique_ptr<scratchpad::Writer<char>>(
-                    new scratchpad::File_Writer<char>(ixxx::util::FD(1))));
-        byte::writer::Base w(x);
-        xfsx::xml::pretty_write(in.begin(), in.end(), w, args);
-        x.flush();
-      } else {
-        xfsx::xml::pretty_write(in.begin(), in.end(), args_.out_filename, args);
-      }
+      auto r = mk_simple_reader<xfsx::u8>(args_);
+      auto w = mk_simple_writer<char>(args_);
+      xfsx::xml::pretty_write(r, w, args);
+      w.flush();
     }
 
     void Search_XPath::execute()

@@ -130,12 +130,19 @@ static void compare_indent_tl_unber(const char *rel_filename_str)
 static void write_xml(const u8 *begin, const u8 *end,
     const char* filename)
 {
-  xfsx::xml::write(begin, end, filename);
+  xfsx::xml::pretty_write(begin, end, filename, xfsx::xml::default_pretty_args);
 }
 
 static void compare_xml(const char *rel_filename_str)
 {
   compare("ber_xml", write_xml, rel_filename_str);
+}
+
+static void compare_xml_bad(const char *rel_filename_str)
+{
+  BOOST_CHECK_THROW(
+    compare("ber_xml_bad", write_xml, rel_filename_str),
+    xfsx::Parse_Error);
 }
 
 static void write_pretty_xml(const u8 *begin, const u8 *end,
@@ -237,7 +244,7 @@ static void compare_pretty_xml_args(const char *rel_filename_str)
 
 boost::unit_test::test_suite *create_ber2xml_suite()
 {
-  const array<const char *, 15> filenames = {
+  const array<const char *, 13> filenames = {
       "asn1c/asn1c/tests/data-62/data-62-01.ber",
       "asn1c/asn1c/tests/data-62/data-62-10.ber",
       "asn1c/asn1c/tests/data-62/data-62-11.ber",
@@ -250,7 +257,9 @@ boost::unit_test::test_suite *create_ber2xml_suite()
       "asn1c/asn1c/tests/data-62/data-62-32.ber",
       "asn1c/examples/sample.source.LDAP3/sample-LDAPMessage-1.ber",
       "asn1c/examples/sample.source.PKIX1/sample-Certificate-1.der",
-      "asn1c/examples/sample.source.TAP3/sample-DataInterChange-1.ber",
+      "asn1c/examples/sample.source.TAP3/sample-DataInterChange-1.ber"
+  };
+  const array<const char *, 2> bad_filenames = {
       // bad, but still readable on a lexical level
       "asn1c/asn1c/tests/data-62/data-62-13-B.ber",
       "asn1c/asn1c/tests/data-62/data-62-15-B.ber"
@@ -274,12 +283,20 @@ boost::unit_test::test_suite *create_ber2xml_suite()
 
   //ber2xml->add( BOOST_TEST_CASE( &test_case1 ) );
 
-  tl_unber->add(BOOST_PARAM_TEST_CASE(compare_tl_unber,
-        filenames.begin(), filenames.end()));
-  indent_tl_unber->add(BOOST_PARAM_TEST_CASE(compare_indent_tl_unber,
-        filenames.begin(), filenames.end()));
+  {
+      vector<const char*> xs(filenames.begin(), filenames.end());
+      xs.insert(xs.end(), bad_filenames.begin(), bad_filenames.end());
+      tl_unber->add(BOOST_PARAM_TEST_CASE(compare_tl_unber,
+            xs.begin(), xs.end()));
+      indent_tl_unber->add(BOOST_PARAM_TEST_CASE(compare_indent_tl_unber,
+            xs.begin(), xs.end()));
+  }
+
   xml->add(BOOST_PARAM_TEST_CASE(compare_xml,
         filenames.begin(), filenames.end()));
+  xml->add(BOOST_PARAM_TEST_CASE(compare_xml_bad,
+        bad_filenames.begin(), bad_filenames.end()));
+
   pretty_xml->add(BOOST_PARAM_TEST_CASE(compare_pretty_xml,
         tap_filenames.begin(), tap_filenames.end()));
   pretty_xml_args->add(BOOST_PARAM_TEST_CASE(compare_pretty_xml_args,
@@ -312,13 +329,15 @@ BOOST_AUTO_TEST_SUITE(xfsx_)
         {
           auto f = ixxx::util::mmap_file(test::path::in()
            + "/asn1c/examples/sample.source.PKIX1/sample-Certificate-1.der");
-          xfsx::xml::write(f.begin(), f.end(), out.generic_string());
+          xfsx::xml::pretty_write(f.begin(), f.end(), out.generic_string(),
+                  xfsx::xml::default_pretty_args);
         }
         size_t n = bf::file_size(out);
         {
           auto f = ixxx::util::mmap_file(test::path::in()
            + "/asn1c/examples/sample.source.TAP3/sample-DataInterChange-1.ber");
-          xfsx::xml::write(f.begin(), f.end(), out.generic_string());
+          xfsx::xml::pretty_write(f.begin(), f.end(), out.generic_string(),
+                  xfsx::xml::default_pretty_args);
         }
         size_t m = bf::file_size(out);
         BOOST_CHECK(m < n);
@@ -336,8 +355,8 @@ BOOST_AUTO_TEST_SUITE(xfsx_)
 
         scratchpad::Simple_Writer<char> x(unique_ptr<scratchpad::Writer<char>>(
                     new scratchpad::Scratchpad_Writer<char>()));
-        byte::writer::Base w(x);
-        BOOST_CHECK_THROW(xfsx::xml::write(a.begin(), a.end(), w),
+        BOOST_CHECK_THROW(xfsx::xml::pretty_write(a.begin(), a.end(), x,
+                    xfsx::xml::default_pretty_args),
             std::range_error);
       }
 

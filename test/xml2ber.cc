@@ -91,7 +91,8 @@ static void basic_check_xmlber_back(const xfsx::BER_Writer_Arguments &args,
   BOOST_TEST_CHECKPOINT("write: " << out_xml);
   {
     auto a = ixxx::util::mmap_file(in.generic_string());
-    xfsx::xml::write(a.begin(), a.end(), out_xml.generic_string());
+    xfsx::xml::pretty_write(a.begin(), a.end(), out_xml.generic_string(),
+            xfsx::xml::default_pretty_args);
   }
   BOOST_TEST_CHECKPOINT("write: " << out_ber);
   {
@@ -106,7 +107,8 @@ static void basic_check_xmlber_back(const xfsx::BER_Writer_Arguments &args,
   BOOST_TEST_CHECKPOINT("write: " << out_xml2);
   {
     auto in = ixxx::util::mmap_file(out_ber.generic_string());
-    xfsx::xml::write(in.begin(), in.end(), out_xml2.generic_string());
+    xfsx::xml::pretty_write(in.begin(), in.end(), out_xml2.generic_string(),
+            xfsx::xml::default_pretty_args);
   }
 
   BOOST_TEST_CHECKPOINT("comparing files: " << out_xml << " vs. " << out_xml2);
@@ -148,7 +150,7 @@ static void check_tap_xmlber_back(const char *rel_filename_str)
 
 boost::unit_test::test_suite *create_xml2ber_suite()
 {
-  const array<const char *, 15> filenames = {
+  const array<const char *, 13> filenames = {
       "asn1c/asn1c/tests/data-62/data-62-01.ber",
       "asn1c/asn1c/tests/data-62/data-62-10.ber",
       "asn1c/asn1c/tests/data-62/data-62-11.ber",
@@ -161,12 +163,17 @@ boost::unit_test::test_suite *create_xml2ber_suite()
       "asn1c/asn1c/tests/data-62/data-62-32.ber",
       "asn1c/examples/sample.source.LDAP3/sample-LDAPMessage-1.ber",
       "asn1c/examples/sample.source.PKIX1/sample-Certificate-1.der",
-      "asn1c/examples/sample.source.TAP3/sample-DataInterChange-1.ber",
+      "asn1c/examples/sample.source.TAP3/sample-DataInterChange-1.ber"
+  };
+  // we already test that the reader throws in test/ber2xml.cc
+#if 0
+  const array<const char *, 2> bad_filenames = {
       // bad, but still readable on a lexical level
       "asn1c/asn1c/tests/data-62/data-62-13-B.ber",
       "asn1c/asn1c/tests/data-62/data-62-15-B.ber"
 
   };
+#endif
   const array<const char *, 2> tap_filenames = {
       "asn1c/examples/sample.source.TAP3/sample-DataInterChange-1.ber",
       "tap_3_12_valid.ber"

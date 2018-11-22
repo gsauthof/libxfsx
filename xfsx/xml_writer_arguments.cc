@@ -33,6 +33,7 @@ namespace xfsx {
   namespace xml {
 
     Writer_Arguments default_writer_arguments;
+    Pretty_Writer_Arguments default_pretty_args;
 
     Pretty_Writer_Arguments::Pretty_Writer_Arguments()
     {

@@ -190,7 +190,7 @@ BOOST_AUTO_TEST_SUITE(bed_)
       BOOST_AUTO_TEST_CASE(write_xml_class)
       {
         const char ref[] =
-          R"(<LocalTimeStamp class='APPLICATION' tag='16' off='92'>20050405090547</LocalTimeStamp>
+          R"(<LocalTimeStamp tag='16' class='APPLICATION' off='92'>20050405090547</LocalTimeStamp>
 )";
         compare_bed_output("tap_3_12_strip.asn1", "tap_3_12_valid.ber",
             "write_xml_class.xml", { "write-xml",

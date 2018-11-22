@@ -110,6 +110,8 @@ Arguments:
 
   write-xml:
 
+    --mmap          Memory-map input file
+    --no-fsync      skip fsync/msync call after the last write
     --indent N      Indentation step size (default: 4)
     -a,--asn FILE   Use ASN.1 grammar for pretty printing (can be specified
                     multiple times)
@@ -483,10 +485,12 @@ namespace bed {
     { Option::PRETTY_PRINT,{ Command::WRITE_XML, Command::PRETTY_WRITE_XML } },
     { Option::PP_FILE   ,  { Command::WRITE_XML, Command::PRETTY_WRITE_XML } },
     { Option::MMAP      ,  { Command::WRITE_IDENTITY, Command::WRITE_INDEFINITE,
-                             Command::WRITE_DEFINITE, Command::WRITE_BER } },
+                             Command::WRITE_DEFINITE, Command::WRITE_BER,
+                             Command::WRITE_XML } },
     { Option::MMAP_OUT  ,  { Command::WRITE_IDENTITY } },
     { Option::NO_FSYNC  ,  { Command::WRITE_IDENTITY, Command::WRITE_INDEFINITE,
-                             Command::WRITE_DEFINITE, Command::WRITE_BER } }
+                             Command::WRITE_DEFINITE, Command::WRITE_BER,
+                             Command::WRITE_XML } }
   };
 
   static void print_help(const std::string &argv0);
@@ -916,6 +920,9 @@ complete -F _)" << name << ' ' << name << '\n';
             mmap_out = false;
         if (fsync && out_filename == "-")
             fsync = false;
+        if ((command == Command::PRETTY_WRITE_XML 
+                    || command == Command::WRITE_XML) && out_filename.empty())
+            out_filename = "-";
     }
 
 

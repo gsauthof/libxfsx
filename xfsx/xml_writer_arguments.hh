@@ -67,6 +67,7 @@ namespace xfsx {
       bool pretty_print {false};
       std::string pp_filename;
     };
+    extern Pretty_Writer_Arguments default_pretty_args;
 
   }
 }
