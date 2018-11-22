@@ -28,10 +28,12 @@
 #include "hex.hh"
 #include "string.hh"
 #include "scratchpad.hh"
+#include "tlc_reader.hh"
 
 #include <xxxml/xxxml.hh>
 
 #include "xml_writer_arguments.hh"
+
 
 using namespace std;
 
@@ -45,16 +47,19 @@ namespace xfsx {
       class Tree_Generator {
         private:
           const Pretty_Writer_Arguments &args_;
-          Skip_EOC_Reader reader_;
           stack<xmlNode*> node_stack_;
           stack<size_t> rank_stack_;
-          TLC *tlc {nullptr};
+          TLC tlc;
           xxxml::doc::Ptr doc_;
           xfsx::BCD_String bcd_;
           scratchpad::Simple_Writer<char> memw_;
 
+            // lengths of all all definite constructed tags
+            stack<size_t> length_stack_;
+            // counts against the same position in the length_stack_
+            // to detect when a tag is 'closed'
+            stack<size_t> written_stack_;
 
-          void pop_until(size_t h);
           void gen_node();
           void gen_rank(xmlNode *node);
           void gen_hex(xmlNode *node);
@@ -64,32 +69,31 @@ namespace xfsx {
           void pop();
         public:
           Tree_Generator(
-              const xfsx::u8 *begin, const xfsx::u8 *end,
               xxxml::doc::Ptr &&doc,
               const Pretty_Writer_Arguments &args
               );
-          xxxml::doc::Ptr generate();
+          xxxml::doc::Ptr generate(scratchpad::Simple_Reader<u8> &r);
       };
 
       Tree_Generator::Tree_Generator(
-          const xfsx::u8 *begin, const xfsx::u8 *end,
           xxxml::doc::Ptr &&doc,
           const Pretty_Writer_Arguments &args)
         :
           args_(args),
-          reader_(begin + args.skip, end),
           doc_(std::move(doc)),
           memw_(unique_ptr<scratchpad::Writer<char>>(
                     new scratchpad::Scratchpad_Writer<char>()))
       {
         rank_stack_.push(0);
+        length_stack_.push(0); // symmetric to catch-all
+        written_stack_.push(0); // catch-all
       }
 
       void Tree_Generator::gen_node()
       {
         assert(!rank_stack_.empty());
         rank_stack_.top() += 1;
-        if (tlc->shape == Shape::PRIMITIVE) {
+        if (tlc.shape == Shape::PRIMITIVE) {
           gen_primitive();
         } else {
           gen_constructed();
@@ -111,7 +115,7 @@ namespace xfsx {
 
       void Tree_Generator::gen_indefinite(xmlNode *node)
       {
-        if (!args_.dump_indefinite || !tlc->is_indefinite)
+        if (!args_.dump_indefinite || !tlc.is_indefinite)
           return;
         xxxml::new_prop(node, "definite", "false");
       }
@@ -123,11 +127,11 @@ namespace xfsx {
         memw_.clear();
         byte::writer::Base w(memw_);
         size_t n = hex::decoded_size<hex::Style::Raw>(
-            tlc->begin + tlc->tl_size, tlc->begin + tlc->tl_size + tlc->length
+            tlc.begin + tlc.tl_size, tlc.begin + tlc.tl_size + tlc.length
             );
         auto o = memw_.begin_write(n);
         auto r = hex::decode<hex::Style::Raw>(
-            tlc->begin + tlc->tl_size, tlc->begin + tlc->tl_size + tlc->length,
+            tlc.begin + tlc.tl_size, tlc.begin + tlc.tl_size + tlc.length,
             o);
         (void)r;
         memw_.commit_write(n);
@@ -142,9 +146,9 @@ namespace xfsx {
       {
         if (node_stack_.empty())
           throw runtime_error("no parent available for primitive tag");
-        auto kt = args_.dereferencer.dereference(tlc->klasse, tlc->tag);
+        auto kt = args_.dereferencer.dereference(tlc.klasse, tlc.tag);
         Type t = args_.typifier.typify(kt);
-        const string &name = args_.translator.translate(tlc->klasse, tlc->tag);
+        const string &name = args_.translator.translate(tlc.klasse, tlc.tag);
 
         xmlNode *node = xxxml::new_doc_node(doc_, name);
         xxxml::add_child(node_stack_.top(), node);
@@ -155,7 +159,7 @@ namespace xfsx {
           case Type::INT_64:
             {
               int64_t v {0};
-              xfsx::decode(tlc->begin + tlc->tl_size, tlc->length, v);
+              xfsx::decode(tlc.begin + tlc.tl_size, tlc.length, v);
               memw_.clear();
               byte::writer::Base w(memw_);
               w << v;
@@ -168,7 +172,7 @@ namespace xfsx {
             break;
           case Type::BCD:
             {
-              xfsx::decode(tlc->begin + tlc->tl_size, tlc->length, bcd_);
+              xfsx::decode(tlc.begin + tlc.tl_size, tlc.length, bcd_);
               xxxml::node_add_content(node,
                   bcd_.get().data(), bcd_.get().size());
             }
@@ -176,15 +180,15 @@ namespace xfsx {
           case Type::STRING:
           case Type::OCTET_STRING:
               xxxml::node_add_content(node,
-                  reinterpret_cast<const char*>(tlc->begin) + tlc->tl_size,
-                  tlc->length);
+                  reinterpret_cast<const char*>(tlc.begin) + tlc.tl_size,
+                  tlc.length);
             break;
         }
       }
 
       void Tree_Generator::gen_constructed()
       {
-        const string &name = args_.translator.translate(tlc->klasse, tlc->tag);
+        const string &name = args_.translator.translate(tlc.klasse, tlc.tag);
         xmlNode *node = nullptr;
         if (node_stack_.empty()) {
           node = xxxml::new_doc_node(doc_, name);
@@ -194,38 +198,51 @@ namespace xfsx {
         }
         gen_rank(node);
         gen_indefinite(node);
-        if (tlc->is_indefinite || tlc->length) {
+        if (tlc.is_indefinite || tlc.length) {
           node_stack_.push(node);
           rank_stack_.push(0);
         }
       }
 
-      xxxml::doc::Ptr Tree_Generator::generate()
+      xxxml::doc::Ptr Tree_Generator::generate(scratchpad::Simple_Reader<u8> &r)
       {
-        size_t i = 0;
-        for (auto &tlc : reader_) {
-          if (args_.count && !(i<args_.count))
-            break;
-          this->tlc = &tlc;
-          pop_until(tlc.height);
-          gen_node();
-          if ((args_.skip || args_.stop_after_first) && !tlc.depth_)
-            break;
-          ++i;
-        }
-        return std::move(doc_);
-      }
-
-      void Tree_Generator::pop_until(size_t h)
-      {
-        while (h < node_stack_.size()) {
-          pop();
-        }
+          size_t i = 0;
+          while (read_next(r, tlc)) {
+              if (args_.count && !(i<args_.count))
+                  break;
+              written_stack_.top() += tlc.tl_size;
+              if (tlc.shape == Shape::PRIMITIVE) {
+                  written_stack_.top() += tlc.length;
+              } else if (!tlc.is_indefinite && tlc.length) {
+                  length_stack_.push(tlc.length);
+                  written_stack_.push(0);
+              }
+              if (tlc.is_eoc()) {
+                  pop();
+              } else {
+                  gen_node();
+              }
+              while (!length_stack_.empty()
+                      && length_stack_.top() == written_stack_.top()) {
+                  pop();
+                  auto t = length_stack_.top();
+                  length_stack_.pop();
+                  written_stack_.pop();
+                  written_stack_.top() += t;
+              }
+              if (args_.stop_after_first && node_stack_.empty())
+                  break;
+              ++i;
+          }
+          return std::move(doc_);
       }
 
       void Tree_Generator::pop()
       {
+          if (node_stack_.empty())
+              throw xfsx::Unexpected_EOC();
         node_stack_.pop();
+        assert(rank_stack_.size() > 1);
         rank_stack_.pop();
       }
 
@@ -238,8 +255,14 @@ namespace xfsx {
         xxxml::dict::Ptr dictionary = xxxml::dict::create();
         doc->dict = dictionary.release();
 
-        Tree_Generator g(begin, end, std::move(doc), args);
-        return g.generate();
+        Tree_Generator g(std::move(doc), args);
+        auto r = scratchpad::mk_simple_reader(begin, end);
+        if (args.skip) {
+            r.next(args.skip);
+            r.check_available(args.skip);
+            r.forget(args.skip);
+        }
+        return g.generate(r);
       }
 
 
