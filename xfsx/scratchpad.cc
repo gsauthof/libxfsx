@@ -474,7 +474,17 @@ namespace xfsx {
                 else
                     return 2;
             }
+            if (!backend_)
+                eof_ = true;
             return p_.first != p_.second;
+        }
+    template <typename Char>
+        bool Simple_Reader<Char>::eof() const
+        {
+            if (backend_)
+                return backend_->eof();
+            else
+                return eof_;
         }
 
     template class Simple_Reader<u8>;

@@ -194,6 +194,7 @@ namespace xfsx {
                 {
                     return p_;
                 }
+                bool eof() const;
 
             private:
                 std::pair<const Char*, const Char*> p_{nullptr, nullptr};
@@ -202,6 +203,10 @@ namespace xfsx {
                 // This decouples the reader from backends like Scratchpad
                 // if it's empty then the begin/end range includes the complete file
                 std::unique_ptr<scratchpad::Reader<Char>> backend_;
+                // we use this for the null backend to get this behaviour:
+                // freshly constructed: -> eof() return false
+                // the first next() unconditionally sets eof_ to false
+                bool eof_ {false};
         };
 
     template <typename Char>
