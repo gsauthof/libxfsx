@@ -11,6 +11,22 @@ using namespace std;
 
 namespace xfsx {
 
+    template<typename T>
+        void write_tag(scratchpad::Simple_Writer<u8> &w, const T &tlc)
+        {
+            size_t k = tlc.tl_size;
+            if (tlc.shape == Shape::PRIMITIVE)
+                k += tlc.length;
+            auto o = w.begin_write(k);
+            tlc.write(o, o+k);
+            w.commit_write(k);
+        }
+    template
+        void write_tag<TLC>(scratchpad::Simple_Writer<u8> &w, const TLC &tlc);
+    template
+        void write_tag<TLV>(scratchpad::Simple_Writer<u8> &w, const TLV &tlc);
+
+
     template <typename T>
         Simple_Writer<T>::Simple_Writer()
         :
@@ -67,6 +83,7 @@ namespace xfsx {
         {
             return global_pos_;
         }
+
 
     template <typename T>
         void Simple_Writer<T>::write(const T &tlc)
