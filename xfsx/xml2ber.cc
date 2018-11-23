@@ -57,8 +57,8 @@ struct Attributes {
 
 class Xml2Ber {
     public:
-        Xml2Ber(std::unique_ptr<scratchpad::Reader<char>> &&in,
-                std::unique_ptr<scratchpad::Writer<u8>> &&out,
+        Xml2Ber(scratchpad::Simple_Reader<char> &in,
+                scratchpad::Simple_Writer<u8> &out,
                 const BER_Writer_Arguments &args
                 );
 
@@ -87,23 +87,24 @@ class Xml2Ber {
         // (thus no std::stack nor down-resize calls)
         // first writer directly writes to a file
         // for each definitive constructed a scratchpad writer is pushed
-        std::deque<xfsx::Simple_Writer<TLV>> writer_stack_;
+        std::deque<scratchpad::Simple_Writer<u8>*> writer_stack_;
+        std::deque<scratchpad::Simple_Writer<u8>> writers_;
         size_t writer_stack_top_{0};
 
-        TLV eoc_{Unit::EOC()};
+        std::array<u8, 2> eoc_{0, 0};
 
         size_t inc_{128*1024};
 };
 
-Xml2Ber::Xml2Ber(std::unique_ptr<scratchpad::Reader<char>> &&in,
-        std::unique_ptr<scratchpad::Writer<u8>> &&out,
+Xml2Ber::Xml2Ber(scratchpad::Simple_Reader<char> &in,
+        scratchpad::Simple_Writer<u8> &out,
         const BER_Writer_Arguments &args
         )
     :
-        r_(std::move(in)),
+        r_(in),
         args_(args)
 {
-    writer_stack_.emplace_back(std::move(out));
+    writer_stack_.push_back(&out);
     ++writer_stack_top_;
 }
 void Xml2Ber::process()
@@ -121,17 +122,20 @@ void Xml2Ber::process()
         throw runtime_error("unexpected tlv stack - unbalanced tags?");
 
 #ifndef NDEBUG
-    writer_stack_[1].flush();
-    auto be = dynamic_cast<scratchpad::Scratchpad_Writer<u8>*>(
-                writer_stack_[1].backend());
-    auto b = be->pad().prelude();
-    auto e = be->pad().begin();
-    assert(e-b == 0);
+    //assert(writer_stack_.size() > 1);
+    if (writer_stack_.size() > 1) {
+        writer_stack_[1]->flush();
+        auto be = dynamic_cast<scratchpad::Scratchpad_Writer<u8>*>(
+                    writer_stack_[1]->backend());
+        auto b = be->pad().prelude();
+        auto e = be->pad().begin();
+        assert(e-b == 0);
+    }
 #endif // NDEBUG
 
     // writer_stack_[0] is already written out in last write_end() call
     // we just need to flush
-    writer_stack_[0].flush();
+    writer_stack_[0]->flush();
 }
 // return: full-initialized
 static bool read_tag(const std::pair<const char*, const char*> &name,
@@ -241,18 +245,19 @@ void Xml2Ber::write_start()
     TLV &tlv = tlv_stack_[tlv_stack_top_-1];
     if (tlv.shape == Shape::CONSTRUCTED) {
         if (tlv.is_indefinite) {
-            writer_stack_[writer_stack_top_-1].write(tlv);
+            write_tag(*writer_stack_[writer_stack_top_-1], tlv);
         } else {
 
-            if (writer_stack_top_ >= writer_stack_.size())
-                writer_stack_.emplace_back(
+            if (writer_stack_top_ >= writer_stack_.size()) {
+                writers_.emplace_back(
                         std::unique_ptr<scratchpad::Writer<u8>>(
                             new scratchpad::Scratchpad_Writer<u8>()
                             )
                         );
-            else {
+                writer_stack_.push_back(&writers_.back());
+            } else {
                 auto b  = dynamic_cast<scratchpad::Scratchpad_Writer<u8>*>(
-                        writer_stack_[writer_stack_top_].backend());
+                        writer_stack_[writer_stack_top_]->backend());
                 (void)b;
                 assert(b->pad().begin() - b->pad().prelude() == 0);
             }
@@ -297,22 +302,22 @@ void Xml2Ber::write_end(bool is_empty)
 
     if (tlv.shape == Shape::CONSTRUCTED) {
         if (tlv.is_indefinite) {
-            writer_stack_[writer_stack_top_-1].write(eoc_);
+            writer_stack_[writer_stack_top_-1]->write(eoc_.begin(), eoc_.end());
         } else {
 
             --writer_stack_top_;
             assert(tlv_stack_top_);
 
-            size_t n = writer_stack_[writer_stack_top_].pos();
+            size_t n = writer_stack_[writer_stack_top_]->pos();
             tlv.init_length(n);
 
             assert(tlv.tl_size);
 
-            writer_stack_[writer_stack_top_-1].write(tlv);
+            write_tag(*writer_stack_[writer_stack_top_-1], tlv);
 
-            writer_stack_[writer_stack_top_].flush();
+            writer_stack_[writer_stack_top_]->flush();
             auto &pad = dynamic_cast<scratchpad::Scratchpad_Writer<u8>*>(
-                    writer_stack_[writer_stack_top_].backend())->pad();
+                    writer_stack_[writer_stack_top_]->backend())->pad();
             auto b = pad.prelude();
             auto e = pad.begin();
             // the top-level writer usually is a buffered file writer,
@@ -322,14 +327,14 @@ void Xml2Ber::write_end(bool is_empty)
             if (writer_stack_top_ == 1) {
                 size_t k = (e-b)/inc_;
                 for (size_t i = 0; i < k; ++i) {
-                    writer_stack_[writer_stack_top_-1].write(b, b+inc_);
+                    writer_stack_[writer_stack_top_-1]->write(b, b+inc_);
                     b += inc_;
                 }
-                writer_stack_[writer_stack_top_-1].write(b, e);
+                writer_stack_[writer_stack_top_-1]->write(b, e);
             } else {
-                writer_stack_[writer_stack_top_-1].write(b, e);
+                writer_stack_[writer_stack_top_-1]->write(b, e);
             }
-            writer_stack_[writer_stack_top_].clear();
+            writer_stack_[writer_stack_top_]->clear();
         }
     } else { // Shape::PRIMITIVE
         if (is_empty)
@@ -338,19 +343,19 @@ void Xml2Ber::write_end(bool is_empty)
             auto v = r_.value();
             add_content(v, tlv, attributes_, args_);
         }
-        writer_stack_[writer_stack_top_-1].write(tlv);
+        write_tag(*writer_stack_[writer_stack_top_-1], tlv);
     }
 
     assert(tlv_stack_top_);
     --tlv_stack_top_;
 }
 
-    void write_ber(std::unique_ptr<scratchpad::Reader<char>> &&in,
-                std::unique_ptr<scratchpad::Writer<u8>> &&out,
+    void write_ber(scratchpad::Simple_Reader<char> &in,
+                scratchpad::Simple_Writer<u8> &out,
                 const BER_Writer_Arguments &args
             )
     {
-        Xml2Ber x2b(std::move(in), std::move(out), args);
+        Xml2Ber x2b(in, out, args);
         x2b.process();
     }
 

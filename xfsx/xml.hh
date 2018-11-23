@@ -31,20 +31,20 @@
 
 namespace xfsx {
     namespace scratchpad {
-        template <typename Char> class Reader;
+        template <typename Char> class Simple_Reader;
     }
   namespace xml {
 
     class Reader {
         public:
-            Reader(std::unique_ptr<scratchpad::Reader<char>> &&src);
+            Reader(scratchpad::Simple_Reader<char> &src);
 
             bool next();
             std::pair<const char*, const char*> tag() const;
             std::pair<const char*, const char*> value() const;
         private:
-            std::unique_ptr<scratchpad::Reader<char>> src_;
-            std::pair<const char *, const char *> p_ {nullptr, nullptr};
+            scratchpad::Simple_Reader<char> &src_;
+            const std::pair<const char *, const char *> &p_;
             size_t inc_ {128 * 1024};
             std::pair<size_t, size_t> k_ {0, 0};
             size_t low_{0};

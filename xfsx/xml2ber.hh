@@ -28,17 +28,16 @@
 
 namespace xfsx {
     namespace scratchpad {
-        template <typename Char> class Reader;
-        template <typename Char> class Writer;
+        template <typename Char> class Simple_Reader;
+        template <typename Char> class Simple_Writer;
     }
     class BER_Writer_Arguments;
 
     namespace xml {
 
 
-        // XXX don't move in/out
-        void write_ber(std::unique_ptr<scratchpad::Reader<char>> &&in,
-                std::unique_ptr<scratchpad::Writer<u8>> &&out,
+        void write_ber(scratchpad::Simple_Reader<char> &in,
+                scratchpad::Simple_Writer<u8> &out,
                 const BER_Writer_Arguments &args
                 );
 

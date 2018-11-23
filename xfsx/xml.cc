@@ -36,9 +36,10 @@ namespace xfsx {
 
         static char empty_s[0];
 
-        Reader::Reader(std::unique_ptr<scratchpad::Reader<char>> &&src)
+        Reader::Reader(scratchpad::Simple_Reader<char> &src)
             :
-                src_(std::move(src))
+                src_(src),
+                p_(src_.window())
         {
         }
         bool Reader::next()
@@ -47,9 +48,10 @@ namespace xfsx {
             for (;;) {
                 x = std::find(p_.first + k_.second, p_.second, '<');
                 if (x == p_.second) {
-                    if (src_->eof())
+                    if (src_.eof())
                         return false;
-                    p_ = src_->read_more(low_, inc_);
+                    src_.forget(low_);
+                    src_.next(inc_);
                     k_.first -= low_;
                     k_.second -= low_;
                     low_ = 0;
@@ -62,9 +64,10 @@ namespace xfsx {
             for (;;) {
                 y = std::find(p_.first + k_.second, p_.second, '>');
                 if (y == p_.second) {
-                    if (src_->eof())
+                    if (src_.eof())
                         throw range_error("file ends within a tag");
-                    p_ = src_->read_more(low_, inc_);
+                    src_.forget(low_);
+                    src_.next(inc_);
                     k_.first -= low_;
                     k_.second -= low_;
                     low_ = 0;
