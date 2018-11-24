@@ -44,7 +44,11 @@ Commands:
                 This operation has constant memory usage.
 
   write-ber     Convert a XML file into BER.
-                This operation has linear memory usage.
+                The memory usage of this operation is linear to the length
+                of the largest constructed definite element. Thus,
+                to save memory, it's recommended to set the attribute
+                definite=false on large array like elements and all
+                their ancestors.
 
   search XPATH  Convert a BER file into an in-memory XML node tree
                 and apply an XPath 1.0 expression to it.
