@@ -27,12 +27,19 @@
 
 namespace xfsx {
 
+    namespace scratchpad {
+        template<typename Char> class Simple_Reader;
+    }
+
   namespace xml {
 
     struct Pretty_Writer_Arguments;
 
     namespace l2 {
 
+      xxxml::doc::Ptr generate_tree(
+              scratchpad::Simple_Reader<u8> &r,
+              const Pretty_Writer_Arguments &args);
       xxxml::doc::Ptr generate_tree(const u8 *begin, const u8 *end,
           const Pretty_Writer_Arguments &args);
     }

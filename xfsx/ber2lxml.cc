@@ -247,8 +247,7 @@ namespace xfsx {
       }
 
       xxxml::doc::Ptr generate_tree(
-          const xfsx::u8 *begin,
-          const xfsx::u8 *end,
+              scratchpad::Simple_Reader<u8> &r,
           const Pretty_Writer_Arguments &args)
       {
         xxxml::doc::Ptr doc = xxxml::new_doc();
@@ -256,13 +255,21 @@ namespace xfsx {
         doc->dict = dictionary.release();
 
         Tree_Generator g(std::move(doc), args);
-        auto r = scratchpad::mk_simple_reader(begin, end);
         if (args.skip) {
             r.next(args.skip);
             r.check_available(args.skip);
             r.forget(args.skip);
         }
         return g.generate(r);
+      }
+
+      xxxml::doc::Ptr generate_tree(
+          const xfsx::u8 *begin,
+          const xfsx::u8 *end,
+          const Pretty_Writer_Arguments &args)
+      {
+        auto r = scratchpad::mk_simple_reader(begin, end);
+        return generate_tree(r, args);
       }
 
 
