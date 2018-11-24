@@ -4,7 +4,6 @@
 
 #include <test/bed/helper.hh>
 
-#include <bed/command.hh>
 #include <bed/command/compute_aci.hh>
 
 BOOST_AUTO_TEST_SUITE(bed_)

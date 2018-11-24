@@ -21,7 +21,6 @@
 #ifndef BED_COMMAND_EDIT_HH
 #define BED_COMMAND_EDIT_HH
 
-#include <bed/command.hh>
 
 namespace bed {
 

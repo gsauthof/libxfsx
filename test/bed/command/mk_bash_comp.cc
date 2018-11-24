@@ -4,7 +4,6 @@
 #include <test/test.hh>
 #include <test/bed/helper.hh>
 
-#include <bed/command.hh>
 #include <ixxx/util.hh>
 
 #include <algorithm>

@@ -177,7 +177,6 @@ endif()
 
 set(BED_SRC
     bed/arguments.cc
-    bed/command.cc
     bed/command/arguments.cc
     bed/command/ber_commands.cc
     bed/command/compute_aci.cc

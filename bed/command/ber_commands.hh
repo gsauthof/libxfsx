@@ -21,7 +21,6 @@
 #ifndef BED_COMMAND_BER_COMMANDS_HH
 #define BED_COMMAND_BER_COMMANDS_HH
 
-#include <bed/command.hh>
 
 #include <bed/command/edit.hh>
 #include <bed/command/compute_aci.hh>

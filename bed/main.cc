@@ -21,8 +21,6 @@
 
 #include "arguments.hh"
 
-#include "command.hh"
-
 #include <xxxml/xxxml.hh>
 
 #include <iostream>
@@ -35,7 +33,8 @@ int main(int argc, char **argv)
   using namespace bed;
   try {
     Arguments args(argc, argv);
-    command::execute(args);
+    auto cmd = args.create_cmd();
+    cmd->execute();
   } catch (const std::exception &e) {
     cerr << "Error: " << e.what() << '\n';
     return 1;

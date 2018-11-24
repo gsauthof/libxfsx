@@ -103,10 +103,10 @@ namespace bed {
       void validate();
       void canonicalize();
       void autodetect_stuff();
-      void create_cmd();
     public:
       Arguments();
       Arguments(unsigned argc, char **argv);
+      std::unique_ptr<command::Base> create_cmd();
 
       std::string argv0;
       std::deque<std::string> positional;
@@ -139,11 +139,10 @@ namespace bed {
       std::string kth_cdr;
 
       std::deque<std::string> xpaths;
-      std::deque<std::unique_ptr<command::edit_op::Base> > edit_ops;
+      std::deque<std::shared_ptr<command::edit_op::Base> > edit_ops;
 
       Command  command   {Command::NONE};
       std::string command_str;
-      std::unique_ptr<command::Base> cmd;
       unsigned verbosity {0};
 
       bool mmap{false};

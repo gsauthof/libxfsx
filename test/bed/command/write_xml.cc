@@ -5,7 +5,6 @@
 
 #include <test/bed/helper.hh>
 
-#include <bed/command.hh>
 #include <bed/arguments.hh>
 
 #include <xfsx/xfsx.hh>
@@ -90,7 +89,8 @@ BOOST_AUTO_TEST_SUITE(bed_)
           argv.push_back(&*s.begin());
         argv.push_back(nullptr);
         bed::Arguments args(argvv.size(), argv.data());
-        bed::command::execute(args);
+        auto cmd = args.create_cmd();
+        cmd->execute();
         {
           BOOST_TEST_CHECKPOINT("Checking output: " << out);
           auto f = ixxx::util::mmap_file(out.generic_string());
@@ -129,7 +129,8 @@ BOOST_AUTO_TEST_SUITE(bed_)
           argv.push_back(&*s.begin());
         argv.push_back(nullptr);
         bed::Arguments args(argvv.size(), argv.data());
-        BOOST_CHECK_THROW(bed::command::execute(args), xfsx::Unexpected_EOC);
+        auto cmd = args.create_cmd();
+        BOOST_CHECK_THROW(cmd->execute(), xfsx::Unexpected_EOC);
       }
 
 

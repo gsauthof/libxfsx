@@ -21,7 +21,6 @@
 #ifndef BED_COMMAND_COMPUTE_ACI_HH
 #define BED_COMMAND_COMPUTE_ACI_HH
 
-#include <bed/command.hh>
 
 namespace bed {
 

@@ -5,7 +5,6 @@
 #include <algorithm>
 
 #include <ixxx/util.hh>
-#include <bed/command.hh>
 #include <bed/command/ber_commands.hh>
 #include <bed/arguments.hh>
 
@@ -22,7 +21,8 @@ namespace bf = boost::filesystem;
         argv.push_back(const_cast<char*>(s.c_str()));
       argv.push_back(nullptr);
       bed::Arguments parsed_args(argvv.size(), argv.data());
-      bed::command::execute(parsed_args);
+      auto cmd = parsed_args.create_cmd();
+      cmd->execute();
     }
 
     void compare_bed_output(

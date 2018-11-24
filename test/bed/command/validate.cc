@@ -6,7 +6,6 @@
 
 #include <test/bed/helper.hh>
 
-#include <bed/command.hh>
 #include <bed/arguments.hh>
 #include <bed/command/ber_commands.hh>
 

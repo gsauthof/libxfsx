@@ -959,10 +959,10 @@ complete -F _)" << name << ' ' << name << '\n';
     } catch (const range_error &e ) {
     }
   }
-  void Arguments::create_cmd()
+  unique_ptr<command::Base> Arguments::create_cmd()
   {
     auto n = static_cast<unsigned>(command)-1;
-    cmd = New_Nth<command::Base,
+    return New_Nth<command::Base,
                   command::Write_Identity,
                   command::Write_Definite,
                   command::Write_Indefinite,

@@ -4,7 +4,6 @@
 
 #include <test/bed/helper.hh>
 
-#include <bed/command.hh>
 #include <bed/command/write_aci.hh>
 #include <bed/arguments.hh>
 
@@ -68,7 +67,8 @@ BOOST_AUTO_TEST_SUITE(bed_)
             argv.push_back(&*s.begin());
           argv.push_back(nullptr);
           bed::Arguments parsed_args(argvv.size(), argv.data());
-          bed::command::execute(parsed_args);
+          auto cmd = parsed_args.create_cmd();
+          cmd->execute();
         }
         compare_bed_output("tap_3_12_strip.asn1",
             out, "aci_removed_fixed.ber",
