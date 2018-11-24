@@ -38,6 +38,8 @@
 #include <xfsx_config.hh>
 #include <xfsx/character.hh>
 
+#include <xfsx/scratchpad.hh>
+
 using namespace std;
 
 namespace xfsx {
@@ -58,6 +60,16 @@ namespace xfsx {
       const char MINOR[]              = "minor";
     }
 
+    xxxml::doc::Ptr read_ber_header(
+            const u8 *begin, const u8 *end,
+        size_t count,
+        const std::deque<std::string> &asn_filenames)
+    {
+      xfsx::xml::Pretty_Writer_Arguments args(asn_filenames);
+      args.count = count;
+      xxxml::doc::Ptr doc = xfsx::xml::l2::generate_tree(begin, end, args);
+      return doc;
+    }
 
     xxxml::doc::Ptr read_ber_header(
         const std::string &filename,
@@ -65,10 +77,17 @@ namespace xfsx {
         const std::deque<std::string> &asn_filenames)
     {
       auto in = ixxx::util::mmap_file(filename);
-      xfsx::xml::Pretty_Writer_Arguments args(asn_filenames);
-      args.count = count;
-      xxxml::doc::Ptr doc = xfsx::xml::l2::generate_tree(in.begin(), in.end(),
-          args);
+      return read_ber_header(in.begin(), in.end(), count, asn_filenames);
+    }
+
+
+    xxxml::doc::Ptr read_xml_header(
+            const char *begin, const char *end,
+        size_t count,
+        const std::deque<std::string> &asn_filenames)
+    {
+        (void)asn_filenames;
+      xxxml::doc::Ptr doc = xfsx::xml::l2::generate_tree(begin, end, count);
       return doc;
     }
 
@@ -78,10 +97,7 @@ namespace xfsx {
         const std::deque<std::string> &asn_filenames)
     {
       auto in = ixxx::util::mmap_file(filename);
-      xfsx::xml::Pretty_Writer_Arguments args(asn_filenames);
-      xxxml::doc::Ptr doc =
-        xfsx::xml::l2::generate_tree(in.s_begin(), in.s_end(), count);
-      return doc;
+      return read_xml_header(in.s_begin(), in.s_end(), count, asn_filenames);
     }
 
     static std::deque<std::string> get_list(
@@ -158,7 +174,7 @@ namespace xfsx {
             KEY::INITIAL_GRAMMARS));
       initial_grammars = map_which(initial_grammars);
       try {
-        xxxml::doc::Ptr doc = read_fn_(filename_, 18, initial_grammars);
+        xxxml::doc::Ptr doc = read_fn_(18, initial_grammars);
         read_variables(doc, definition.get_child(KEY::VARIABLES));
       } catch (const runtime_error &e) {
         return;
@@ -292,12 +308,43 @@ namespace xfsx {
     }
 
     Result detect_ber(
+            const u8 *begin, const u8 *end,
         const std::string &filename,
         const std::string &config_filename,
         const std::deque<std::string> &asn_search_path
         )
     {
-      return detect(filename, config_filename, read_ber_header,
+        return detect(filename, config_filename, [begin, end](
+                    size_t count,
+                    const std::deque<std::string> &asn_filenames) {
+                return read_ber_header(begin, end, count, asn_filenames); },
+                asn_search_path);
+    }
+
+    Result detect_ber(
+        const std::string &filename,
+        const std::string &config_filename,
+        const std::deque<std::string> &asn_search_path
+        )
+    {
+        auto r = scratchpad::mk_simple_reader<u8>(filename);
+        r.next(256);
+        const u8 *begin = r.window().first;
+        const u8 *end = r.window().second;
+        return detect_ber(begin, end, filename, config_filename, asn_search_path);
+    }
+
+    Result detect_xml(
+            const char *begin, const char *end,
+        const std::string &filename,
+        const std::string &config_filename,
+        const std::deque<std::string> &asn_search_path
+        )
+    {
+      return detect(filename, config_filename, [begin, end](
+                    size_t count,
+                    const std::deque<std::string> &asn_filenames) {
+                return read_xml_header(begin, end, count, asn_filenames); },
           asn_search_path);
     }
 
@@ -307,8 +354,11 @@ namespace xfsx {
         const std::deque<std::string> &asn_search_path
         )
     {
-      return detect(filename, config_filename, read_xml_header,
-          asn_search_path);
+        auto r = scratchpad::mk_simple_reader<char>(filename);
+        r.next(256);
+        const char *begin = r.window().first;
+        const char *end = r.window().second;
+        return detect_xml(begin, end, filename, config_filename, asn_search_path);
     }
 
   }

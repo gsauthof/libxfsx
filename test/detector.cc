@@ -23,7 +23,6 @@
 #include <boost/filesystem.hpp>
 #include <test/test.hh>
 
-#include <bed/command.hh>
 #include <bed/command/ber_commands.hh>
 #include <bed/arguments.hh>
 
@@ -94,7 +93,7 @@ BOOST_AUTO_TEST_SUITE(xfsx_)
 
       Result r(detect(input.generic_string(),
             config.generic_string(),
-            read_ber_header,
+            [&input](size_t count, const deque<string> &asn_filenames){ return read_ber_header(input.generic_string(), count, asn_filenames); },
             asn_search_path));
       BOOST_CHECK_EQUAL(r.major, 3u);
       BOOST_CHECK_EQUAL(r.minor, 10u);
@@ -175,11 +174,12 @@ BOOST_AUTO_TEST_SUITE(xfsx_)
         argv.push_back(&*s.begin());
       argv.push_back(nullptr);
       bed::Arguments args(argvv.size(), argv.data());
-      bed::command::execute(args);
+      auto cmd = args.create_cmd();
+      cmd->execute();
 
       BOOST_CHECK_THROW(detect(out.generic_string(),
             config.generic_string(),
-            read_ber_header,
+            [&out](size_t count, const deque<string> &asn_filenames){ return read_ber_header(out.generic_string(), count, asn_filenames); },
             asn_search_path), std::range_error);
     }
 
@@ -219,7 +219,7 @@ BOOST_AUTO_TEST_SUITE(xfsx_)
       {
         Result r(detect(input.generic_string(),
               config.generic_string(),
-              read_xml_header,
+              [input](size_t count, const deque<string> &asn_filenames){ return read_xml_header(input.generic_string(), count, asn_filenames); },
               asn_search_path));
         BOOST_CHECK_EQUAL(r.major, 3u);
         BOOST_CHECK_EQUAL(r.minor, 12u);

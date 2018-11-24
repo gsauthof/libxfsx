@@ -21,6 +21,8 @@
 #ifndef XFSX_DETECTOR_HH
 #define XFSX_DETECTOR_HH
 
+#include "octet.hh"
+
 #include <xxxml/xxxml.hh>
 #include <grammar/grammar.hh>
 
@@ -33,11 +35,20 @@ namespace xfsx {
   namespace detector {
 
 
+      // XXX move low-level API into .cc file
+    xxxml::doc::Ptr read_xml_header(
+            const char *begin, const char *end,
+        size_t count,
+        const std::deque<std::string> &asn_filenames);
     xxxml::doc::Ptr read_xml_header(
         const std::string &filename,
         size_t count,
         const std::deque<std::string> &asn_filenames);
 
+    xxxml::doc::Ptr read_ber_header(
+            const u8 *begin, const u8 *end,
+        size_t count,
+        const std::deque<std::string> &asn_filenames);
     xxxml::doc::Ptr read_ber_header(
         const std::string &filename,
         size_t count,
@@ -53,7 +64,7 @@ namespace xfsx {
       size_t minor{0};
     };
 
-    using Read_Function = std::function<xxxml::doc::Ptr(const std::string &,
+    using Read_Function = std::function<xxxml::doc::Ptr(
         size_t, const std::deque<std::string>&)>;
 
     Result detect(
@@ -64,11 +75,23 @@ namespace xfsx {
         );
 
     Result detect_ber(
+            const u8 *begin, const u8 *end,
+        const std::string &filename,
+        const std::string &config_filename,
+        const std::deque<std::string> &asn_search_path
+        );
+    Result detect_ber(
         const std::string &filename,
         const std::string &config_filename,
         const std::deque<std::string> &asn_search_path
         );
 
+    Result detect_xml(
+            const char *begin, const char *end,
+        const std::string &filename,
+        const std::string &config_filename,
+        const std::deque<std::string> &asn_search_path
+        );
     Result detect_xml(
         const std::string &filename,
         const std::string &config_filename,
