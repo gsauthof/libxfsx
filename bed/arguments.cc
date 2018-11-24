@@ -929,8 +929,19 @@ complete -F _)" << name << ' ' << name << '\n';
   void Arguments::autodetect_stuff()
   {
       // XXX support auto-detection with stdin
-    if (!(autodetect && asn_filenames.empty() && in_filename != "-"))
+    if (!(autodetect && asn_filenames.empty()))
       return;
+
+    if (in_filename == "-") {
+        // autodetect later, cf. bed/command/ber_commands.cc
+        if (command == Command::WRITE_XML) {
+            command = Command::PRETTY_WRITE_XML;
+            asn_filenames.push_back("-");
+        } else if (command == Command::WRITE_BER) {
+            asn_filenames.push_back("-");
+        }
+        return;
+    }
 
     try {
       if (    command == Command::WRITE_XML

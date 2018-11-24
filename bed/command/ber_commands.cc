@@ -42,6 +42,7 @@
 #include <xfsx/xfsx.hh>
 #include <xfsx/scratchpad.hh>
 #include <xfsx/byte.hh>
+#include <xfsx/detector.hh>
 
 #include <ixxx/util.hh>
 #include <ixxx/ixxx.hh>
@@ -79,27 +80,6 @@ namespace bed {
           return r;
       }
 
-      static std::unique_ptr<xfsx::scratchpad::Reader<char>> mk_char_reader(
-              const bed::Arguments &args)
-      {
-          using namespace xfsx;
-          unique_ptr<scratchpad::Reader<char>> r;
-          auto &args_ = args;
-          if (args_.mmap) {
-              // bed::Arguments::canonicalize() protects us from this
-              assert(args_.in_filename != "-");
-              r = unique_ptr<scratchpad::Reader<char>>(
-                      new scratchpad::Mapped_Reader<char>(args_.in_filename));
-          } else {
-              if (args_.in_filename == "-")
-                  r = unique_ptr<scratchpad::Reader<char>>(
-                          new scratchpad::File_Reader<char>(ixxx::util::FD(0)));
-              else
-                  r = unique_ptr<scratchpad::Reader<char>>(
-                          new scratchpad::File_Reader<char>(args_.in_filename));
-          }
-          return r;
-      }
 
       template <typename Char>
       xfsx::scratchpad::Simple_Reader<Char> mk_simple_reader(const bed::Arguments &args)
@@ -145,37 +125,6 @@ namespace bed {
           return w;
       }
 
-      static std::unique_ptr<xfsx::scratchpad::Writer<xfsx::u8>> mk_u8_writer(
-              const bed::Arguments &args)
-      {
-          using namespace xfsx;
-          unique_ptr<scratchpad::Writer<u8>> w;
-          auto &args_ = args;
-          if (args_.mmap_out) {
-              assert(args_.out_filename != "-");
-              assert(args_.fsync == false);
-              size_t n = 0;
-              if (!n) {
-                  struct stat st;
-                  ixxx::posix::stat(args_.in_filename, &st);
-                  n = st.st_size;
-              }
-              w = std::unique_ptr<scratchpad::Writer<u8>>(
-                      new scratchpad::Mapped_Writer<u8>(args_.out_filename, n)
-                      );
-          } else {
-              if (args_.out_filename == "-")
-                  w = std::unique_ptr<scratchpad::Writer<u8>>(
-                          new scratchpad::File_Writer<u8>(ixxx::util::FD(1))
-                          );
-              else
-                  w = unique_ptr<scratchpad::Writer<u8>>(
-                          new scratchpad::File_Writer<u8>(args_.out_filename));
-          }
-          if (args_.fsync)
-              w->set_sync(true);
-          return w;
-      }
 
       template<typename Char>
       xfsx::scratchpad::Simple_Writer<Char> mk_simple_writer(const bed::Arguments &args)
@@ -245,11 +194,24 @@ namespace bed {
 
     void Pretty_Write_XML::execute()
     {
-      xfsx::xml::Pretty_Writer_Arguments args(args_.asn_filenames);
-      apply_arguments(args_, args);
+        auto r = mk_simple_reader<xfsx::u8>(args_);
+        auto as = args_;
 
-      auto r = mk_simple_reader<xfsx::u8>(args_);
-      auto w = mk_simple_writer<char>(args_);
+        if (as.asn_filenames.size() == 1 && as.asn_filenames[0] == "-") {
+            r.next(256);
+            string filename("(stdin)");
+            auto dt = xfsx::detector::detect_ber(r.window().first,
+                    r.window().second, filename, as.asn_config_filename,
+                    as.asn_search_path);
+            as.asn_filenames = dt.asn_filenames;
+            if (as.pp_filename.empty())
+                as.pp_filename = dt.pp_filename;
+        }
+
+      xfsx::xml::Pretty_Writer_Arguments args(as.asn_filenames);
+      apply_arguments(as, args);
+
+      auto w = mk_simple_writer<char>(as);
       xfsx::xml::pretty_write(r, w, args);
       w.flush();
     }
@@ -400,13 +362,24 @@ namespace bed {
 
     void Write_BER::execute()
     {
+      auto r = mk_simple_reader<char>(args_);
       xfsx::BER_Writer_Arguments args;
-      xfsx::tap::apply_grammar(args_.asn_filenames, args);
+      deque<string> asn_filenames(args_.asn_filenames);
+      if (asn_filenames.size() == 1 && asn_filenames[0] == "-") {
+            r.next(2048);
+            string filename("(stdin)");
+            auto dt = xfsx::detector::detect_xml(r.window().first,
+                    r.window().second, filename, args_.asn_config_filename,
+                    args_.asn_search_path);
+            asn_filenames = dt.asn_filenames;
+      }
+      xfsx::tap::apply_grammar(asn_filenames, args);
 
       // XXX support mmap output -> the output file needs to be truncated then
       // note that for windows, the output must be unmapped before the final
       // truncate
-      xfsx::xml::write_ber(mk_char_reader(args_), mk_u8_writer(args_), args);
+      auto w = mk_simple_writer<xfsx::u8>(args_);
+      xfsx::xml::write_ber(r, w, args);
     }
 
 
