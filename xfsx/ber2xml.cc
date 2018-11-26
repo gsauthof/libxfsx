@@ -206,6 +206,7 @@ class Tag_Matcher {
         void set_path_str(const std::string &s) { path_str_ = s; }
         bool empty() const { return path_.empty(); }
         void set_start_anywhere(bool b) { start_anywhere_ = b; }
+        bool skippable() const { return !matches() && match_pos_ != pos_; }
     private:
         std::string path_str_;
         std::vector<std::pair<Tag_Int, Klasse>> path_;
@@ -566,42 +567,53 @@ void Ber2Xml::process(scratchpad::Simple_Reader<u8> &r)
         }
         ++i;
         written_stack_.top() += u.tl_size;
-        const string *tag_str = args_.translator.empty() ?
-            nullptr : args_.translator.find(u.klasse, u.tag);
-        if (u.shape == Shape::PRIMITIVE) {
+        bool eoc = u.is_eoc();
+        if (!eoc)
+            push_matcher(u);
+        if (!eoc && !args_.search_everywhere && !u.is_indefinite
+                && !searcher_.empty() && searcher_.skippable()) {
+            r.next(u.length);
+            r.forget(u.length);
             written_stack_.top() += u.length;
-            if (u.is_eoc()) {
-                try {
-                    pop_constructed(true);
-                    if (args_.stop_after_first && !cons_stack_top_)
-                        return;
-                } catch (const Unexpected_EOC &) {
-                    if (args_.skip_zero) {
-                        auto p = find_if(r.window().first, r.window().second,
-                                [](uint8_t c){return !!c;});
-                        r.forget(p - r.window().first);
-                    } else {
-                        throw;
+            pop_matcher();
+        } else {
+            const string *tag_str = args_.translator.empty() ?
+                nullptr : args_.translator.find(u.klasse, u.tag);
+            if (u.shape == Shape::PRIMITIVE) {
+                written_stack_.top() += u.length;
+                if (eoc) {
+                    try {
+                        pop_constructed(true);
+                        if (args_.stop_after_first && !cons_stack_top_)
+                            return;
+                    } catch (const Unexpected_EOC &) {
+                        if (args_.skip_zero) {
+                            auto p = find_if(r.window().first, r.window().second,
+                                    [](uint8_t c){return !!c;});
+                            r.forget(p - r.window().first);
+                        } else {
+                            throw;
+                        }
                     }
                 }
+                else {
+                    print_primitive(u, tag_str);
+                }
+            } else { // constructed
+                print_constructed(u, tag_str);
+                if (!u.is_indefinite) {
+                    length_stack_.push(u.length);
+                    written_stack_.push(0);
+                }
+                if (cons_stack_top_ >= cons_stack_.size()) {
+                    cons_stack_.push_back(u);
+                    cons_str_stack_.push_back(tag_str);
+                } else {
+                    cons_stack_[cons_stack_top_] = u;
+                    cons_str_stack_[cons_stack_top_] = tag_str;
+                }
+                ++cons_stack_top_;
             }
-            else {
-                print_primitive(u, tag_str);
-            }
-        } else { // constructed
-            print_constructed(u, tag_str);
-            if (!u.is_indefinite) {
-                length_stack_.push(u.length);
-                written_stack_.push(0);
-            }
-            if (cons_stack_top_ >= cons_stack_.size()) {
-                cons_stack_.push_back(u);
-                cons_str_stack_.push_back(tag_str);
-            } else {
-                cons_stack_[cons_stack_top_] = u;
-                cons_str_stack_[cons_stack_top_] = tag_str;
-            }
-            ++cons_stack_top_;
         }
         while (!length_stack_.empty()
                 && length_stack_.top() == written_stack_.top()) {
@@ -684,7 +696,6 @@ bool Ber2Xml::searcher_matches()
 }
 void Ber2Xml::print_constructed(const TLC &tlc, const string *tag_str)
 {
-    push_matcher(tlc);
     if (searcher_matches()) {
 
     //indent(cons_stack_top_);
@@ -778,7 +789,6 @@ void Ber2Xml::pretty_print(const TLC &tlc, Type type)
 }
 void Ber2Xml::print_primitive(const TLC &tlc, const string *tag_str)
 {
-    push_matcher(tlc);
     if (searcher_matches()) {
 
     //indent(cons_stack_top_);
