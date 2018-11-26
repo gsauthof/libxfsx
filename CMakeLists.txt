@@ -132,7 +132,6 @@ set(LIB_SRC
   xfsx/ber2ber.cc
   xfsx/xml2ber.cc
   xfsx/value.cc
-  xfsx/comment.cc
   xfsx/xml.cc
   xfsx/byte.cc
   xfsx/ber_node.cc
@@ -195,7 +194,6 @@ IF(CMAKE_PROJECT_NAME STREQUAL "xfsx")
     test/integer.cc
     test/hex.cc
     test/test.cc
-    test/comment.cc
     test/xml.cc
     test/byte.cc
     test/bed/command.cc

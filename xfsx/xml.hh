@@ -25,16 +25,20 @@
 #include <string>
 #include <memory>
 
-#include "comment.hh"
-
-//#include <boost/algorithm/string/find_iterator.hpp>
-
 namespace xfsx {
     namespace scratchpad {
         template <typename Char> class Simple_Reader;
     }
   namespace xml {
 
+    // Limitatons:
+    // does not allow '>' in attribute values
+    // where the XML spec does allow it.
+    // The XML spec forbids '<', though:
+    //
+    // http://www.w3.org/TR/REC-xml/#NT-AttValue
+    //
+    // Comments must not be placed between primitve open/close tags
     class Reader {
         public:
             Reader(scratchpad::Simple_Reader<char> &src);
@@ -48,59 +52,6 @@ namespace xfsx {
             size_t inc_ {128 * 1024};
             std::pair<size_t, size_t> k_ {0, 0};
             size_t low_{0};
-    };
-
-
-    // Limitaton: does not allow '>' in attribute values
-    // where the XML spec does allow it.
-    // The XML spec forbids '<', though:
-    //
-    // http://www.w3.org/TR/REC-xml/#NT-AttValue
-    //
-    // XXX deprecated  - replace with Reader
-    class Element_Finder {
-      private:
-        const std::pair<const char *, const char*> p_;
-
-      public:
-        Element_Finder(const char *begin, const char *end);
-
-        class iterator {
-          private:
-            std::pair<const char*, const char*> p_;
-            const char *end_;
-          public:
-            iterator();
-            iterator(const char *begin, const char *end);
-            const std::pair<const char*, const char*> &operator*() const;
-            iterator &operator++();
-            bool operator==(const iterator &other) const;
-            bool operator!=(const iterator &other) const;
-        };
-
-        iterator begin();
-        iterator end();
-
-
-    };
-
-    // Limitation:
-    // Comments must not be placed between primitve open/close tags
-    // XXX deprecated  - replace with Reader
-    class Element_Traverser {
-      private:
-        std::pair<
-          comment::XML_Splicer::iterator,
-          comment::XML_Splicer::iterator
-            > regions_;
-        std::pair<
-              Element_Finder::iterator,
-              Element_Finder::iterator> elements_;
-      public:
-        Element_Traverser(const char *begin, const char *end);
-        bool has_more() const;
-        Element_Traverser &operator++();
-        const std::pair<const char*, const char*> &operator*() const;
     };
 
     class Attribute_Traverser {
@@ -132,11 +83,6 @@ namespace xfsx {
 
     std::pair<const char*, const char*> attribute_value(const char *begin,
         const char *end);
-
-    std::pair<const char*, const char*> content(
-        const std::pair<const char*, const char*> &l,
-        const std::pair<const char*, const char*> &r);
-
 
     
 

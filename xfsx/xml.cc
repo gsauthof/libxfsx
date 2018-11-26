@@ -95,109 +95,6 @@ namespace xfsx {
         }
 
 
-
-
-    Element_Finder::Element_Finder(const char *begin, const char *end)
-      :
-        p_(begin, end)
-    {
-    }
-    Element_Finder::iterator Element_Finder::begin()
-    {
-      return iterator(p_.first, p_.second);
-    }
-    Element_Finder::iterator Element_Finder::end()
-    {
-      return iterator(p_.second, p_.second);
-    }
-    Element_Finder::iterator::iterator()
-      :
-        p_(nullptr, nullptr),
-        end_(nullptr)
-    {
-    }
-    Element_Finder::iterator::iterator(const char *begin, const char *end)
-      :
-        p_(begin, begin),
-        end_(end)
-    {
-      operator++();
-    }
-    const std::pair<const char*, const char*> &
-      Element_Finder::iterator::operator*() const
-    {
-      return p_;
-    }
-    Element_Finder::iterator &Element_Finder::iterator::operator++()
-    {
-      p_.first = find(p_.second, end_, '<');
-      if (p_.first < end_) {
-        ++p_.first;
-        p_.second = find(p_.first, end_, '>');
-        if (p_.second == end_)
-          p_.first = end_;
-      } else
-        p_.second = end_;
-      return *this;
-    }
-    bool Element_Finder::iterator::operator==(const iterator &other) const
-    {
-      return p_.second == other.p_.second;
-    }
-    bool Element_Finder::iterator::operator!=(const iterator &other) const
-    {
-      return !(*this == other);
-    }
-
-
-    Element_Traverser::Element_Traverser(const char *begin, const char *end)
-    {
-      comment::XML_Splicer x(begin, end);
-      regions_ = make_pair(x.begin(), x.end());
-      // save to call even when regions_.first == x.end()
-      Element_Finder r((*regions_.first).first, (*regions_.first).second);
-      elements_ = make_pair(r.begin(), r.end());
-      if (elements_.first == elements_.second)
-        operator++();
-    }
-    bool Element_Traverser::has_more() const
-    {
-      return !(elements_.first == elements_.second
-          && regions_.first == regions_.second);
-    }
-    Element_Traverser &Element_Traverser::operator++()
-    {
-      for (;;) {
-        if (regions_.first == regions_.second) {
-          if (elements_.first != elements_.second)
-            ++elements_.first;
-          break;
-        } else {
-          if (elements_.first == elements_.second) {
-            ++regions_.first;
-            if (regions_.first != regions_.second) {
-              Element_Finder
-                f((*regions_.first).first, (*regions_.first).second);
-              elements_ = make_pair(f.begin(), f.end());
-              if (elements_.first != elements_.second)
-                break;
-            }
-          }  else {
-            ++elements_.first;
-            if (elements_.first != elements_.second)
-              break;
-          }
-        }
-      }
-      return *this;
-    }
-    const std::pair<const char*, const char*> &Element_Traverser::operator*()
-      const
-    {
-      return *elements_.first;
-    }
-
-
     Attribute_Traverser::Attribute_Traverser(
         const std::pair<const char*, const char*>
         &element, const std::pair<const char*, const char*> &element_name)
@@ -310,14 +207,6 @@ namespace xfsx {
       }
       return make_pair(x, y);
     }
-
-    std::pair<const char*, const char*> content(
-        const std::pair<const char*, const char*> &l,
-        const std::pair<const char*, const char*> &r)
-    {
-      return make_pair(l.second + 1, r.first -1);
-    }
-
 
 
   }

@@ -24,6 +24,7 @@
 
 #include <xfsx/xml.hh>
 #include <xfsx/s_pair.hh>
+#include <xfsx/scratchpad.hh>
 
 #include <string>
 
@@ -36,161 +37,138 @@ BOOST_AUTO_TEST_SUITE(xfsx_)
     using namespace xfsx;
     using namespace xfsx::xml;
 
-
     BOOST_AUTO_TEST_CASE(none)
     {
       const char inp[] = "Hello World";
-      Element_Finder f(inp, inp+sizeof(inp)-1);
-      auto i = f.begin();
-      BOOST_REQUIRE(i == f.end());
+
+      auto r = scratchpad::mk_simple_reader(inp, inp+sizeof inp - 1);
+      xml::Reader x(r);
+      BOOST_REQUIRE(x.next() == false);
     }
 
     BOOST_AUTO_TEST_CASE(one)
     {
       const char inp[] = "Hello <foo>World";
-      Element_Finder f(inp, inp+sizeof(inp)-1);
-      auto i = f.begin();
-      BOOST_REQUIRE(i != f.end());
-      auto &p = *i;
-      BOOST_CHECK_EQUAL(string(p.first, p.second), "foo");
-      ++i;
-      BOOST_REQUIRE(i == f.end());
+      auto r = scratchpad::mk_simple_reader(inp, inp+sizeof inp - 1);
+      xml::Reader x(r);
+
+      BOOST_REQUIRE(x.next() == true);
+      BOOST_CHECK_EQUAL(string(x.tag().first, x.tag().second), "foo");
+      BOOST_REQUIRE(x.next() == false);
     }
 
     BOOST_AUTO_TEST_CASE(more)
     {
       const char inp[] = "<foo>Hello </foo><baz/>World<bar></bar>";
-      Element_Finder f(inp, inp+sizeof(inp)-1);
-      auto i = f.begin();
-      BOOST_REQUIRE(i != f.end());
-      auto &p = *i;
-      BOOST_CHECK_EQUAL(string(p.first, p.second), "foo");
-      ++i;
-      BOOST_REQUIRE(i != f.end());
-      BOOST_CHECK_EQUAL(string((*i).first, (*i).second), "/foo");
-      ++i;
-      BOOST_REQUIRE(i != f.end());
-      BOOST_CHECK_EQUAL(string((*i).first, (*i).second), "baz/");
-      ++i;
-      BOOST_REQUIRE(i != f.end());
-      BOOST_CHECK_EQUAL(string((*i).first, (*i).second), "bar");
-      ++i;
-      BOOST_REQUIRE(i != f.end());
-      BOOST_CHECK_EQUAL(string((*i).first, (*i).second), "/bar");
-      ++i;
-      BOOST_REQUIRE(i == f.end());
+      auto r = scratchpad::mk_simple_reader(inp, inp+sizeof inp - 1);
+      xml::Reader x(r);
+
+      BOOST_REQUIRE(x.next() == true);
+      BOOST_CHECK_EQUAL(string(x.tag().first, x.tag().second), "foo");
+      BOOST_REQUIRE(x.next() == true);
+      BOOST_CHECK_EQUAL(string(x.tag().first, x.tag().second), "/foo");
+      BOOST_REQUIRE(x.next() == true);
+      BOOST_CHECK_EQUAL(string(x.tag().first, x.tag().second), "baz/");
+      BOOST_REQUIRE(x.next() == true);
+      BOOST_CHECK_EQUAL(string(x.tag().first, x.tag().second), "bar");
+      BOOST_REQUIRE(x.next() == true);
+      BOOST_CHECK_EQUAL(string(x.tag().first, x.tag().second), "/bar");
+      BOOST_REQUIRE(x.next() == false);
     }
 
     BOOST_AUTO_TEST_CASE(content)
     {
       const char inp[] = "<records><record><a>hello</a><b>world</b></record></records>";
-      Element_Finder f(inp, inp+sizeof(inp)-1);
-      auto i = f.begin();
-      BOOST_REQUIRE(i != f.end());
-      BOOST_CHECK_EQUAL(s_pair::mk_string(element_name(*i)), "records");
-      BOOST_CHECK_EQUAL(is_start_end_tag(*i), false);
-      ++i;
-      BOOST_REQUIRE(i != f.end());
-      BOOST_CHECK_EQUAL(s_pair::mk_string(element_name(*i)), "record");
-      BOOST_CHECK_EQUAL(is_start_end_tag(*i), false);
-      ++i;
-      BOOST_REQUIRE(i != f.end());
-      BOOST_CHECK_EQUAL(s_pair::mk_string(element_name(*i)), "a");
-      BOOST_CHECK_EQUAL(is_start_end_tag(*i), false);
-      auto p = *i;
-      ++i;
-      BOOST_REQUIRE(i != f.end());
-      BOOST_CHECK_EQUAL(s_pair::mk_string(element_name(*i)), "a");
-      BOOST_CHECK_EQUAL(is_end_tag(*i), true);
-      auto q = *i;
-      BOOST_CHECK_EQUAL(string(p.second+1, q.first-1), "hello");
+      auto r = scratchpad::mk_simple_reader(inp, inp+sizeof inp - 1);
+      xml::Reader x(r);
+      BOOST_REQUIRE(x.next() == true);
+      BOOST_CHECK_EQUAL(s_pair::mk_string(element_name(x.tag())), "records");
+      BOOST_CHECK_EQUAL(is_start_end_tag(x.tag()), false);
+      BOOST_REQUIRE(x.next() == true);
+      BOOST_CHECK_EQUAL(s_pair::mk_string(element_name(x.tag())), "record");
+      BOOST_CHECK_EQUAL(is_start_end_tag(x.tag()), false);
+      BOOST_REQUIRE(x.next() == true);
+      BOOST_CHECK_EQUAL(s_pair::mk_string(element_name(x.tag())), "a");
+      BOOST_CHECK_EQUAL(is_start_end_tag(x.tag()), false);
+      BOOST_REQUIRE(x.next() == true);
+      BOOST_CHECK_EQUAL(s_pair::mk_string(element_name(x.tag())), "a");
+      BOOST_CHECK_EQUAL(is_end_tag(x.tag()), true);
+      BOOST_CHECK_EQUAL(s_pair::mk_string(x.value()), "hello");
     }
 
     BOOST_AUTO_TEST_CASE(traverser)
     {
       const char inp[] = "<records><record><a>hello</a><b>world</b></record></records>";
-      Element_Traverser t(inp, inp+sizeof(inp)-1);
-      BOOST_REQUIRE(t.has_more());
-      BOOST_CHECK_EQUAL(s_pair::mk_string(element_name(*t)), "records");
-      BOOST_CHECK_EQUAL(is_start_end_tag(*t), false);
-      ++t;
-      BOOST_REQUIRE(t.has_more());
-      BOOST_CHECK_EQUAL(s_pair::mk_string(element_name(*t)), "record");
-      BOOST_CHECK_EQUAL(is_start_end_tag(*t), false);
-      ++t;
-      BOOST_REQUIRE(t.has_more());
-      BOOST_CHECK_EQUAL(s_pair::mk_string(element_name(*t)), "a");
-      BOOST_CHECK_EQUAL(is_start_end_tag(*t), false);
-      auto p = *t;
-      ++t;
-      BOOST_REQUIRE(t.has_more());
-      BOOST_CHECK_EQUAL(s_pair::mk_string(element_name(*t)), "a");
-      BOOST_CHECK_EQUAL(is_end_tag(*t), true);
-      auto q = *t;
-      BOOST_CHECK_EQUAL(string(p.second+1, q.first-1), "hello");
-      ++t;
-      BOOST_REQUIRE(t.has_more());
-      ++t;
-      BOOST_REQUIRE(t.has_more());
-      ++t;
-      BOOST_REQUIRE(t.has_more());
-      ++t;
-      BOOST_REQUIRE(t.has_more());
-      ++t;
-      BOOST_REQUIRE(!t.has_more());
+      auto r = scratchpad::mk_simple_reader(inp, inp+sizeof inp - 1);
+      xml::Reader x(r);
+      BOOST_REQUIRE(x.next() == true);
+      BOOST_CHECK_EQUAL(s_pair::mk_string(element_name(x.tag())), "records");
+      BOOST_CHECK_EQUAL(is_start_end_tag(x.tag()), false);
+      BOOST_REQUIRE(x.next() == true);
+      BOOST_CHECK_EQUAL(s_pair::mk_string(element_name(x.tag())), "record");
+      BOOST_CHECK_EQUAL(is_start_end_tag(x.tag()), false);
+      BOOST_REQUIRE(x.next() == true);
+      BOOST_CHECK_EQUAL(s_pair::mk_string(element_name(x.tag())), "a");
+      BOOST_CHECK_EQUAL(is_start_end_tag(x.tag()), false);
+      BOOST_REQUIRE(x.next() == true);
+      BOOST_CHECK_EQUAL(s_pair::mk_string(element_name(x.tag())), "a");
+      BOOST_CHECK_EQUAL(is_end_tag(x.tag()), true);
+      BOOST_CHECK_EQUAL(s_pair::mk_string(x.value()), "hello");
+      BOOST_REQUIRE(x.next() == true);
+      BOOST_REQUIRE(x.next() == true);
+      BOOST_REQUIRE(x.next() == true);
+      BOOST_REQUIRE(x.next() == true);
+      BOOST_REQUIRE(x.next() == false);
     }
+
     BOOST_AUTO_TEST_CASE(traverser_with_comments)
     {
       const char inp[] = "<!-- splice this --><records><record> <!-- and that --> <a>hello</a><b>world</b></record></records><!-- end-->";
-      Element_Traverser t(inp, inp+sizeof(inp)-1);
-      BOOST_REQUIRE(t.has_more());
-      BOOST_CHECK_EQUAL(s_pair::mk_string(element_name(*t)), "records");
-      BOOST_CHECK_EQUAL(is_start_end_tag(*t), false);
-      ++t;
-      BOOST_REQUIRE(t.has_more());
-      BOOST_CHECK_EQUAL(s_pair::mk_string(element_name(*t)), "record");
-      BOOST_CHECK_EQUAL(is_start_end_tag(*t), false);
-      ++t;
-      BOOST_REQUIRE(t.has_more());
-      BOOST_CHECK_EQUAL(s_pair::mk_string(element_name(*t)), "a");
-      BOOST_CHECK_EQUAL(is_start_end_tag(*t), false);
-      auto p = *t;
-      ++t;
-      BOOST_REQUIRE(t.has_more());
-      BOOST_CHECK_EQUAL(s_pair::mk_string(element_name(*t)), "a");
-      BOOST_CHECK_EQUAL(is_end_tag(*t), true);
-      auto q = *t;
-      BOOST_CHECK_EQUAL(string(p.second+1, q.first-1), "hello");
-      ++t;
-      BOOST_REQUIRE(t.has_more());
-      BOOST_CHECK_EQUAL(s_pair::mk_string(element_name(*t)), "b");
-      ++t;
-      BOOST_REQUIRE(t.has_more());
-      BOOST_CHECK_EQUAL(s_pair::mk_string(element_name(*t)), "b");
-      ++t;
-      BOOST_REQUIRE(t.has_more());
-      BOOST_CHECK_EQUAL(s_pair::mk_string(element_name(*t)), "record");
-      ++t;
-      BOOST_REQUIRE(t.has_more());
-      BOOST_CHECK_EQUAL(s_pair::mk_string(element_name(*t)), "records");
-      ++t;
-      BOOST_REQUIRE(!t.has_more());
+      auto r = scratchpad::mk_simple_reader(inp, inp+sizeof inp - 1);
+      xml::Reader x(r);
+      BOOST_REQUIRE(x.next() == true);
+      BOOST_REQUIRE(is_comment(x.tag()));
+      BOOST_REQUIRE(x.next() == true);
+      BOOST_CHECK_EQUAL(s_pair::mk_string(element_name(x.tag())), "records");
+      BOOST_CHECK_EQUAL(is_start_end_tag(x.tag()), false);
+      BOOST_REQUIRE(x.next() == true);
+      BOOST_CHECK_EQUAL(s_pair::mk_string(element_name(x.tag())), "record");
+      BOOST_CHECK_EQUAL(is_start_end_tag(x.tag()), false);
+      BOOST_REQUIRE(x.next() == true);
+      BOOST_REQUIRE(is_comment(x.tag()));
+      BOOST_REQUIRE(x.next() == true);
+      BOOST_CHECK_EQUAL(s_pair::mk_string(element_name(x.tag())), "a");
+      BOOST_CHECK_EQUAL(is_start_end_tag(x.tag()), false);
+      BOOST_REQUIRE(x.next() == true);
+      BOOST_CHECK_EQUAL(s_pair::mk_string(element_name(x.tag())), "a");
+      BOOST_CHECK_EQUAL(is_end_tag(x.tag()), true);
+      BOOST_CHECK_EQUAL(s_pair::mk_string(x.value()), "hello");
+      BOOST_REQUIRE(x.next() == true);
+      BOOST_CHECK_EQUAL(s_pair::mk_string(element_name(x.tag())), "b");
+      BOOST_REQUIRE(x.next() == true);
+      BOOST_CHECK_EQUAL(s_pair::mk_string(element_name(x.tag())), "b");
+      BOOST_REQUIRE(x.next() == true);
+      BOOST_CHECK_EQUAL(s_pair::mk_string(element_name(x.tag())), "record");
+      BOOST_REQUIRE(x.next() == true);
+      BOOST_CHECK_EQUAL(s_pair::mk_string(element_name(x.tag())), "records");
+      BOOST_REQUIRE(x.next() == true);
+      BOOST_REQUIRE(is_comment(x.tag()));
+      BOOST_REQUIRE(x.next() == false);
     }
 
     BOOST_AUTO_TEST_CASE(equal_content)
     {
       const char inp[] = "<abc>hello</abc>";
-      Element_Traverser t(inp, inp+sizeof(inp)-1);
-      BOOST_REQUIRE(t.has_more());
-      BOOST_CHECK_EQUAL(s_pair::equal(*t, "abc", 3), true);
-      BOOST_CHECK_EQUAL(is_start_end_tag(*t), false);
-      auto p = *t;
-      ++t;
-      BOOST_REQUIRE(t.has_more());
-      BOOST_CHECK_EQUAL(xfsx::s_pair::equal(element_name(*t), "abc", 3), true);
-      BOOST_CHECK_EQUAL(is_end_tag(*t), true);
+      auto r = scratchpad::mk_simple_reader(inp, inp+sizeof inp - 1);
+      xml::Reader x(r);
+      BOOST_REQUIRE(x.next() == true);
+      BOOST_CHECK_EQUAL(s_pair::equal(x.tag(), "abc", 3), true);
+      BOOST_CHECK_EQUAL(is_start_end_tag(x.tag()), false);
+      BOOST_REQUIRE(x.next() == true);
+      BOOST_CHECK_EQUAL(xfsx::s_pair::equal(element_name(x.tag()), "abc", 3), true);
+      BOOST_CHECK_EQUAL(is_end_tag(x.tag()), true);
       BOOST_CHECK_EQUAL(
-          xfsx::s_pair::equal(xfsx::xml::content(p, *t), "hello", 5), true);
+          xfsx::s_pair::equal(x.value(), "hello", 5), true);
     }
 
     BOOST_AUTO_TEST_CASE(is_end)
