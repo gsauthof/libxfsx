@@ -25,11 +25,16 @@
 #include <xxxml/xxxml.hh>
 
 namespace xfsx {
+    namespace scratchpad {
+        template <typename Char> class Simple_Reader;
+    }
 
   namespace xml {
 
     namespace l2 {
  
+      xxxml::doc::Ptr generate_tree(scratchpad::Simple_Reader<char> &in,
+          size_t count = 0);
       xxxml::doc::Ptr generate_tree(const char *begin, const char *end,
           size_t count = 0);
 

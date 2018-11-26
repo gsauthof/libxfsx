@@ -23,6 +23,8 @@
 #include "xml.hh"
 #include "s_pair.hh"
 
+#include "scratchpad.hh"
+
 #include <stdexcept>
 
 using namespace std;
@@ -36,74 +38,84 @@ namespace xfsx {
 
       class Reader {
         private:
+            xml::Reader &r_;
           xxxml::doc::Ptr doc_;
-          Element_Traverser trav_;
-          size_t count_;
+          size_t count_{0};
+          size_t i_{0};
+          xmlNode *node_ {nullptr};
 
-          void ignore_xml_decl();
+          bool  process_tag();
+
         public:
-          Reader(const char *begin, const char *end, size_t count);
+          Reader(xml::Reader &r, size_t count);
           xxxml::doc::Ptr read();
       };
-      Reader::Reader(const char *begin, const char *end, size_t count)
+      Reader::Reader(xml::Reader &r, size_t count)
         :
+            r_(r),
           doc_(xxxml::new_doc()),
-          trav_(begin, end),
           count_(count)
       {
         xxxml::dict::Ptr dictionary = xxxml::dict::create();
         doc_->dict = dictionary.release();
       }
-      void Reader::ignore_xml_decl()
-      {
-        if (trav_.has_more()) {
-          if (*(*trav_).first == '?')
-            ++trav_;
-        }
-      }
       xxxml::doc::Ptr Reader::read()
       {
-        ignore_xml_decl();
-        xmlNode *node = nullptr;
-        size_t i = 0;
-        pair<const char*, const char*> last(nullptr, nullptr);
-        for (; trav_.has_more(); ++trav_) {
-          auto e = *trav_;
+        i_ = 0;
+        if (r_.next()) {
+            if (!xml::is_decl(r_.tag()))
+                process_tag();
+        }
+        while (r_.next()) {
+             bool b = process_tag();
+             if (!b)
+                 break;
+        }
+        return std::move(doc_);
+      }
+      bool Reader::process_tag()
+      {
+          auto e = r_.tag();
           if (xml::is_end_tag(e)) {
-            if (!node)
+            if (!node_)
               throw runtime_error("too many closing tags");
-            auto c = xml::content(last, e);
-            xxxml::node_add_content(node, c.first, s_pair::size(c));
-            node = node->parent;
+            auto c = r_.value();
+            xxxml::node_add_content(node_, c.first, s_pair::size(c));
+            node_ = node_->parent;
           } else {
-            if (count_ && !(i < count_))
-              break;
-            ++i;
+            if (count_ && !(i_ < count_))
+              return false;
+            ++i_;
             auto name = xml::element_name(e);
-            if (node) {
+            if (node_) {
               // XXX eliminate mk_string?
-              node = xxxml::new_child(node, s_pair::mk_string(name));
+              node_ = xxxml::new_child(node_, s_pair::mk_string(name));
             } else {
-              node = xxxml::new_doc_node(doc_, s_pair::mk_string(name));
-              xxxml::doc::set_root_element(doc_, node);
+              node_ = xxxml::new_doc_node(doc_, s_pair::mk_string(name));
+              xxxml::doc::set_root_element(doc_, node_);
             }
             if (xml::is_start_end_tag(e)) {
-              node = node->parent;
+              node_ = node_->parent;
             }
             // We do not need attributes for format detection
             //Attribute_Traverser at(e, name);
             //for (; at.has_more(); ++at) { ... at.name(); at.value(); ... }
           }
-          last = e;
-        }
-        return std::move(doc_);
+          return true;
       }
 
+      xxxml::doc::Ptr generate_tree(scratchpad::Simple_Reader<char> &in,
+          size_t count)
+      {
+          xml::Reader x(in);
+        Reader r(x, count);
+        return r.read();
+      }
       xxxml::doc::Ptr generate_tree(const char *begin, const char *end,
           size_t count)
       {
-        Reader r(begin, end, count);
-        return r.read();
+          auto in = scratchpad::mk_simple_reader(begin, end);
+          return generate_tree(in, count);
       }
 
     }
