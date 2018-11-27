@@ -248,17 +248,28 @@ IF(CMAKE_PROJECT_NAME STREQUAL "xfsx")
   add_executable(ut2
       test/main_catch.cc
       test/raw_vector.cc
+      test/scratchpad.cc
 
       test/bcd_decode.cc
       test/bcd_encode.cc
 
+      test/test.cc
       xfsx/bcd.cc
+      xfsx/scratchpad.cc
       )
   set_property(TARGET ut2 PROPERTY INCLUDE_DIRECTORIES
     ${Boost_INCLUDE_DIRS}
     ${CMAKE_CURRENT_SOURCE_DIR}
     ${CMAKE_CURRENT_SOURCE_DIR}/Catch2/single_include/catch2
+    ${CMAKE_CURRENT_SOURCE_DIR}/libixxx
+    ${CMAKE_CURRENT_SOURCE_DIR}/libixxxutil
     )
+  target_link_libraries(ut2
+    ixxxutil_static
+    ixxx_static
+    ${Boost_FILESYSTEM_LIBRARY}
+    ${Boost_SYSTEM_LIBRARY}
+      )
 
 endif() # CMAKE_PROJECT_NAME
 

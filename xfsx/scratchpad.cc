@@ -801,6 +801,8 @@ namespace xfsx {
                 backend_->write_some(local_pos_);
                 local_pos_ = 0;
                 backend_->flush();
+                begin_     = nullptr;
+                end_       = nullptr;
             }
         }
     template <typename Char>

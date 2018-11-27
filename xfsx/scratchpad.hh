@@ -416,7 +416,6 @@ namespace xfsx {
                 std::unique_ptr<scratchpad::Writer<Char>> backend_;
         };
 
-        // XXX move Simple_Reader, as well
 
     template <typename Char>
         Simple_Writer<Char> mk_simple_writer(const std::string &filename)
