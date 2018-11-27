@@ -575,12 +575,11 @@ namespace xfsx {
   }
   void Unit::init_l_size(uint8_t new_l_size)
   {
-    uint8_t l_size = tl_size - t_size - 1;
-    if (new_l_size < l_size)
-      throw underflow_error("new length size is too small");
-    tl_size += new_l_size - l_size;
-    is_long_definite = true;
-    is_indefinite = false;
+      if (minimally_encoded_length(length) > new_l_size)
+          throw underflow_error("new length size is too small");
+      tl_size          = t_size + 1 + new_l_size;
+      is_long_definite = true;
+      is_indefinite    = false;
   }
 
   static void Unit_init_constructed_from_shared(Unit &u, Tag_Int tag)
