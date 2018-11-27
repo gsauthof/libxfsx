@@ -26,6 +26,14 @@ namespace xfsx {
     template
         void write_tag<TLV>(scratchpad::Simple_Writer<u8> &w, const TLV &tlc);
 
+    template<>
+        void write_tag(scratchpad::Simple_Writer<u8> &w, const Unit &tlc)
+        {
+            size_t k = tlc.tl_size;
+            auto o = w.begin_write(k);
+            tlc.write(o, o+k);
+            w.commit_write(k);
+        }
 
     template <typename T>
         Simple_Writer<T>::Simple_Writer()

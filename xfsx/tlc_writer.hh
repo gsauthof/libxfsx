@@ -12,9 +12,13 @@
 
 namespace xfsx {
 
+    struct Unit;
+
     // instantiated for TLC, TLV
     template<typename T>
         void write_tag(scratchpad::Simple_Writer<u8> &w, const T &tlc);
+    template<>
+        void write_tag(scratchpad::Simple_Writer<u8> &w, const Unit &u);
 
     // XXX derive from scratchpad::Simple_Writer
     // or just provide a generic write function, e.g.:
