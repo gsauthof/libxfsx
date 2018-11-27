@@ -48,12 +48,6 @@ namespace xfsx {
   namespace xml {
 
 
-struct Attributes {
-        uint8_t l_size         {0    };
-        bool    uint2int       {false};
-        bool    tag_present    {false};
-        bool    full_tag       {false};
-};
 
 class Xml2Ber {
     public:
@@ -138,7 +132,7 @@ void Xml2Ber::process()
     writer_stack_[0]->flush();
 }
 // return: full-initialized
-static bool read_tag(const std::pair<const char*, const char*> &name,
+bool read_tag(const std::pair<const char*, const char*> &name,
         TLV &tlv, const BER_Writer_Arguments &args)
 {
     if (!args.translator.empty()) {
@@ -167,7 +161,7 @@ static bool read_tag(const std::pair<const char*, const char*> &name,
     }
     return false;
 }
-static void read_attribute(
+void read_attribute(
         const std::pair<const char*, const char*> &name,
         const std::pair<const char*, const char*> &value,
         TLV &tlv, Attributes &a)
@@ -225,7 +219,7 @@ void Xml2Ber::process_tag()
         if (tlv.is_indefinite)
             tlv.init_indefinite();
         if (attributes_.l_size)
-            tlv.tl_size = tlv.t_size + 1 + attributes_.l_size;
+            tlv.init_l_size(attributes_.l_size);
         if (!full_tag && !attributes_.tag_present)
             throw runtime_error("element is missing mandatory tag attribute");
         if (tlv_stack_top_ >= tlv_stack_.size())
@@ -265,7 +259,7 @@ void Xml2Ber::write_start()
         }
     }
 }
-static void add_content(const std::pair<const char*, const char*> &value,
+void add_content(const std::pair<const char*, const char*> &value,
         TLV &tlv, const Attributes &as, const BER_Writer_Arguments &args)
 {
     auto content = value;
@@ -309,7 +303,13 @@ void Xml2Ber::write_end(bool is_empty)
             assert(tlv_stack_top_);
 
             size_t n = writer_stack_[writer_stack_top_]->pos();
+
+            auto old_tl_size = tlv.tl_size;
             tlv.init_length(n);
+            if (old_tl_size > tlv.tl_size) { // if l_size was specified
+                tlv.tl_size = old_tl_size;
+                tlv.is_long_definite = true;
+            }
 
             assert(tlv.tl_size);
 

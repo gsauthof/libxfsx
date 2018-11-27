@@ -23,6 +23,7 @@
 
 
 #include <memory>
+#include <utility>
 
 #include "octet.hh"
 
@@ -32,6 +33,7 @@ namespace xfsx {
         template <typename Char> class Simple_Writer;
     }
     class BER_Writer_Arguments;
+    class TLV;
 
     namespace xml {
 
@@ -40,6 +42,23 @@ namespace xfsx {
                 scratchpad::Simple_Writer<u8> &out,
                 const BER_Writer_Arguments &args
                 );
+
+        // also used by lxml2ber.cc
+        //
+        struct Attributes {
+                uint8_t l_size         {0    };
+                bool    uint2int       {false};
+                bool    tag_present    {false};
+                bool    full_tag       {false};
+        };
+        bool read_tag(const std::pair<const char*, const char*> &name,
+                TLV &tlv, const BER_Writer_Arguments &args);
+        void read_attribute(
+                const std::pair<const char*, const char*> &name,
+                const std::pair<const char*, const char*> &value,
+                TLV &tlv, Attributes &a);
+        void add_content(const std::pair<const char*, const char*> &value,
+                TLV &tlv, const Attributes &as, const BER_Writer_Arguments &args);
 
     }
 
