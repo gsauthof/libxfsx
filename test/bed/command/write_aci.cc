@@ -27,7 +27,7 @@ BOOST_AUTO_TEST_SUITE(bed_)
       {
         compare_bed_output("tap_3_12_strip.asn1",
             "tap_3_12_valid.ber", "write_aci.ber",
-            "edit_aci.ber",
+            "write_aci.ber",
             { "write-aci" }
             );
       }
@@ -44,7 +44,7 @@ BOOST_AUTO_TEST_SUITE(bed_)
         ixxx::posix::setenv("ASN1_PATH", a + ":" + b + ":" + c + ":" + d, true);
         compare_bed_output("",
             "tap_3_12_valid.ber", "write_aci_auto.ber",
-            "edit_aci.ber",
+            "write_aci.ber",
             { "write-aci" }
             );
         if (!old_asn1_path.empty())
@@ -72,7 +72,7 @@ BOOST_AUTO_TEST_SUITE(bed_)
         }
         compare_bed_output("tap_3_12_strip.asn1",
             out, "aci_removed_fixed.ber",
-            "edit_aci.ber",
+            "write_aci.ber",
             { "write-aci" }
             );
       }

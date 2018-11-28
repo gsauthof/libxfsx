@@ -30,30 +30,17 @@
 #include "ber_writer.hh"
 
 namespace xfsx {
+    namespace scratchpad {
+        template <typename Char> class Simple_Writer;
+    }
   namespace xml {
     namespace l2 {
 
-      class BER_Writer : public BER_Writer_Base {
-        private:
-          const xxxml::doc::Ptr &doc_;
-
-          void write_element(const xmlNode *element);
-          void read_attributes(const xmlNode *element);
-        protected:
-        public:
-          BER_Writer(const xxxml::doc::Ptr &doc,
-              const BER_Writer_Arguments &args
-              );
-          void write(const std::string &filename);
-          void write(Raw_Vector<u8> &v);
-          void write();
-      };
-
+      void write_ber(const xxxml::doc::Ptr &doc,
+          scratchpad::Simple_Writer<u8> &out,
+          const BER_Writer_Arguments &args);
       void write_ber(const xxxml::doc::Ptr &doc,
           const std::string &filename,
-          const BER_Writer_Arguments &args = default_ber_writer_arguments);
-      void write_ber(const xxxml::doc::Ptr &doc,
-          Raw_Vector<u8> &v,
           const BER_Writer_Arguments &args = default_ber_writer_arguments);
 
     } // l2

@@ -27,6 +27,7 @@
 #include <xfsx/byte.hh>
 #include <xfsx/lxml2ber.hh>
 #include <xfsx/tap.hh>
+#include <xfsx/tlc_writer.hh>
 #include <bed/arguments.hh>
 #include <xxxml/xxxml.hh>
 
@@ -79,27 +80,27 @@ namespace bed {
 
       xfsx::BER_Writer_Arguments args;
       xfsx::tap::apply_grammar(args_.asn_filenames, args);
-      xfsx::xml::l2::BER_Writer bw(doc, args);
-      bw.write();
+      size_t n = end-begin;
 
-      size_t n = (end-begin) + bw.size();
+      xfsx::Unit tb;
+      tb.init_constructed_from(grammar::tap::TRANSFER_BATCH);
+      tb.klasse = xfsx::Klasse::APPLICATION;
 
-      xfsx::Unit tb(xfsx::Klasse::APPLICATION, grammar::tap::TRANSFER_BATCH, n);
-
-      scratchpad::Simple_Writer<char> ox(unique_ptr<scratchpad::Writer<char>>(
-                  new scratchpad::File_Writer<char>(args_.out_filename)));
-      byte::writer::Base o(ox);
-
-      auto x = reinterpret_cast<u8 *>(ox.begin_write(tb.tl_size));
-      x = tb.write(x, x + tb.tl_size);
-      ox.commit_write(tb.tl_size);
-      ox.write(reinterpret_cast<const char*>(begin),
-          reinterpret_cast<const char*>(end));
-      x = reinterpret_cast<u8 *>(ox.begin_write(bw.size()));
-      bw.store(x, x + bw.size());
-      ox.commit_write(bw.size());
-
-      ox.flush();
+      auto o = scratchpad::mk_simple_writer<u8>(args_.out_filename);
+      write_tag(o, tb);
+      size_t inc = 128*1024;
+      size_t k = n/inc;
+      for (size_t i = 0; i < k; ++i) {
+          // XXX switch to buffered reading such that we can eliminate
+          // this unnecessary buffered writing
+          o.write(begin, end);
+          begin += inc;
+      }
+      o.write(begin, end);
+      xfsx::xml::l2::write_ber(doc, o, args);
+      array<u8, 2> eoc = {0, 0};
+      o.write(eoc.begin(), eoc.end());
+      o.flush();
     }
 
   } // command
