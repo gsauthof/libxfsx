@@ -28,7 +28,6 @@
 
 namespace xfsx {
     namespace byte { namespace writer { class Base; } }
-    template <typename T> class Simple_Reader;
     namespace scratchpad {
         template<typename Char> class Simple_Reader;
         template<typename Char> class Simple_Writer;
@@ -45,7 +44,7 @@ namespace xfsx {
     struct Writer_Arguments;
     struct Pretty_Writer_Arguments;
 
-    void write_unber_tl(Simple_Reader<TLC> &r,
+    void write_unber_tl(scratchpad::Simple_Reader<u8> &r,
         byte::writer::Base &w);
     void write_unber_tl(
         const u8 *begin, const u8 *end,
@@ -58,7 +57,7 @@ namespace xfsx {
         const u8 *begin, const u8 *end,
         const char *filename);
 
-    void write_indent_unber_tl(Simple_Reader<TLC> &r,
+    void write_indent_unber_tl(scratchpad::Simple_Reader<u8> &r,
         byte::writer::Base &w);
     void write_indent_unber_tl(
         const u8 *begin, const u8 *end,

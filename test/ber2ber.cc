@@ -206,12 +206,12 @@ static void compare_definite_throw(const char *rel_filename_str)
     string filename(test::path::in());
     filename += '/';
     filename += rel_filename_str;
-    auto r = mk_tlc_reader<TLC>(filename);
-    auto w = Simple_Writer<TLC>(std::unique_ptr<scratchpad::Writer<u8>>(
-                       new scratchpad::Scratchpad_Writer<u8>()
-                        ));
+    auto r = scratchpad::mk_simple_reader<u8>(filename);
+    auto w = scratchpad::Simple_Writer<u8>(
+            std::unique_ptr<scratchpad::Writer<u8>>(
+                new scratchpad::Scratchpad_Writer<u8>()
+                ));
     BOOST_CHECK_THROW(ber::write_definite(r, w), std::runtime_error);
-  
 }
 
 boost::unit_test::test_suite *create_ber2ber_suite()

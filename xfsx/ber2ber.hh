@@ -28,19 +28,21 @@
 
 namespace xfsx {
 
-    struct TLC;
-
-    template <typename T> class Simple_Reader;
-    template <typename T> class Simple_Writer;
+    namespace scratchpad {
+        template <typename Char> class Simple_Reader;
+        template <typename Char> class Simple_Writer;
+    }
 
   namespace ber {
 
-      void write_identity(Simple_Reader<TLC> &r, Simple_Writer<TLC> &w);
+      void write_identity(scratchpad::Simple_Reader<u8> &r,
+              scratchpad::Simple_Writer<u8> &w);
 
     void write_identity(const u8 *ibegin, const u8 *iend,
         u8 *begin, u8 *end);
 
-      void write_indefinite(Simple_Reader<TLC> &r, Simple_Writer<TLC> &w);
+      void write_indefinite(scratchpad::Simple_Reader<u8> &r,
+              scratchpad::Simple_Writer<u8> &w);
 
     u8 *write_indefinite(const u8 *ibegin, const u8 *iend,
         u8 *begin, u8 *end);
@@ -48,7 +50,8 @@ namespace xfsx {
         const std::string &filename);
 
 
-    void write_definite(Simple_Reader<TLC> &r, Simple_Writer<TLC> &w);
+    void write_definite(scratchpad::Simple_Reader<u8> &r,
+            scratchpad::Simple_Writer<u8> &w);
     u8 *write_definite(const u8 *ibegin, const u8 *iend,
         u8 *begin, u8 *end);
     void write_definite(const u8 *ibegin, const u8 *iend,

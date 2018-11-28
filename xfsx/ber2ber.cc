@@ -24,6 +24,7 @@
 
 #include "tlc_reader.hh"
 #include "tlc_writer.hh"
+#include "scratchpad.hh"
 
 #include <ixxx/ixxx.hh>
 #include <ixxx/util.hh>
@@ -40,24 +41,25 @@ namespace xfsx {
 
   namespace ber {
 
-      void write_identity(Simple_Reader<TLC> &r, Simple_Writer<TLC> &w)
+      void write_identity(scratchpad::Simple_Reader<u8> &r,
+              scratchpad::Simple_Writer<u8> &w)
       {
-          while (r.next()) {
-              const TLC &tlc = r.tlc();
-              w.write(tlc);
+          TLC tlc;
+          while (read_next(r, tlc)) {
+              write_tag(w, tlc);
           }
-          w.flush();
       }
 
     void write_identity(const u8 *ibegin, const u8 *iend,
         u8 *begin, u8 *end)
     {
-        Simple_Reader<TLC> r(ibegin, iend);
-        Simple_Writer<TLC> w(begin, end);
+        auto r = scratchpad::mk_simple_reader(ibegin, iend);
+        auto w = scratchpad::mk_simple_writer(begin, end);
         write_identity(r, w);
+        w.flush();
     }
 
-      void write_indefinite(Simple_Reader<TLC> &r, Simple_Writer<TLC> &w)
+      void write_indefinite(scratchpad::Simple_Reader<u8> &r, scratchpad::Simple_Writer<u8> &w)
       {
           // we only put the length of each definite constructed tag on it
           // primitive and indefinite constructed tags can be written
@@ -70,10 +72,10 @@ namespace xfsx {
           deque<size_t> written_stack;
           written_stack.push_back(0); // catch-all root
           array<u8, 2> eoc = {0, 0};
-          while (r.next()) {
-              TLC &tlc = r.tlc();
+          TLC tlc;
+          while (read_next(r, tlc)) {
               if (tlc.shape == Shape::PRIMITIVE) {
-                  w.write(tlc);
+                  write_tag(w, tlc);
                   written_stack.back() += tlc.tl_size + tlc.length;
               } else { // CONSTRUCTED
                   written_stack.back() += tlc.tl_size;
@@ -82,7 +84,7 @@ namespace xfsx {
                       written_stack.push_back(0);
                       tlc.init_indefinite();
                   }
-                  w.write(tlc);
+                  write_tag(w, tlc);
               }
               while (!length_stack.empty()
                       && length_stack.back() == written_stack.back()) {
@@ -94,30 +96,32 @@ namespace xfsx {
                   written_stack.resize(written_stack.size()-1);
               }
           }
-          w.flush();
       }
 
 
     u8 *write_indefinite(const u8 *ibegin, const u8 *iend,
         u8 *begin, u8 *end)
     {
-        Simple_Reader<TLC> r(ibegin, iend);
-        Simple_Writer<TLC> w(begin, end);
+        auto r = scratchpad::mk_simple_reader(ibegin, iend);
+        auto w = scratchpad::mk_simple_writer(begin, end);
         write_indefinite(r, w);
+        w.flush();
         return begin + w.pos();
     }
 
     void write_indefinite(const u8 *ibegin, const u8 *iend,
         const std::string &filename)
     {
-        Simple_Reader<TLC> r(ibegin, iend);
-        auto w = mk_tlc_writer<TLC>(filename);
+        auto r = scratchpad::mk_simple_reader(ibegin, iend);
+        auto w = scratchpad::mk_simple_writer<u8>(filename);
         write_indefinite(r, w);
+        w.flush();
     }
 
     class Ber2Def {
         public:
-            Ber2Def(Simple_Reader<TLC> &r, Simple_Writer<TLC> &w);
+            Ber2Def(scratchpad::Simple_Reader<u8> &r,
+                    scratchpad::Simple_Writer<u8> &w);
 
             void process();
         private:
@@ -126,7 +130,8 @@ namespace xfsx {
             void write_constructed();
             void pop_constructed();
 
-            Simple_Reader<TLC> &r_;
+            scratchpad::Simple_Reader<u8> &r_;
+            TLC tlc_;
 
             // stack for constructed tags - primitive tags are never
             // pushed
@@ -142,15 +147,16 @@ namespace xfsx {
             // (thus no std::stack nor down-resize calls)
             // first writer directly writes to a file
             // for each definitive constructed a scratchpad writer is pushed
-            std::deque<xfsx::Simple_Writer<TLC>*> writer_stack_;
+            std::deque<scratchpad::Simple_Writer<u8>*> writer_stack_;
             size_t writer_stack_top_{0};
             // temporary non-root writers
-            std::deque<xfsx::Simple_Writer<TLC>> writers_;
+            std::deque<scratchpad::Simple_Writer<u8>> writers_;
 
             size_t inc_{128*1024};
     };
 
-    Ber2Def::Ber2Def(Simple_Reader<TLC> &r, Simple_Writer<TLC> &w)
+    Ber2Def::Ber2Def(scratchpad::Simple_Reader<u8> &r,
+            scratchpad::Simple_Writer<u8> &w)
         :
             r_(r)
     {
@@ -161,7 +167,7 @@ namespace xfsx {
     }
     void Ber2Def::process()
     {
-        while (r_.next()) {
+        while (read_next(r_, tlc_)) {
             process_tag();
         }
         if (writer_stack_top_ != 1)
@@ -190,7 +196,8 @@ namespace xfsx {
         --writer_stack_top_;
 
         writer_stack_[writer_stack_top_]->flush();
-        writer_stack_[writer_stack_top_-1]->write(cons_stack_[cons_stack_top_-1]);
+        write_tag(*writer_stack_[writer_stack_top_-1],
+                cons_stack_[cons_stack_top_-1]);
         assert(cons_stack_top_);
         --cons_stack_top_;
 
@@ -216,7 +223,7 @@ namespace xfsx {
     }
     void Ber2Def::write_primitive()
     {
-        auto &tlc = r_.tlc();
+        auto &tlc = tlc_;
         written_stack_.back() += tlc.tl_size + tlc.length;
         if (tlc.is_eoc()) {
             pop_constructed();
@@ -228,7 +235,7 @@ namespace xfsx {
     }
     void Ber2Def::write_constructed()
     {
-        auto &tlc = r_.tlc();
+        auto &tlc = tlc_;
         written_stack_.back() += tlc.tl_size;
         if (!tlc.is_indefinite) {
             length_stack_.push_back(tlc.length);
@@ -250,7 +257,7 @@ namespace xfsx {
     }
     void Ber2Def::process_tag()
     {
-        auto &tlc = r_.tlc();
+        auto &tlc = tlc_;
         if (tlc.shape == Shape::PRIMITIVE) {
             write_primitive();
         } else { // Constructed
@@ -267,17 +274,19 @@ namespace xfsx {
         }
     }
 
-    void write_definite(Simple_Reader<TLC> &r, Simple_Writer<TLC> &w)
+    void write_definite(scratchpad::Simple_Reader<u8> &r,
+            scratchpad::Simple_Writer<u8> &w)
     {
         Ber2Def x2b(r, w);
         x2b.process();
+        // already flushed in process
     }
 
     u8 *write_definite(const u8 *ibegin, const u8 *iend,
         u8 *begin, u8 *end)
     {
-        auto r = Simple_Reader<TLC>(ibegin, iend);
-        auto w = Simple_Writer<TLC>(begin, end);
+        auto r = scratchpad::mk_simple_reader(ibegin, iend);
+        auto w = scratchpad::mk_simple_writer(begin, end);
         write_definite(r, w);
         return begin + w.pos();
     }
@@ -285,8 +294,8 @@ namespace xfsx {
     void write_definite(const u8 *ibegin, const u8 *iend,
         const std::string &filename)
     {
-        auto r = Simple_Reader<TLC>(ibegin, iend);
-        auto w = mk_tlc_writer<TLC>(filename);
+        auto r = scratchpad::mk_simple_reader(ibegin, iend);
+        auto w = scratchpad::mk_simple_writer<u8>(filename);
         write_definite(r, w);
     }
 

@@ -438,6 +438,11 @@ namespace xfsx {
                        new scratchpad::Mapped_Writer<Char>(filename, size)
                         ));
         }
+    template <typename Char>
+        Simple_Writer<Char> mk_simple_writer(Char *begin, Char *end)
+        {
+            return Simple_Writer<Char>(begin, end);
+        }
 
     } // namespace scratchpad
 

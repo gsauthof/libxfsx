@@ -83,12 +83,12 @@ namespace xfsx {
       w  << "\">\n";
     }
 
-    void write_unber_tl(Simple_Reader<TLC> &r,
+    void write_unber_tl(scratchpad::Simple_Reader<u8> &r,
         byte::writer::Base &w)
     {
         size_t off = 0;
-        while (r.next()) {
-            const Unit &u = r.tlc();
+        Unit u;
+        while (read_next(r, u)) {
             write_unber_tl(w, u, off);
             off = r.pos();
         }
@@ -98,7 +98,7 @@ namespace xfsx {
         const u8 *begin, const u8 *end,
         byte::writer::Base &w)
     {
-        Simple_Reader<TLC> r(begin, end);
+        scratchpad::Simple_Reader<u8> r(begin, end);
         write_unber_tl(r, w);
         w.w.flush();
     }
@@ -122,7 +122,7 @@ namespace xfsx {
     }
 
 
-    void write_indent_unber_tl(Simple_Reader<TLC> &r,
+    void write_indent_unber_tl(scratchpad::Simple_Reader<u8> &r,
         byte::writer::Base &w)
     {
         size_t off = 0;
@@ -131,8 +131,8 @@ namespace xfsx {
         length_stack.push(0);
         stack<size_t> written_stack;
         written_stack.push(0);
-        while (r.next()) {
-            const Unit &u = r.tlc();
+        Unit u;
+        while (read_next(r, u)) {
             written_stack.top() += u.tl_size;
             if (u.shape == Shape::PRIMITIVE) {
                 written_stack.top() += u.length;
@@ -169,7 +169,7 @@ namespace xfsx {
         const u8 *begin, const u8 *end,
         byte::writer::Base &w)
     {
-        Simple_Reader<TLC> r(begin, end);
+        scratchpad::Simple_Reader<u8> r(begin, end);
         write_indent_unber_tl(r, w);
         w.w.flush();
     }

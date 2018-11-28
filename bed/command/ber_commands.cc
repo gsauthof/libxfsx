@@ -58,27 +58,11 @@
 
 using namespace std;
 
+using u8 = xfsx::u8;
+
 namespace bed {
 
   namespace command {
-
-      static xfsx::Simple_Reader<xfsx::TLC> mk_tlc_reader(
-              const bed::Arguments &args)
-      {
-          xfsx::Simple_Reader<xfsx::TLC> r;
-          auto &args_ = args;
-          if (args_.mmap) {
-              // bed::Arguments::canonicalize() protects us from this
-              assert(args_.in_filename != "-");
-              r = xfsx::mk_tlc_reader_mapped<xfsx::TLC>(args_.in_filename);
-          } else {
-              if (args_.in_filename == "-")
-                  r = xfsx::mk_tlc_reader<xfsx::TLC>(ixxx::util::FD(0));
-              else
-                  r = xfsx::mk_tlc_reader<xfsx::TLC>(args_.in_filename);
-          }
-          return r;
-      }
 
 
       template <typename Char>
@@ -96,35 +80,6 @@ namespace bed {
                   return scratchpad::mk_simple_reader<Char>(args.in_filename);
           }
       }
-
-
-
-      static xfsx::Simple_Writer<xfsx::TLC> mk_tlc_writer(
-              const bed::Arguments &args)
-      {
-          xfsx::Simple_Writer<xfsx::TLC> w;
-          auto &args_ = args;
-          if (args_.mmap_out) {
-              assert(args_.out_filename != "-");
-              assert(args_.fsync == false);
-              size_t n = 0;
-              if (!n) {
-                  struct stat st;
-                  ixxx::posix::stat(args_.in_filename, &st);
-                  n = st.st_size;
-              }
-              w = xfsx::mk_tlc_writer_mapped<xfsx::TLC>(args_.out_filename, n);
-          } else {
-              if (args_.out_filename == "-")
-                  w = xfsx::mk_tlc_writer<xfsx::TLC>(ixxx::util::FD(1));
-              else
-                  w = xfsx::mk_tlc_writer<xfsx::TLC>(args_.out_filename);
-          }
-          if (args_.fsync)
-              w.set_sync(true);
-          return w;
-      }
-
 
       template<typename Char>
       xfsx::scratchpad::Simple_Writer<Char> mk_simple_writer(const bed::Arguments &args)
@@ -155,27 +110,30 @@ namespace bed {
 
     void Write_Identity::execute()
     {
-        auto r = mk_tlc_reader(args_);
-        auto w = mk_tlc_writer(args_);
+        auto r = mk_simple_reader<xfsx::u8>(args_);
+        auto w = mk_simple_writer<xfsx::u8>(args_);
         xfsx::ber::write_identity(r, w);
+        w.flush();
         w.sync();
     }
 
     void Write_Definite::execute()
     {
         // XXX support mmap output
-        auto r = mk_tlc_reader(args_);
-        auto w = mk_tlc_writer(args_);
+        auto r = mk_simple_reader<u8>(args_);
+        auto w = mk_simple_writer<u8>(args_);
         xfsx::ber::write_definite(r, w);
+        // already flushed
         w.sync();
     }
 
     void Write_Indefinite::execute()
     {
         // XXX support mmap output
-        auto r = mk_tlc_reader(args_);
-        auto w = mk_tlc_writer(args_);
+        auto r = mk_simple_reader<xfsx::u8>(args_);
+        auto w = mk_simple_writer<xfsx::u8>(args_);
         xfsx::ber::write_indefinite(r, w);
+        w.flush();
         w.sync();
     }
 
