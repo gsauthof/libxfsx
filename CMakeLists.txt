@@ -134,11 +134,9 @@ set(LIB_SRC
   xfsx/value.cc
   xfsx/xml.cc
   xfsx/byte.cc
-  xfsx/ber_node.cc
   xfsx/integer.cc
   ${CMAKE_BINARY_DIR}/config.cc
   xfsx/tap.cc
-  xfsx/ber_writer.cc
   xfsx/s_pair.cc
   xfsx/ber_writer_arguments.cc
   xfsx/lxml2ber.cc

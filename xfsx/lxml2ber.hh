@@ -27,7 +27,6 @@
 #include "ber_writer_arguments.hh"
 #include <xxxml/xxxml.hh>
 
-#include "ber_writer.hh"
 
 namespace xfsx {
     namespace scratchpad {
