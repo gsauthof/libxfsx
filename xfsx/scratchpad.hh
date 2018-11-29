@@ -148,7 +148,7 @@ namespace xfsx {
                 Mapped_Reader(const char *filename);
                 Mapped_Reader(const std::string &filename);
             private:
-                ixxx::util::MMap m_; 
+                ixxx::util::MMap m_;
         };
     template <typename Char>
         class File_Reader : public Reader<Char> {
@@ -249,11 +249,14 @@ namespace xfsx {
 
                 std::pair<Char*, Char*> prepare_write(size_t forget_cnt, size_t want_cnt);
                 std::pair<Char*, Char*> write_some(size_t forget_cnt);
+                std::pair<Char*, Char*> write(size_t forget_cnt,
+                        const Char *begin, const Char *end);
 
                 void flush();
                 void sync();
                 void set_increment(size_t inc);
                 void set_sync(bool b);
+                size_t inc() const;
             private:
                 size_t inc_ {128 * 1024};
                 Scratchpad<Char> pad_;
@@ -280,6 +283,11 @@ namespace xfsx {
                 // function returns updated begin end
                 virtual std::pair<Char*, Char*> write_some(size_t forget_cnt) = 0;
 
+                // useful for writing large buffers - this allows the
+                // backend to write-through some writes and thus avoid
+                // some buffering
+                virtual std::pair<Char*, Char*> write(size_t forget_cnt,
+                        const Char *begin, const Char *end);
 
                 // completely flush the buffer
                 virtual void flush() = 0;
@@ -289,6 +297,8 @@ namespace xfsx {
 
                 // only useful for scratchpad writer
                 virtual void clear();
+
+                virtual size_t inc() const;
         };
 
     // e.g. for writing into a memory mapped file
@@ -355,9 +365,11 @@ namespace xfsx {
                 std::pair<Char*, Char*> prepare_write(size_t forget_cnt,
                         size_t want_cnt) override;
                 std::pair<Char*, Char*> write_some(size_t forget_cnt) override;
+                std::pair<Char*, Char*> write(size_t forget_cnt, const Char *begin, const Char *end) override;
                 void flush() override;
                 void sync() override;
                 void set_sync(bool b) override;
+                size_t inc() const override;
 
                 Sink_File<Char> &sink();
             private:

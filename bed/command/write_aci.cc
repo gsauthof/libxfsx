@@ -80,7 +80,6 @@ namespace bed {
 
       xfsx::BER_Writer_Arguments args;
       xfsx::tap::apply_grammar(args_.asn_filenames, args);
-      size_t n = end-begin;
 
       xfsx::Unit tb;
       tb.init_constructed_from(grammar::tap::TRANSFER_BATCH);
@@ -88,14 +87,7 @@ namespace bed {
 
       auto o = scratchpad::mk_simple_writer<u8>(args_.out_filename);
       write_tag(o, tb);
-      size_t inc = 128*1024;
-      size_t k = n/inc;
-      for (size_t i = 0; i < k; ++i) {
-          // XXX switch to buffered reading such that we can eliminate
-          // this unnecessary buffered writing
-          o.write(begin, end);
-          begin += inc;
-      }
+      // write takes care of incremental writing and write-through
       o.write(begin, end);
       xfsx::xml::l2::write_ber(doc, o, args);
       array<u8, 2> eoc = {0, 0};

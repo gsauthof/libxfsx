@@ -86,8 +86,6 @@ class Xml2Ber {
         size_t writer_stack_top_{0};
 
         std::array<u8, 2> eoc_{0, 0};
-
-        size_t inc_{128*1024};
 };
 
 Xml2Ber::Xml2Ber(scratchpad::Simple_Reader<char> &in,
@@ -320,20 +318,9 @@ void Xml2Ber::write_end(bool is_empty)
                     writer_stack_[writer_stack_top_]->backend())->pad();
             auto b = pad.prelude();
             auto e = pad.begin();
-            // the top-level writer usually is a buffered file writer,
-            // thus, we have to be careful write out larger buffers
-            // in 128 kb chunks - otherwise we would create just
-            // another large buffer for no good reason
-            if (writer_stack_top_ == 1) {
-                size_t k = (e-b)/inc_;
-                for (size_t i = 0; i < k; ++i) {
-                    writer_stack_[writer_stack_top_-1]->write(b, b+inc_);
-                    b += inc_;
-                }
-                writer_stack_[writer_stack_top_-1]->write(b, e);
-            } else {
-                writer_stack_[writer_stack_top_-1]->write(b, e);
-            }
+            // the Simple_Writer with File_Writer backend now supports
+            // write-through with large buffers
+            writer_stack_[writer_stack_top_-1]->write(b, e);
             writer_stack_[writer_stack_top_]->clear();
         }
     } else { // Shape::PRIMITIVE

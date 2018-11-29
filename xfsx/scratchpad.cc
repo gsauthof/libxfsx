@@ -269,6 +269,40 @@ namespace xfsx {
         }
 
     template <typename Char>
+        std::pair<Char*, Char*>
+        Sink_File<Char>::write(size_t forget_cnt,
+                const Char *begin, const Char *end)
+        {
+            size_t n = end - begin;
+            size_t m = (pad_.begin() - pad_.prelude());
+            size_t rest = m % inc_;
+            if (rest) {
+                size_t missing = inc_ - rest;
+                size_t k = min(missing, n);
+                pad_.add_tail(k);
+                std::copy(begin, begin + k, pad_.begin());
+                begin += k;
+                write_some(forget_cnt + k);
+            }
+            n = end - begin;
+            assert((n && (pad_.begin() - pad_.prelude()) == 0) || !n);
+            size_t l = n / inc_;
+            for (size_t i = 0; i < l; ++i) {
+                // write-through all following inc_ sized blocks
+                // to avoid superfluous buffering
+                ixxx::util::write_all(fd_, begin, inc_);
+                begin += inc_;
+            }
+            n = end - begin;
+            if (n) {
+                pad_.add_tail(n);
+                std::copy(begin, end, pad_.begin());
+                pad_.increment_head(n);
+            }
+            return make_pair(pad_.begin(), pad_.end());
+        }
+
+    template <typename Char>
         void Sink_File<Char>::flush()
         {
             auto begin = pad_.prelude();
@@ -289,6 +323,11 @@ namespace xfsx {
         {
             if (sync_)
                 ixxx::posix::fsync(fd_);
+        }
+    template <typename Char>
+        size_t Sink_File<Char>::inc() const
+        {
+            return inc_;
         }
 
     template class Sink_File<u8>;
@@ -498,6 +537,22 @@ namespace xfsx {
         void Writer<Char>::clear()
         {
         }
+    // default implementation, cf. File_Writer for an overwrite
+    template <typename Char>
+        std::pair<Char*, Char*> Writer<Char>::write(size_t forget_cnt,
+            const Char *begin, const Char *end)
+    {
+        size_t n = end-begin;
+        auto p = prepare_write(forget_cnt, n);
+        std::copy(begin, end, p.first);
+        return write_some(n);
+    }
+    template <typename Char>
+        size_t Writer<Char>::inc() const
+        {
+            return 128 * 1024;
+        }
+
 
     template class Writer<u8>;
     template class Writer<char>;
@@ -571,7 +626,7 @@ namespace xfsx {
     template class Mapped_Writer<char>;
 
     template <typename Char>
-        std::pair<Char*, Char*> 
+        std::pair<Char*, Char*>
         Scratchpad_Writer<Char>::prepare_write(size_t forget_cnt, size_t want_cnt)
         {
             pad_.increment_head(forget_cnt);
@@ -580,7 +635,7 @@ namespace xfsx {
             return make_pair(pad_.begin(), pad_.end());
         }
     template <typename Char>
-        std::pair<Char*, Char*> 
+        std::pair<Char*, Char*>
         Scratchpad_Writer<Char>::write_some(size_t forget_cnt)
         {
             pad_.increment_head(forget_cnt);
@@ -636,25 +691,37 @@ namespace xfsx {
         File_Writer<Char> & File_Writer<Char>::operator=(File_Writer &&) =default;
 
     template <typename Char>
-        std::pair<Char*, Char*> 
+        std::pair<Char*, Char*>
         File_Writer<Char>::prepare_write(size_t forget_cnt, size_t want_cnt)
         {
             return sink_.prepare_write(forget_cnt, want_cnt);
         }
     template <typename Char>
-        std::pair<Char*, Char*> 
+        std::pair<Char*, Char*>
         File_Writer<Char>::write_some(size_t forget_cnt)
         {
             return sink_.write_some(forget_cnt);
         }
     template <typename Char>
-        void 
+        std::pair<Char*, Char*>
+        File_Writer<Char>::write(size_t forget_cnt,
+                const Char *begin, const Char *end)
+        {
+            return sink_.write(forget_cnt, begin, end);
+        }
+    template <typename Char>
+        size_t File_Writer<Char>::inc() const
+        {
+            return sink_.inc();
+        }
+    template <typename Char>
+        void
         File_Writer<Char>::flush()
         {
             sink_.flush();
         }
     template <typename Char>
-        void 
+        void
         File_Writer<Char>::sync()
         {
             sink_.sync();
@@ -746,6 +813,12 @@ namespace xfsx {
         void Simple_Writer<Char>::write(const Char *begin, const Char *end)
         {
             size_t k = end-begin;
+            if (k >= backend_->inc()) {
+                std::tie(begin_, end_) = backend_->write(local_pos_, begin ,end);
+                local_pos_   = 0;
+                global_pos_ += k;
+                return;
+            }
 
             bool do_write = false;
             if (size_t(end_ - begin_) < k) {
