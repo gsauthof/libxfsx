@@ -135,7 +135,7 @@ namespace xfsx {
 
             // stack for constructed tags - primitive tags are never
             // pushed
-            std::deque<TLC> cons_stack_;
+            std::deque<Unit> cons_stack_;
             size_t cons_stack_top_{0};
             // contains the lengths of definite constructed input tags
             std::deque<size_t> length_stack_;
