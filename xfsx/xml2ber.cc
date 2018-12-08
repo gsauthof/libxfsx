@@ -85,7 +85,7 @@ class Xml2Ber {
         std::deque<scratchpad::Simple_Writer<u8>> writers_;
         size_t writer_stack_top_{0};
 
-        std::array<u8, 2> eoc_{0, 0};
+        std::array<u8, 2> eoc_{{0, 0}};
 };
 
 Xml2Ber::Xml2Ber(scratchpad::Simple_Reader<char> &in,
