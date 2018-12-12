@@ -165,6 +165,18 @@ namespace xfsx {
         {
             return dec_digits(uint32_t(n));
         }
+#if __APPLE__ && __MACH__
+        // On Mac OSX, Apple defines size_t in the most annoying way
+        // elsewhere its either the same as uint64_t or uint32_t
+        // cf. https://stackoverflow.com/q/11603818/427158
+	uint32_t dec_digits(size_t n)
+        {
+            if (sizeof(size_t) == sizeof(uint64_t))
+                return dec_digits(uint64_t(n));
+            else
+                return dec_digits(uint32_t(n));
+        }
+#endif
 
 
   }

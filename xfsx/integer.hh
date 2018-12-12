@@ -31,6 +31,9 @@ namespace xfsx {
 	uint32_t dec_digits(uint64_t n);
 	uint32_t dec_digits(uint32_t n);
 	uint32_t dec_digits(unsigned char n);
+#if __APPLE__ && __MACH__
+	uint32_t dec_digits(size_t n);
+#endif
 
     uint32_t range_to_uint32(const std::pair<const char*, const char*> &p);
     uint64_t range_to_uint64(const std::pair<const char*, const char*> &p);
