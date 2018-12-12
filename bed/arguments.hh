@@ -43,7 +43,8 @@ namespace bed {
     EDIT,
     COMPUTE_ACI,
     WRITE_ACI,
-    MK_BASH_COMP
+    MK_BASH_COMP,
+    MK_ZSH_COMP
   };
 
   class Arguments;
@@ -70,6 +71,7 @@ namespace bed {
     struct Compute_ACI : Base { using Base::Base; void execute() override; };
     struct Write_ACI : Base { using Base::Base; void execute() override; };
     struct Mk_Bash_Comp : Base { using Base::Base; void execute() override; };
+    struct Mk_Zsh_Comp : Base { using Base::Base; void execute() override; };
 
     namespace edit_op {
 

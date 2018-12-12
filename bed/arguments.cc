@@ -83,6 +83,9 @@ Commands:
                 Activate it via: `. <(bed mk-bash-comp)`
                 (or create a file in your bash completion directory)
 
+  mk-zsh-comp   Print Zsh command completion
+                Example: `bed mk-zsh-comp > ~/.config/zsh/functions/_bed`
+
 Files:
 
   The OUTPUT argument is mandatory for most commands. For the xml command
@@ -253,6 +256,10 @@ Arguments:
 
     -o,--output     Output file (instead of stdout)
 
+  mk-zsh-comp:
+
+    -o,--output     Output file (instead of stdout)
+
 
 BED stands for BER Editor, where the BER acronym means 'Basic Encoding Rules'.
 BER is a binary format (think: XML, but binary; Google Protocol Buffers, but
@@ -340,7 +347,23 @@ namespace bed {
     { "edit"       , Command::EDIT             },
     { "compute-aci", Command::COMPUTE_ACI      },
     { "write-aci",   Command::WRITE_ACI        },
-    { "mk-bash-comp",Command::MK_BASH_COMP     }
+    { "mk-bash-comp",Command::MK_BASH_COMP     },
+    { "mk-zsh-comp", Command::MK_ZSH_COMP     }
+  };
+
+  static map<Command, string> command_desc_map = {
+    { Command::WRITE_IDENTITY  , "Decode/encode BER"},
+    { Command::WRITE_DEFINITE  , "Convert BER to all definite tags"},
+    { Command::WRITE_INDEFINITE, "Convert BER to all indefinite tags"},
+    { Command::WRITE_XML       , "Convert BER to XML"},
+    { Command::WRITE_BER       , "Convert XML to BER"},
+    { Command::SEARCH_XPATH    , "XPath search in BER file with libxml2"},
+    { Command::VALIDATE_XSD    , "Validate BER file with libxml2"},
+    { Command::EDIT            , "Edit BER file in memory"},
+    { Command::COMPUTE_ACI     , "Compute Audit Control Info"},
+    { Command::WRITE_ACI       , "Rewrite Audit Control Info"},
+    { Command::MK_BASH_COMP    , "Print Bash completion file"},
+    { Command::MK_ZSH_COMP     , "Print Zsh completion file"}
   };
 
   static map<string, Edit_Command> edit_command_map = {
@@ -444,6 +467,42 @@ namespace bed {
      { Option::NO_FSYNC     , { 0, 0 }  }
   };
 
+  static map<Option, string> option_desc_map = {
+     { Option::VERBOSE      , "increase verbosity" },
+     { Option::HELP         , "display help text and exit" },
+     { Option::VERSION      , "display program version" },
+     { Option::INDENT       , "Indentation step size" },
+     { Option::ASN          , "ASN.1 grammar file"  },
+     { Option::ASN_PATH     , "ASN.1 search path" },
+     { Option::ASN_CFG      , "ASN.1 autoconfig .json" },
+     { Option::NO_DETECT    , "disable autodetection" },
+     { Option::HEX          , "include hex-dump of primitive content" },
+     { Option::TAG          , "include tag numbers"  },
+     { Option::KLASSE       , "include class numbers" },
+     { Option::TL           , "include tag-length encoding size" },
+     { Option::T_SIZE       , "include tag encoding size" },
+     { Option::LENGTH       , "include content lengths" },
+     { Option::OFFSET       , "include byte offsets" },
+     { Option::SKIP         , "skip N input bytes" },
+     { Option::SKIP_ZERO    , "skip trailing zero bytes" },
+     { Option::BLOCK        , "read in N byte blocks, skip fillers" },
+     { Option::BCI          , "only read the first header tags" },
+     { Option::SEARCH       , "only print what matches a simple PATH" },
+     { Option::ACI          , "just print the AuditControlInfo" },
+     { Option::CDR          , "just print the nth or n,m,o-p CDR(s)" },
+     { Option::FIRST        , "stop reading after the first element" },
+     { Option::COUNT        , "just print the first N tags"  },
+     { Option::EXPR         , "XPath expresion" },
+     { Option::XSD          , "XSD schema for validation"  },
+     { Option::COMMAND      , "edit command" },
+     { Option::OUTPUT       , "output file" },
+     { Option::PRETTY_PRINT , "pretty print content" },
+     { Option::PP_FILE      , "pretty print Lua file" },
+     { Option::MMAP         , "memory-map input" },
+     { Option::MMAP_OUT     , "memory-map output" },
+     { Option::NO_FSYNC     , "skip fsync/msync after the last write" }
+  };
+
   static map<Option, set<Command> > option_comp_map = {
     // Constructing the empty set with { } works with gcc, but not with
     // certain clang/stl combinations
@@ -485,7 +544,7 @@ namespace bed {
     { Option::EXPR      ,  { Command::SEARCH_XPATH }  },
     { Option::XSD       ,  { Command::VALIDATE_XSD }  },
     { Option::COMMAND   ,  { Command::EDIT }  },
-    { Option::OUTPUT    ,  { Command::MK_BASH_COMP } },
+    { Option::OUTPUT    ,  { Command::MK_BASH_COMP, Command::MK_ZSH_COMP } },
     { Option::PRETTY_PRINT,{ Command::WRITE_XML, Command::PRETTY_WRITE_XML } },
     { Option::PP_FILE   ,  { Command::WRITE_XML, Command::PRETTY_WRITE_XML } },
     { Option::MMAP      ,  { Command::WRITE_IDENTITY, Command::WRITE_INDEFINITE,
@@ -752,6 +811,60 @@ namespace bed {
 
   namespace command {
 
+      void Mk_Zsh_Comp::execute()
+      {
+          using namespace xfsx;
+          scratchpad::Simple_Writer<char> x(args_.out_filename.empty() ?
+                  scratchpad::mk_simple_writer<char>(ixxx::util::FD(1))
+                  : scratchpad::mk_simple_writer<char>(args_.out_filename));
+          byte::writer::Base w(x);
+
+          string name(boost::filesystem::path(args_.argv0).stem().string());
+          w << "#compdef _" << name << ' ' << name << "\n\n"
+              "function _" << name << " {\n"
+              "    local line\n\n"
+              "    _arguments -C \\\n";
+          for (const char *hopt : { "-h", "--help" }) {
+              w << "        \"" << hopt << '['<< option_desc_map[Option::HELP]
+                  << "]\" \\\n";
+          }
+          w << "\"1:command:((";
+          for (auto &cmd : command_map) {
+              w << cmd.first << "\\:'" << command_desc_map[cmd.second] << "' ";
+          }
+          w << "))\" \\\n";
+          w << "      \"*::arg:->args\"\n\n"
+              "    case $line[1] in\n";
+          for (auto &cmd : command_map) {
+              string t(cmd.first);
+              replace(t.begin(), t.end(), '-', '_');
+              w << "        " << cmd.first << ")\n            _bed_" << t
+                  << "\n            ;;\n";
+          }
+          w << "    esac\n"
+              "}\n\n";
+          for (auto &cmd : command_map) {
+              string t(cmd.first);
+              replace(t.begin(), t.end(), '-', '_');
+              w << "function _bed_" << t << " {\n"
+                  "    _arguments \\\n";
+              for (auto &o : option_map) {
+                  auto &s = option_comp_map[o.second];
+                  if ((!s.count(cmd.second) && !s.empty())
+                          || o.second == Option::HELP)
+                      continue;
+                  w << "        \"" << o.first << '[' << option_desc_map.at(o.second) << ']';
+                  if (o.second == Option::ASN)
+                      w << ":asn:_files";
+                  w << "\" \\\n";
+              }
+              w << "        1:input:_files \\\n"
+                  "        2:output:_files\n";
+              w << "}\n\n";
+          }
+          x.flush();
+      }
+
     void Mk_Bash_Comp::execute()
     {
       string name(boost::filesystem::path(args_.argv0).stem().string());
@@ -898,7 +1011,8 @@ complete -F _)" << name << ' ' << name << '\n';
       throw Argument_Error("Could not find any positional arguments");
     if (positional.size() > 3)
       throw Argument_Error("Too many positional arguments");
-    if (positional.size() < 2 && !(command == Command::MK_BASH_COMP))
+    if (positional.size() < 2 && !(command == Command::MK_BASH_COMP
+                || command == Command::MK_ZSH_COMP))
       throw Argument_Error("No input filename given");
     if (positional.size() > 1)
       in_filename = positional.at(1);
@@ -989,7 +1103,8 @@ complete -F _)" << name << ' ' << name << '\n';
                   command::Edit,
                   command::Compute_ACI,
                   command::Write_ACI,
-                  command::Mk_Bash_Comp
+                  command::Mk_Bash_Comp,
+                  command::Mk_Zsh_Comp
         >().make(n, *this);
   }
 

@@ -35,6 +35,26 @@ BOOST_AUTO_TEST_SUITE(bed_)
 
     BOOST_AUTO_TEST_SUITE_END() // mk_bash_comp
 
+    BOOST_AUTO_TEST_SUITE(mk_zsh_comp)
+
+      BOOST_AUTO_TEST_CASE(basic)
+      {
+        bf::path out(test::path::out());
+        out /= "bed/command";
+        out /= "mk_zsh_comp.zsh";
+        bf::remove(out);
+        bf::create_directories(out.parent_path());
+        run_bed({"bed", "mk-zsh-comp", "-o", out.generic_string() });
+
+        BOOST_TEST_CHECKPOINT("Checking output: " << out);
+        BOOST_REQUIRE(bf::file_size(out));
+        auto f = ixxx::util::mmap_file(out.generic_string());
+        const char q[] = "function _bed";
+        BOOST_CHECK(search(f.s_begin(), f.s_end(), q, q+sizeof(q)-1) != f.s_end());
+      }
+
+    BOOST_AUTO_TEST_SUITE_END() // mk_zsh_comp
+
   BOOST_AUTO_TEST_SUITE_END() // command
 
 BOOST_AUTO_TEST_SUITE_END() // bed_
