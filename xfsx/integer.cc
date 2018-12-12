@@ -20,10 +20,13 @@
 }}} */
 #include "integer.hh"
 
-#include <boost/spirit/include/qi_parse.hpp>
-#include <boost/spirit/include/qi_auto.hpp>
-#include <boost/spirit/include/qi_numeric.hpp>
-
+#if XFSX_HAVE_FROM_CHARS
+    #include <charconv>
+#else
+    #include <boost/spirit/include/qi_parse.hpp>
+    #include <boost/spirit/include/qi_auto.hpp>
+    #include <boost/spirit/include/qi_numeric.hpp>
+#endif
 
 // Alternatives are:
 //
@@ -49,7 +52,15 @@
 //  is faster than 1), but since strtol need zero terminated strings, a (small)
 //  copy into a temporary buffer is needed.
 //
-//  Conclusion: qi-parse is the fastest method.
+//  3) Boost qi-parse
+//
+//  efficient, because no extra buffer, but some compile time overhead
+//
+//  4) C++ std::from_chars()
+//
+//  only available since C++17, also allows for efficient implementations
+//
+//  Conclusion: use from_chars() where available, qi-parse otherwise.
 
 namespace xfsx {
 
@@ -58,21 +69,34 @@ namespace xfsx {
     uint32_t range_to_uint32(const std::pair<const char*, const char*> &p)
     {
       uint32_t t = 0;
+#if XFSX_HAVE_FROM_CHARS
+      std::from_chars(p.first, p.second, t);
+#else
       boost::spirit::qi::parse(p.first, p.second, t);
+#endif
+
       return t;
     }
 
     uint64_t range_to_uint64(const std::pair<const char*, const char*> &p)
     {
       uint64_t t = 0;
+#if XFSX_HAVE_FROM_CHARS
+      std::from_chars(p.first, p.second, t);
+#else
       boost::spirit::qi::parse(p.first, p.second, t);
+#endif
       return t;
     }
 
     int64_t range_to_int64(const std::pair<const char*, const char*> &p)
     {
       int64_t t = 0;
+#if XFSX_HAVE_FROM_CHARS
+      std::from_chars(p.first, p.second, t);
+#else
       boost::spirit::qi::parse(p.first, p.second, t);
+#endif
       return t;
     }
 

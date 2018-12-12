@@ -1,11 +1,17 @@
 cmake_minimum_required(VERSION 3.2)
 project(xfsx CXX)
 
+include(CheckCXXSourceCompiles)
+
 set(XFSX_VERSION "0.6.1" CACHE STRING "Library version")
 set(XFSX_DATE "2016-06-11" CACHE STRING "Date of last significant change")
 
 option(XFSX_USE_LUA  "Enable Lua based features like pretty printing" ON)
 option(XFSX_USE_LUAJIT "Use Luajit" OFF)
+
+CHECK_CXX_SOURCE_COMPILES("#include <charconv>
+int main(int argc, char **argv) {
+int i; std::from_chars(argv[1], argv[1]+1, i); }" XFSX_HAVE_FROM_CHARS)
 
 # guard from super-projects, i.e. when it is added as subdirectory
 IF(CMAKE_CURRENT_SOURCE_DIR STREQUAL CMAKE_SOURCE_DIR)

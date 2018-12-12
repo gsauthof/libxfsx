@@ -24,6 +24,7 @@
 #cmakedefine XFSX_USE_LUA 1
 #cmakedefine XFSX_USE_LUAJIT 1
 #cmakedefine XFSX_VERSION "@XFSX_VERSION@"
+#cmakedefine XFSX_HAVE_FROM_CHARS 1
 
 namespace xfsx {
 
