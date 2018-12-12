@@ -108,6 +108,65 @@ namespace xfsx {
       }
     }
 
+
+	static const uint64_t powers_of_10[] = {
+	  0LLU,
+	  10LLU,
+	  100LLU,
+	  1000LLU,
+	  10000LLU,
+	  100000LLU,
+	  1000000LLU,
+	  10000000LLU,
+	  100000000LLU,
+	  1000000000LLU,
+	  10000000000LLU,
+	  100000000000LLU,
+	  1000000000000LLU,
+	  10000000000000LLU,
+	  100000000000000LLU,
+	  1000000000000000LLU,
+	  10000000000000000LLU,
+	  100000000000000000LLU,
+	  1000000000000000000LLU,
+	  10000000000000000000LLU
+	};
+
+	static const uint32_t powers_of_10_u32[] = {
+	  0,
+	  10,
+	  100,
+	  1000,
+	  10000,
+	  100000,
+	  1000000,
+	  10000000,
+	  100000000,
+	  1000000000
+	};
+
+
+        // public-domain from:
+        // http://graphics.stanford.edu/~seander/bithacks.html#IntegerLog10
+        // via:
+        // https://github.com/localvoid/cxx-benchmark-count-digits/blob/master/src/bth-clz.cpp
+	uint32_t dec_digits(uint64_t n)
+        {
+	  uint64_t t = (64 - clz_uint64(n | 1)) * 1233 >> 12;
+	  return t - (n < powers_of_10[t]) + 1;
+	}
+
+	uint32_t dec_digits(uint32_t n)
+        {
+	  uint32_t t = (32 - clz_uint32(n | 1)) * 1233 >> 12;
+	  return t - (n < powers_of_10_u32[t]) + 1;
+	}
+	uint32_t dec_digits(unsigned char n)
+        {
+            return dec_digits(uint32_t(n));
+        }
+
+
   }
 
 }

@@ -20,6 +20,9 @@
 }}} */
 #include "byte.hh"
 
+#include "integer.hh"
+
+#include <type_traits>
 #include <vector>
 #include <stdexcept>
 #include <algorithm>
@@ -27,7 +30,11 @@
 
 #include <ixxx/ixxx.hh>
 
-#include <fmt/format.h>
+#if XFSX_HAVE_FROM_CHARS
+    #include <charconv>
+#else
+    #include <fmt/format.h>
+#endif
 
 using namespace std;
 
@@ -42,31 +49,18 @@ namespace xfsx {
         return strlen(s);
       }
 
-      // copied and slightly adapted this length computing part from
-      // fmt/fmt/format/format.h:3425, format_decimal()
-      // https://github.com/fmtlib/fmt
-      // BSD 2-clause "Simplified" License
       template <typename T>
       size_t encoded_length_int(T value)
       {
-        size_t r = 0;
-        typedef typename fmt::internal::IntTraits<T>::MainType MainType;
-        MainType abs_value = static_cast<MainType>(value);
-        if (fmt::internal::is_negative(value)) {
-          ++r;
-          abs_value = 0 - abs_value;
-        }
-        if (abs_value < 100) {
-          if (abs_value < 10) {
-            ++r;
-            return r;
+          if (value < 0) {
+              // make_unsigned_t<T> v = -value; // C++ 14
+              typename make_unsigned<T>::type v = -value; // C++ 14
+              return 1 + integer::dec_digits(v);
+          } else {
+              // make_unsigned_t<T> v = value; // C++ 14
+              typename make_unsigned<T>::type v = value;
+              return integer::dec_digits(v);
           }
-          r += 2;
-          return r;
-        }
-        unsigned num_digits = fmt::internal::count_digits(abs_value);
-        r += num_digits;
-        return r;
       }
       template <> size_t encoded_length(uint32_t v)
       {
@@ -135,13 +129,17 @@ namespace xfsx {
         return copy(s, s+n, o);
       }
 
-      // copied and slightly adapted this encoding part from
-      // fmt/fmt/format/format.h:3425, format_decimal()
-      // https://github.com/fmtlib/fmt
-      // BSD 2-clause "Simplified" License
       template <typename T>
       char *encode_int(T value, char *buffer, size_t n)
       {
+#if XFSX_HAVE_FROM_CHARS
+          auto r = std::to_chars(buffer, buffer+n, value);
+          return r.ptr;
+#else
+          // copied and slightly adapted this encoding part from
+          // fmt/fmt/format/format.h:3425, format_decimal()
+          // https://github.com/fmtlib/fmt
+          // BSD 2-clause "Simplified" License
         typedef typename fmt::internal::IntTraits<T>::MainType MainType;
         MainType abs_value = static_cast<MainType>(value);
         if (fmt::internal::is_negative(value)) {
@@ -163,6 +161,7 @@ namespace xfsx {
         fmt::internal::format_decimal(buffer, abs_value, num_digits);
         buffer += num_digits;
         return buffer;
+#endif
       }
       template <> char *encode(uint32_t v, char *o, size_t n)
       {

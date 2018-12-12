@@ -158,12 +158,12 @@ or just:
 - [libixxx][libixxx]
 - [libixxxutil][libixxxutil]
 - [libxxxml][libxxxml] (C++ wrapper around libxml2)
-- [cppformat][cppformat] (for converting integers to strings; its integer conversion function is very efficient)
 
 Optional:
 
 - [Lua][lua] - for content pretty printing support (cf. `--pp` and `config/*.lua`)
 - [libFuzzer][fuzz] - for fuzzing different parts of the library (cf. `tool/*fuzzer.cc`)
+- [fmtlib][cppformat] - for converting integers to strings on pre-C++17 systems; its integer conversion function is very efficient
 
 That means on a minimal Fedora system you just need to install
 the following packages to get started:
@@ -461,7 +461,7 @@ available.
 [libixxxutil]: https://github.com/gsauthof/libixxxutil
 [variant-gen]: https://github.com/gsauthof/variant-generator
 [json]: https://en.wikipedia.org/wiki/JSON
-[cppformat]: https://github.com/cppformat/cppformat
+[cppformat]: https://github.com/fmtlib/fmt
 [td60]: http://www.gsma.com/newsroom/wp-content/uploads/TD.60-v30.5.pdf
 [xer]: https://en.wikipedia.org/wiki/XML_Encoding_Rules
 [mingw64]: http://mingw-w64.org/doku.php
