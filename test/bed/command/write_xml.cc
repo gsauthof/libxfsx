@@ -141,6 +141,26 @@ BOOST_AUTO_TEST_SUITE(bed_)
             { "write-xml", "--count", "18" });
       }
 
+      BOOST_AUTO_TEST_CASE(longest_prefix_match)
+      {
+        compare_bed_output("tap_3_12_strip.asn1",
+            "tap_3_12_valid.ber", "count.xml",
+            { "write-xml", "--coun", "18" });
+        compare_bed_output("tap_3_12_strip.asn1",
+            "tap_3_12_valid.ber", "count.xml",
+            { "write-xml", "--cou", "18" });
+      }
+
+      BOOST_AUTO_TEST_CASE(longest_prefix_match_not)
+      {
+        BOOST_CHECK_THROW(
+            compare_bed_output("tap_3_12_strip.asn1",
+                "tap_3_12_valid.ber", "count.xml",
+                { "write-xml", "--co", "18" }),
+            bed::Argument_Error
+            );
+      }
+
       BOOST_AUTO_TEST_CASE(write_xml_bci)
       {
         compare_bed_output("tap_3_12_strip.asn1",

@@ -942,6 +942,41 @@ complete -F _)" << name << ' ' << name << '\n';
   }
 
 
+    // common prefix size
+    static size_t cp_size(const std::string &v, const std::string &w)
+    {
+        size_t n = std::min(v.size(), w.size());
+        size_t r = 0;
+        for (size_t i = 0; i < n; ++i) {
+            if (v[i] == w[i])
+                ++r;
+            else
+                break;
+        }
+        return r;
+    }
+
+
+    // prefix-match the option if the prefix is unique
+    static Option str_to_option(const string &s)
+    {
+        auto ot = option_map.find(s);
+        if (ot == option_map.end()) {
+            auto u = option_map.upper_bound(s);
+            if (u != option_map.end()) {
+                size_t t = cp_size(s, u->first);
+                if (t) {
+                    auto v = u;
+                    ++v;
+                    if (v == option_map.end() || cp_size(s, v->first) < t)
+                        ot = u;
+                }
+            }
+        }
+        if (ot == option_map.end())
+            throw Argument_Error("Unknown argument switch: " + s);
+        return ot->second;
+    }
 
 
   Arguments::Arguments(unsigned argc, char **argv)
@@ -964,8 +999,7 @@ complete -F _)" << name << ' ' << name << '\n';
       } else if (!strcmp(argv[i], "--")) {
         ignore_switches = true;
       } else if (*argv[i] == '-' && argv[i][1] && !ignore_switches) {
-        try {
-          auto o = option_map.at(argv[i]);
+          auto o = str_to_option(argv[i]);
           auto ac = option_to_argc_map.at(o);
           auto &comp = option_comp_map.at(o);
           if (!comp.empty() && !comp.count(command))
@@ -977,9 +1011,6 @@ complete -F _)" << name << ' ' << name << '\n';
             throw Argument_Error("missing " + string(argv[i]) + " argument");
           apply(*this, i + 1, j, argc, argv);
           i = j;
-        } catch (const std::out_of_range &e) {
-          throw Argument_Error("Unknown argument switch: " + string(argv[i]));
-        }
       } else {
         positional.emplace_back(argv[i]);
         if (positional.size() == 1) {
