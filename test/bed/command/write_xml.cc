@@ -161,6 +161,39 @@ BOOST_AUTO_TEST_SUITE(bed_)
             );
       }
 
+      BOOST_AUTO_TEST_CASE(did_you_mean)
+      {
+          bool caught = false;
+          try {
+              compare_bed_output("tap_3_12_strip.asn1",
+                    "tap_3_12_valid.ber", "count.xml",
+                    { "write-xml", "--co", "18" });
+          } catch (const bed::Argument_Error &e) {
+              caught = true;
+              string s(e.what());
+              BOOST_CHECK(s.find("Did you mean") != s.npos);
+              BOOST_CHECK(s.find("--count") != s.npos);
+              BOOST_CHECK(s.find("--command") != s.npos);
+              BOOST_CHECK(s.find("--verbose") != s.npos);
+          }
+          BOOST_CHECK(caught);
+      }
+
+      BOOST_AUTO_TEST_CASE(did_you_mean2)
+      {
+          bool caught = false;
+          try {
+              compare_bed_output("tap_3_12_strip.asn1",
+                    "tap_3_12_valid.ber", "count.xml",
+                    { "write-xml", "--cou", "18", "--t-size" });
+          } catch (const bed::Argument_Error &e) {
+              caught = true;
+              string s(e.what());
+              BOOST_CHECK(s.find("Did you mean --t_size?") != s.npos);
+          }
+          BOOST_CHECK(caught);
+      }
+
       BOOST_AUTO_TEST_CASE(write_xml_bci)
       {
         compare_bed_output("tap_3_12_strip.asn1",

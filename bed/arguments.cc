@@ -282,6 +282,7 @@ the encoding format) grammar.
 
 #include <boost/lexical_cast.hpp>
 #include <boost/filesystem.hpp>
+#include <boost/multi_array.hpp>
 
 #include <xfsx/scratchpad.hh>
 #include <xfsx_config.hh>
@@ -956,6 +957,50 @@ complete -F _)" << name << ' ' << name << '\n';
         return r;
     }
 
+    static size_t alignment_score(const std::string &v, const std::string &w)
+    {
+        boost::multi_array<unsigned, 2> a(boost::extents[v.size()+1][w.size()+1]);
+        for (size_t i = 0; i <= v.size(); ++i)
+            a[i][0] = 0;
+        for (size_t j = 1; j <= w.size(); ++j)
+            a[0][j] = 0;
+        for (size_t i = 1; i <= v.size(); ++i) {
+            for (size_t j = 1; j <= w.size(); ++j) {
+                a[i][j] = std::max({
+                        a[i-1][j-1] + (v[i] == w[j]),
+                        a[i-1][j],
+                        a[i][j-1]
+                        });
+            }
+        }
+        return a[v.size()][w.size()];
+    }
+
+    static string generate_suggestion(const std::string &s)
+    {
+        vector<pair<unsigned, string>> cand;
+        for (auto &x : option_map) {
+            auto d = alignment_score(s, x.first);
+            if (d > s.size() - std::min(s.size(), size_t(3)))
+                cand.emplace_back(d, x.first);
+        }
+        sort(cand.begin(), cand.end(), [](const pair<unsigned, string> &a,
+                    const pair<unsigned, string> &b) {
+                return b.first < a.first;
+                });
+        if (cand.empty())
+            return "";
+
+        ostringstream o;
+        o << "\n    " << "Did you mean " << cand.front().second;
+        for (size_t i = 1; i < cand.size(); ++i) {
+            o << " or " << cand[i].second;
+            if (i > 1)
+                break;
+        }
+        o << '?';
+        return o.str();
+    }
 
     // prefix-match the option if the prefix is unique
     static Option str_to_option(const string &s)
@@ -974,7 +1019,8 @@ complete -F _)" << name << ' ' << name << '\n';
             }
         }
         if (ot == option_map.end())
-            throw Argument_Error("Unknown argument switch: " + s);
+            throw Argument_Error("Unknown argument switch: " + s
+                    + generate_suggestion(s));
         return ot->second;
     }
 
