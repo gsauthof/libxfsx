@@ -14,6 +14,12 @@
 #include <ixxx/posix.hh>
 #include <ixxx/ixxx.hh>
 
+
+// work-around Boost < 1.59 (e.g. Ubuntu 16)
+#ifndef BOOST_TEST_CONTEXT
+    #define BOOST_TEST_CONTEXT(A)
+#endif
+
 namespace bf = boost::filesystem;
 using namespace std;
 
