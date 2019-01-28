@@ -42,7 +42,7 @@ Syntactically validate a TAP file (plus some constraints checking):
 
     $ bed validate --xsd tap_3_12_incl_const.xsd CDxyz.ber
 
-2015-2017, Georg Sauthoff <mail@georg.so>
+2015-2019, Georg Sauthoff <mail@georg.so>
 
 
 
@@ -302,16 +302,16 @@ same:
     <A><Foo><Bar>...</Bar></Foo><Fuu><Blub>...</Blub></Fuu></A>
 
 
-In general this means: you have to use a stack for BER to XER
-transformation.
+In general this means: you have to create a complicated state
+machine for BER to XER transformation.
 
 In contrast the libgrammar ASN.1 to XSD/RelaxNG transformation is
 very straight forward: each BER tag is directly mapped to the
 ASN.1 type name (using its tag number and class number), i.e. the
-mapping is bijective. Thus, no stack is necessary for
-transforming BER to XML. A state machine is sufficient. Meaning,
-the transformation is more efficient.  Analogously, the
-transformation from XML to BER also only needs a state machine.
+mapping is bijective. Thus, no complicated state machine is necessary for
+transforming BER to XML. A trivial state machine is sufficient.
+Meaning, the transformation is more efficient.  Analogously, the
+transformation from XML to BER also only needs a trivial state machine.
 
 In addition to that - the resulting XML is also more
 comprehensible because one knows that every XML element has a
@@ -426,10 +426,11 @@ should be placed in the default config directory or be reachable via
 
 ## Platforms
 
-Tested on:
+Tested on (a selection):
 
-- Fedora Linux 23, x86-64
+- Fedora Linux 23/25/../29, x86-64
 - Debian 8, PowerPC64
+- Ubuntu 16 LTS x86-64
 - Solaris 10, SPARC (64 Bit, GCC 4.9)
 - Mac OS X 10.9.5, x86-64 (Apple LLVM clang 3.5)
 - Windows 7 64 Bit, [Wine][wine] 1.9.3 ([staging][winest]) 32 and 64 Bit
