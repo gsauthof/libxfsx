@@ -171,6 +171,29 @@ BOOST_AUTO_TEST_SUITE(xfsx_)
           xfsx::s_pair::equal(x.value(), "hello", 5), true);
     }
 
+    BOOST_AUTO_TEST_CASE(jump_over_gt)
+    {
+      const char inp[] = "<root><foo> lol > <bar>world</bar> </foo></root>";
+      auto r = scratchpad::mk_simple_reader(inp, inp+sizeof inp - 1);
+      xml::Reader x(r);
+
+      BOOST_REQUIRE(x.next() == true);
+      BOOST_CHECK_EQUAL(string(x.tag().first, x.tag().second), "root");
+      BOOST_REQUIRE(x.next() == true);
+      BOOST_CHECK_EQUAL(string(x.tag().first, x.tag().second), "foo");
+      BOOST_REQUIRE(x.next() == true);
+      BOOST_CHECK_EQUAL(string(x.tag().first, x.tag().second), "bar");
+      BOOST_REQUIRE(x.next() == true);
+      BOOST_CHECK_EQUAL(string(x.tag().first, x.tag().second), "/bar");
+      BOOST_CHECK_EQUAL(
+          xfsx::s_pair::equal(x.value(), "world", 5), true);
+      BOOST_REQUIRE(x.next() == true);
+      BOOST_CHECK_EQUAL(string(x.tag().first, x.tag().second), "/foo");
+      BOOST_REQUIRE(x.next() == true);
+      BOOST_CHECK_EQUAL(string(x.tag().first, x.tag().second), "/root");
+      BOOST_REQUIRE(x.next() == false);
+    }
+
     BOOST_AUTO_TEST_CASE(is_end)
     {
       const char inp[] = "/foo";

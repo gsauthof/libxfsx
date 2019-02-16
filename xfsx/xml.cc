@@ -60,6 +60,8 @@ namespace xfsx {
                 break;
             }
             k_.first = x - p_.first + 1; // excluding the <
+            auto old_k_second = k_.second;
+            k_.second = k_.first + 1;
             const char *y;
             for (;;) {
                 y = std::find(p_.first + k_.second, p_.second, '>');
@@ -70,13 +72,15 @@ namespace xfsx {
                     src_.next(inc_);
                     k_.first -= low_;
                     k_.second -= low_;
+                    old_k_second -= low_;
                     low_ = 0;
                     continue;
                 }
                 break;
             }
-            low_ = k_.second;
+            low_ = old_k_second;
             k_.second = y - p_.first + 1; // including the >
+            assert(k_.first < k_.second);
             return true;
         }
         std::pair<const char*, const char*> Reader::tag() const
