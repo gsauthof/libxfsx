@@ -11,8 +11,8 @@
 #include <xfsx/scratchpad.hh>
 
 namespace xfsx {
-    class TLC;
-    class Unit;
+    struct TLC;
+    struct Unit;
 
     template<typename T> bool read_next(scratchpad::Simple_Reader<u8> &r,
             T &tlc);

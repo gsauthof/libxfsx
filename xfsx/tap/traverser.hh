@@ -33,7 +33,7 @@
 namespace xfsx {
   namespace byte {
     namespace writer {
-      class Base;
+      struct Base;
     }
   }
 

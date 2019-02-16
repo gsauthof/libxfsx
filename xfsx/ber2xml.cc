@@ -344,7 +344,7 @@ class Ber2Xml {
 
         sol::state lua_;
         unordered_map<Tag_Int, sol::function> pp_fn_map_;
-        Klasse pp_klasse_ {Klasse::APPLICATION};
+        // Klasse pp_klasse_ {Klasse::APPLICATION};
         vector<pair<Tag_Matcher,
                     pair<sol::function, sol::function> > >
           matcher_;

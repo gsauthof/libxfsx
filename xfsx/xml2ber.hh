@@ -33,7 +33,7 @@ namespace xfsx {
         template <typename Char> class Simple_Writer;
     }
     class BER_Writer_Arguments;
-    class TLV;
+    struct TLV;
 
     namespace xml {
 

@@ -27,7 +27,7 @@
 #include <xfsx/xml_writer_arguments.hh>
 
 namespace xfsx {
-    namespace byte { namespace writer { class Base; } }
+    namespace byte { namespace writer { struct Base; } }
     namespace scratchpad {
         template<typename Char> class Simple_Reader;
         template<typename Char> class Simple_Writer;

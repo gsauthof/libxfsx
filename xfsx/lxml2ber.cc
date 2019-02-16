@@ -76,7 +76,7 @@ class Lxml2Ber {
 
         std::array<u8, 2> eoc_{{0, 0}};
 
-        size_t inc_{128*1024};
+        // size_t inc_{128*1024};
 };
 
 Lxml2Ber::Lxml2Ber(const xxxml::doc::Ptr &doc,
