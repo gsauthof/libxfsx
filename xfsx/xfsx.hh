@@ -302,6 +302,7 @@ namespace xfsx {
 
     bool is_eoc() const;
 
+    void load(const u8 *begin, const u8 *end);
     const u8 *read(const u8 *begin, const u8 *end);
     u8 *write(u8 *begin, u8 *end) const;
 
@@ -342,6 +343,7 @@ namespace xfsx {
   struct TLC : public Unit {
     const u8 *begin {nullptr};
 
+    void load(const u8 *begin, const u8 *end);
     const u8 *read(const u8 *begin, const u8 *end);
     u8 *write(u8 *begin, u8 *end) const;
 

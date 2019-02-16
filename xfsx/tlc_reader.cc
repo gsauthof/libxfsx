@@ -17,11 +17,12 @@ namespace xfsx {
         if (!t)
             return false;
 
-        tlc.read(r.window().first, r.window().second);
+        tlc.load(r.window().first, r.window().second);
 
         size_t k = tlc.tl_size;
         if (tlc.shape == Shape::PRIMITIVE) {
-            k += tlc.length;
+            if (__builtin_add_overflow(k, tlc.length, &k))
+                throw range_error("length overflows 64 bit");
             auto i = r.next(k);
             r.check_available(k);
             if (i == 2)
@@ -36,11 +37,12 @@ namespace xfsx {
         if (!t)
             return false;
 
-        tlc.read(r.window().first, r.window().second);
+        tlc.load(r.window().first, r.window().second);
 
         size_t k = tlc.tl_size;
         if (tlc.shape == Shape::PRIMITIVE) {
-            k += tlc.length;
+            if (__builtin_add_overflow(k, tlc.length, &k))
+                throw range_error("length overflows 64 bit");
             r.next(k);
             r.check_available(k);
         }

@@ -422,9 +422,7 @@ namespace xfsx {
    *
    *   - https://en.wikipedia.org/wiki/X.690
    */
-
-  const u8 *Unit::read(const u8 *begin,
-      const u8 *end)
+  void Unit::load(const u8 *begin, const u8 *end)
   {
     if (end-begin < 2)
       throw TL_Too_Small();
@@ -481,13 +479,22 @@ namespace xfsx {
       }
     }
     tl_size = p-begin;
-    // caller has to check it to allow for streaming reads (cf. scratchpad)
-    // if (size_t(end-p) < length)
-    //   throw range_error("content overflows");
-    if (shape == Shape::PRIMITIVE)
-      return p + length;
-    else
-      return p;
+  }
+
+  // load() and read() are split because some callers (cf. tlc_reader.cc)
+  // aren't interested in the return value and since length may come from
+  // an untrusted source the p+length might even overflow and thus invoke
+  // undefined behaviour
+  const u8 *Unit::read(const u8 *begin, const u8 *end)
+  {
+      load(begin, end);
+      // caller has to check it to allow for streaming reads (cf. scratchpad)
+      // if (size_t(end-p) < length)
+      //   throw range_error("content overflows");
+      if (shape == Shape::PRIMITIVE)
+          return begin + tl_size + length;
+      else
+          return begin + tl_size;
   }
 
   u8 *Unit::write(u8 *begin, u8 *end) const
@@ -602,6 +609,12 @@ namespace xfsx {
     init_length(length);
   }
 
+  void TLC::load(const u8 *begin,
+      const u8 *end)
+  {
+    this->begin = begin;
+    Unit::load(begin, end);
+  }
   const u8 *TLC::read(const u8 *begin,
       const u8 *end)
   {

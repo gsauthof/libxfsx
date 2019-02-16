@@ -597,7 +597,7 @@ BOOST_AUTO_TEST_SUITE(xfsx_)
         Unit u;
         // we don't throw anymore because of tlc_reader
         //BOOST_CHECK_THROW(u.read(a.begin(), end), std::range_error);
-        u.read(a.begin(), end);
+        u.load(a.begin(), end);
         BOOST_CHECK_EQUAL(u.length, 16258469694287840439lu);
         BOOST_CHECK_EQUAL(u.is_long_definite, true);
         BOOST_CHECK_EQUAL(u.shape, Shape::PRIMITIVE);

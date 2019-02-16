@@ -253,6 +253,7 @@ IF(CMAKE_PROJECT_NAME STREQUAL "xfsx")
       test/main_catch.cc
       test/raw_vector.cc
       test/scratchpad.cc
+      test/tlc_reader.cc
 
       test/bcd_decode.cc
       test/bcd_encode.cc
@@ -260,6 +261,11 @@ IF(CMAKE_PROJECT_NAME STREQUAL "xfsx")
       test/test.cc
       xfsx/bcd.cc
       xfsx/scratchpad.cc
+      xfsx/xfsx.cc
+      xfsx/s_pair.cc
+      xfsx/tlc_reader.cc
+      xfsx/integer.cc
+      xfsx/hex.cc
       )
   set_property(TARGET ut2 PROPERTY INCLUDE_DIRECTORIES
     ${Boost_INCLUDE_DIRS}
