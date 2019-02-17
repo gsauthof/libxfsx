@@ -430,6 +430,12 @@ namespace xfsx {
 
 
     template <typename Char>
+        Simple_Writer<Char> mk_simple_writer()
+        {
+            return Simple_Writer<Char>(std::unique_ptr<Writer<Char>>(
+                    new Scratchpad_Writer<Char>()));
+        }
+    template <typename Char>
         Simple_Writer<Char> mk_simple_writer(const std::string &filename)
         {
             return Simple_Writer<Char>(std::unique_ptr<scratchpad::Writer<Char>>(
