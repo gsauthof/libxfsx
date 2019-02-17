@@ -1,30 +1,7 @@
-/*
-
-## How to build clang/libFuzzer
-
-cf. http://llvm.org/docs/LibFuzzer.html
-
-## How to build the fuzzer
-
-    CXXFLAGS='-fsanitize-coverage=edge -fsanitize=address -g' \
-      LDFLAGS=-L$HOME/src/llvm/fuzzer/build \
-      CC=$HOME/src/llvm/build/bin/clang \
-      CXX=$HOME/src/llvm/build/bin/clang++  \
-      cmake ../../libxfsx -DCMAKE_BUILD_TYPE=Release -G Ninja
-    ninja-build ber2lxml_fuzzer
-    TEST_IN_BASE=../../libxfsx/test ./ber2lxml_fuzzer ../corpus
-
-or even
-
-    TEST_IN_BASE=../../libxfsx/test ./ber2lxml_fuzzer -detect_leaks=0 ../corpus
-
-Notes:
-
-- also use other sanitizers e.g. undefined, memory
-- copy some BER files into the corpus directory
-  (e.g. the ones in the `test/in` directory)
-
-   */
+// See README-fuzzing.md for some build and run instructions.
+//
+// 2016-2019, Georg Sauthoff <mail@gms.tf>
+// SPDX-License-Identifier: LGPL-3.0-or-later
 
 #include <string>
 #include <deque>
@@ -41,7 +18,7 @@ Notes:
 
 using namespace std;
 
-extern "C" int LLVMFuzzerTestOneInput(const u8 *d, size_t n) {
+extern "C" int LLVMFuzzerTestOneInput(const xfsx::u8 *d, size_t n) {
   string tap_filename(test::path::in()
       + "/../../libgrammar/test/in/asn1/tap_3_12_strip.asn1");
   deque<string> asn_filenames = {tap_filename};

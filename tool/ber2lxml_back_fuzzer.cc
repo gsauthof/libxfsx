@@ -1,30 +1,7 @@
-/*
-
-## How to build clang/libFuzzer
-
-cf. http://llvm.org/docs/LibFuzzer.html
-
-## How to build the fuzzer
-
-    CXXFLAGS='-fsanitize-coverage=edge -fsanitize=address -g' \
-      LDFLAGS=-L$HOME/src/llvm/fuzzer/build \
-      CC=$HOME/src/llvm/build/bin/clang \
-      CXX=$HOME/src/llvm/build/bin/clang++  \
-      cmake ../../libxfsx -DCMAKE_BUILD_TYPE=Release -G Ninja
-    ninja-build ber2lxml_back_fuzzer
-    TEST_IN_BASE=../../libxfsx/test ./ber2lxml_back_fuzzer ../corpus
-
-or even
-
-    TEST_IN_BASE=../../libxfsx/test ./ber2lxml_back_fuzzer -detect_leaks=0 ../corpus
-
-Notes:
-
-- also use other sanitizers e.g. undefined, memory
-- copy some BER files into the corpus directory
-  (e.g. the ones in the `test/in` directory)
-
-   */
+// See README-fuzzing.md for some build and run instructions.
+//
+// 2016-2019, Georg Sauthoff <mail@gms.tf>
+// SPDX-License-Identifier: LGPL-3.0-or-later
 
 #include <string>
 #include <deque>
@@ -32,8 +9,7 @@ Notes:
 #include <algorithm>
 #include <exception>
 
-
-#include <xfsx/byte.hh>
+#include <xfsx/scratchpad.hh>
 #include <xfsx/ber2xml.hh>
 #include <xfsx/xml_writer_arguments.hh>
 #include <xfsx/ber2lxml.hh>
@@ -45,20 +21,23 @@ Notes:
 #include <test/test.hh>
 
 using namespace std;
+using namespace xfsx;
 
 static void compare_bers(
     const pair<const u8*, const u8*> &a,
     const pair<const u8*, const u8*> &b,
     const xfsx::xml::Pretty_Writer_Arguments &args)
 {
-  xfsx::byte::writer::Memory x;
-  xfsx::byte::writer::Memory y;
+  auto x = scratchpad::mk_simple_writer<char>();
+  auto y = scratchpad::mk_simple_writer<char>();
   xfsx::xml::pretty_write(a.first, a.second, x, args);
   xfsx::xml::pretty_write(b.first, b.second, y, args);
-  if (x.written() != y.written())
-    throw length_error("Input XML length " + to_string(x.written()) 
-        + " != output XML length " + to_string(y.written()));
-  if (!equal(x.begin(), x.end(), y.begin(), y.end()))
+  if (x.pos() != y.pos())
+    throw length_error("Input XML length " + to_string(x.pos())
+        + " != output XML length " + to_string(y.pos()));
+  const auto &v = dynamic_cast<scratchpad::Scratchpad_Writer<char>*>(x.backend())->pad();
+  const auto &w = dynamic_cast<scratchpad::Scratchpad_Writer<char>*>(y.backend())->pad();
+  if (!equal(v.prelude(), v.begin(), w.prelude(), w.begin()))
     throw domain_error("Resulting XML differs from input XML");
 }
 
@@ -73,15 +52,16 @@ extern "C" int LLVMFuzzerTestOneInput(const u8 *d, size_t n) {
   xfsx::xml::Pretty_Writer_Arguments args;
   xfsx::BER_Writer_Arguments wargs;
   // xfsx::tap::apply_grammar(asn_filenames, wargs);
-  vector<u8> v;
+  auto x = scratchpad::mk_simple_writer<u8>();
   try {
     xxxml::doc::Ptr doc = xfsx::xml::l2::generate_tree(d, d+n, args);
-    xfsx::xml::l2::write_ber(doc, v, wargs);
+    xfsx::xml::l2::write_ber(doc, x, wargs);
   } catch (std::exception &e) {
     // as long it is erroring out in a controlled fashion it is fine
     return 0;
   }
-  compare_bers(make_pair(d, d+n), make_pair(v.data(), v.data()+v.size()), args);
+  const auto &v = dynamic_cast<scratchpad::Scratchpad_Writer<u8>*>(x.backend())->pad();
+  compare_bers(make_pair(d, d+n), make_pair(v.prelude(), v.begin()), args);
   return 0;  // Non-zero return values are reserved for future use.
 }
 

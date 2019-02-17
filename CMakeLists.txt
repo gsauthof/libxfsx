@@ -339,37 +339,49 @@ IF(CMAKE_CURRENT_SOURCE_DIR STREQUAL CMAKE_SOURCE_DIR)
   add_executable(ber2xml_fuzzer
     tool/ber2xml_fuzzer.cc
     test/test.cc
+    ${LIB_SRC}
   )
   add_executable(ber2lxml_fuzzer
     tool/ber2lxml_fuzzer.cc
     test/test.cc
+    ${LIB_SRC}
   )
   add_executable(ber2lxml_back_fuzzer
     tool/ber2lxml_back_fuzzer.cc
     test/test.cc
+    ${LIB_SRC}
   )
   add_executable(xml2ber_fuzzer
     tool/xml2ber_fuzzer.cc
     test/test.cc
+    ${LIB_SRC}
   )
-  set_property(TARGET ber2xml_fuzzer ber2lxml_back_fuzzer ber2lxml_fuzzer
-    xml2ber_fuzzer
+  set_property(TARGET ber2xml_fuzzer xml2ber_fuzzer
+    ber2lxml_back_fuzzer ber2lxml_fuzzer
     PROPERTY INCLUDE_DIRECTORIES
     ${Boost_INCLUDE_DIRS}
-    ${CMAKE_CURRENT_SOURCE_DIR}
-    ${CMAKE_CURRENT_SOURCE_DIR}/libixxx
-    ${CMAKE_CURRENT_SOURCE_DIR}/libixxxutil
-    ${CMAKE_CURRENT_SOURCE_DIR}/libxxxml
+    ${CMAKE_CURRENT_BINARY_DIR}
+    ${CMAKE_SOURCE_DIR}
+    ${CMAKE_SOURCE_DIR}/libgrammar
+    ${CMAKE_SOURCE_DIR}/libixxx
+    ${CMAKE_SOURCE_DIR}/libixxxutil
+    ${CMAKE_SOURCE_DIR}/libxxxml
     ${XML2_INCLUDE_DIR}
+    ${CMAKE_SOURCE_DIR}/sol2
   )
+  set_target_properties(ber2xml_fuzzer xml2ber_fuzzer
+      ber2lxml_fuzzer ber2lxml_back_fuzzer
+      PROPERTIES
+      COMPILE_DEFINITIONS SOL_USE_BOOST=1
+      COMPILE_FLAGS "-fsanitize=fuzzer,address,undefined"
+      LINK_FLAGS "-fsanitize=fuzzer,address,undefined"
+  )
+
   set(FUZZER_LIBS
-    xfsx_static
     grammar_static
     ixxxutil_static
     ixxx_static
     xxxml
-
-    Fuzzer
 
     ${XML2_LIB}
     ${Boost_FILESYSTEM_LIBRARY}
@@ -377,10 +389,14 @@ IF(CMAKE_CURRENT_SOURCE_DIR STREQUAL CMAKE_SOURCE_DIR)
     ${Boost_REGEX_LIBRARY}
     ${LUA_LIB}
     )
-  target_link_libraries(ber2xml_fuzzer ${FUZZER_LIBS})
-  target_link_libraries(ber2lxml_fuzzer ${FUZZER_LIBS})
-  target_link_libraries(ber2lxml_back_fuzzer ${FUZZER_LIBS})
-  target_link_libraries(xml2ber_fuzzer ${FUZZER_LIBS})
+  target_link_libraries(ber2xml_fuzzer
+      PRIVATE fmt::fmt-header-only ${FUZZER_LIBS})
+  target_link_libraries(xml2ber_fuzzer
+      PRIVATE fmt::fmt-header-only ${FUZZER_LIBS})
+  target_link_libraries(ber2lxml_fuzzer
+      PRIVATE fmt::fmt-header-only ${FUZZER_LIBS})
+  target_link_libraries(ber2lxml_back_fuzzer
+      PRIVATE fmt::fmt-header-only ${FUZZER_LIBS})
 
 
   add_custom_target(check-old COMMAND ut)
