@@ -20,6 +20,16 @@ BOOST_AUTO_TEST_SUITE(bed_)
             ref, ref+sizeof(ref)-1);
       }
 
+      BOOST_AUTO_TEST_CASE(two_root_fail)
+      {
+        const char ref[] = "";
+        BOOST_CHECK_THROW(compare_bed_output("tap_3_12_strip.asn1",
+            "two-root.ber", "two-root.xml",
+            { "search", "//Sender" },
+            ref, ref+sizeof(ref)-1), std::runtime_error);
+        // => multiple roots aren't supported with lxml
+      }
+
       BOOST_AUTO_TEST_CASE(search_skip)
       {
         const char ref[] = "\n";

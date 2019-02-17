@@ -192,7 +192,11 @@ namespace xfsx {
         xmlNode *node = nullptr;
         if (node_stack_.empty()) {
           node = xxxml::new_doc_node(doc_, name);
-          xxxml::doc::set_root_element(doc_, node);
+          auto t = xxxml::doc::set_root_element(doc_, node);
+          if (t) {
+              xmlFreeNode(t);
+              throw runtime_error("multiple roots aren't supported with lxml");
+          }
         } else {
           node = xxxml::new_child(node_stack_.top(), name);
         }
