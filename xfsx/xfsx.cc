@@ -881,6 +881,9 @@ namespace xfsx {
     static_assert(numeric_limits<T>::is_integer,
         "Template argument must be an integer");
 
+    if (!length)
+        return;
+
     if (sizeof(T) == 1) {
       r = *begin;
     } else {

@@ -1105,6 +1105,27 @@ BOOST_AUTO_TEST_SUITE(xfsx_)
 
   BOOST_AUTO_TEST_SUITE(decode_)
 
+    BOOST_AUTO_TEST_SUITE(integer)
+
+      BOOST_AUTO_TEST_CASE(empty_small)
+      {
+        using namespace xfsx;
+        u8 i = 23;
+        uint8_t r = 42;
+        decode(&i, 0, r);
+        BOOST_CHECK_EQUAL(r, 42);
+      }
+
+      BOOST_AUTO_TEST_CASE(empty_signed)
+      {
+        using namespace xfsx;
+        u8 i = 0xffu;
+        uint64_t r = 42;
+        decode(&i, 0, r);
+        BOOST_CHECK_EQUAL(r, 42);
+      }
+    BOOST_AUTO_TEST_SUITE_END()
+
     BOOST_AUTO_TEST_SUITE(bcd)
     // {{{
 
