@@ -98,9 +98,13 @@ struct Decode_Helper
   {
     return c;
   }
-  size_t increment_size(size_t digits) const
+  size_t inp_increment(size_t digits) const
   {
     return digits/2u;
+  }
+  size_t out_increment(size_t digits) const
+  {
+    return digits;
   }
   void init(vector<char> &) const
   {
@@ -118,9 +122,13 @@ struct Encode_Helper
   {
     return reinterpret_cast<u8*>(c);
   }
-  size_t increment_size(size_t digits) const
+  size_t inp_increment(size_t digits) const
   {
     return digits;
+  }
+  size_t out_increment(size_t digits) const
+  {
+    return digits/2;
   }
   void init(vector<char> &v) const
   {
@@ -156,12 +164,13 @@ static void bench(const string &name,
       helper.init(v);
       auto x = helper.cast_input(v.data());
       auto o = helper.cast_output(w.data());
-      const size_t n = helper.increment_size(args.digits);
+      const size_t n = helper.inp_increment(args.digits);
+      const size_t m = helper.out_increment(args.digits);
       auto start = chrono::high_resolution_clock::now();
       for (size_t i = 0; i < args.blocks; ++i) {
         some_fn(x, x + n, o);
         x += n;
-        o += args.digits;
+        o += m;
         bytes += n;
       }
       auto stop = chrono::high_resolution_clock::now();
