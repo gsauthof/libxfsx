@@ -24,6 +24,7 @@
 #include "hex.hh"
 #include "integer.hh"
 
+#include <assert.h>
 #include <stdlib.h>
 #include <stdexcept>
 #include <limits>
