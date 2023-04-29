@@ -105,12 +105,12 @@ For example:
 
     $ git clone remote-url
     $ cd project
-    $ git submodule update
-    $ git submodule init
+    $ git submodule update --init
 
 Out of source builds are recommended, e.g.:
 
     $ mkdir build
+    $ cd build
     $ cmake ..
     $ make bed
 
